@@ -1,4 +1,4 @@
-module github.com/vynovikov/postParser
+module github.com/vynovikov/highLoadParser
 
 go 1.20
 
