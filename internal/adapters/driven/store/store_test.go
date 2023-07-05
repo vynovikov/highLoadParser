@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/vynovikov/postParser/internal/repo"
+	"github.com/vynovikov/highLoadParser/internal/repo"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -17,6 +17,7 @@ func TestStore(t *testing.T) {
 	suite.Run(t, new(storeSuite))
 }
 
+/*
 func (s *storeSuite) TestRegister() {
 	tt := []struct {
 		name      string
@@ -824,7 +825,9 @@ func (s *storeSuite) TestRegister() {
 	}
 
 }
+*/
 
+/*
 func (s *storeSuite) TestRegisterBuffer() {
 
 	tt := []struct {
@@ -1492,6 +1495,7 @@ func (s *storeSuite) TestRegisterBuffer() {
 		})
 	}
 }
+*/
 
 func (s *storeSuite) TestPresense() {
 

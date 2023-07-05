@@ -6,10 +6,9 @@ import (
 	"bytes"
 	"fmt"
 	"sort"
-	"strings"
 	"sync"
 
-	"github.com/vynovikov/postParser/internal/repo"
+	"github.com/vynovikov/highLoadParser/internal/repo"
 )
 
 type StoreStruct struct {
@@ -32,6 +31,7 @@ type Store interface {
 	BufferAdd(repo.DataPiece)
 	Register(repo.DataPiece, repo.Boundary) (repo.AppDistributorUnit, error)
 	RegisterBuffer(repo.AppStoreKeyGeneral, repo.Boundary) ([]repo.AppDistributorUnit, []error)
+	Reset(repo.AppStoreKeyGeneral)
 	Inc(repo.AppStoreKeyGeneral, int)
 	Dec(repo.DataPiece) (repo.Order, error)
 	Presence(repo.DataPiece) (repo.Presense, error)
@@ -41,35 +41,58 @@ type Store interface {
 
 // Register updates store.R with data from particular dataPiece.
 // Tested in store_test.go
+
 func (s *StoreStruct) Register(d repo.DataPiece, bou repo.Boundary) (repo.AppDistributorUnit, error) {
 
 	var (
-		du        repo.AppDistributorUnit
-		askdParts []int
+		du repo.AppDistributorUnit
+		//askdParts []int
 	)
-	if s.B == nil { // delete after testing
-		s.B = make(map[repo.AppStoreKeyGeneral][]repo.DataPiece)
-	}
+	/*
+		if s.B == nil { // delete after testing
+			s.B = make(map[repo.AppStoreKeyGeneral][]repo.DataPiece)
+		}
 
-	askg := repo.NewAppStoreKeyGeneralFromDataPiece(d)
-	askd := repo.NewAppStoreKeyDetailed(d)
+		askg := repo.NewAppStoreKeyGeneralFromDataPiece(d)
+		askd := repo.NewAppStoreKeyDetailed(d)
 
-	switch {
+		switch {
 
-	case d.B() == repo.True: //DataPiece needs beginning
+		case d.B() == repo.True: //DataPiece needs beginning
 
-		if m1, ok := s.R[askg]; ok { // General key met
+			if m1, ok := s.R[askg]; ok { // General key met
 
-			if m2, ok := m1[askd]; ok { // Detailed key met
-				m3f := m2[false]
+				if m2, ok := m1[askd]; ok { // Detailed key met
+					m3f := m2[false]
 
-				if m3f.D.FormName == "" { // Disposition is not filled
-					header, err := d.H(bou)
+					if m3f.D.FormName == "" { // Disposition is not filled
+						header, err := d.H(bou)
 
-					if m3t, ok := m2[true]; ok { // true branch is present
+						if m3t, ok := m2[true]; ok { // true branch is present
+							if strings.Contains(err.Error(), "is ending part") {
+
+								m3f.D.H = append(m3f.D.H, m3t.D.H...)
+
+								m3f.D.H = append(m3f.D.H, header...)
+								m3f.D.FormName, m3f.D.FileName = repo.GetFoFi(m3f.D.H)
+								m3f.E = d.E()
+
+								d.BodyCut(len(header))
+
+								vvv := map[bool]repo.AppStoreValue{}
+								vvv[false] = m3f
+								delete(s.R[askg], askd)
+								s.R[askg][askd.IncPart()] = vvv
+
+								if m3f.B.Part == 0 {
+									return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Start, PostAction: repo.Continue}), nil
+								}
+								return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Continue}), fmt.Errorf("in store.Register new dataPiece group with TS \"%s\" and Part = %d", askg.TS, m3f.B.Part)
+							}
+
+						}
+						// no true branch
 						if strings.Contains(err.Error(), "is ending part") {
-
-							m3f.D.H = append(m3f.D.H, m3t.D.H...)
 
 							m3f.D.H = append(m3f.D.H, header...)
 							m3f.D.FormName, m3f.D.FileName = repo.GetFoFi(m3f.D.H)
@@ -80,67 +103,69 @@ func (s *StoreStruct) Register(d repo.DataPiece, bou repo.Boundary) (repo.AppDis
 							vvv := map[bool]repo.AppStoreValue{}
 							vvv[false] = m3f
 							delete(s.R[askg], askd)
-							s.R[askg][askd.IncPart()] = vvv
 
-							if m3f.B.Part == 0 {
-								return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Start, PostAction: repo.Continue}), nil
-							}
+							s.R[askg][askd.IncPart()] = vvv
 							return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Continue}), fmt.Errorf("in store.Register new dataPiece group with TS \"%s\" and Part = %d", askg.TS, m3f.B.Part)
 						}
-
 					}
-					// no true branch
-					if strings.Contains(err.Error(), "is ending part") {
+					// Disposition is filled
+					if m3t, ok := m2[true]; ok { // true branch is present
 
-						m3f.D.H = append(m3f.D.H, header...)
-						m3f.D.FormName, m3f.D.FileName = repo.GetFoFi(m3f.D.H)
-						m3f.E = d.E()
+						if m3f.E == repo.True { // false branch needs next part -- still waiting for dataPiece with d.E == repo.Probably which is current one
 
-						d.BodyCut(len(header))
+							m3f.E = d.E()
 
-						vvv := map[bool]repo.AppStoreValue{}
-						vvv[false] = m3f
-						delete(s.R[askg], askd)
+							vv := map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{askd.IncPart(): {false: m3f, true: m3t}}
+							delete(s.R[askg], askd)
+							s.R[askg] = vv
 
-						s.R[askg][askd.IncPart()] = vvv
-						return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Continue}), fmt.Errorf("in store.Register new dataPiece group with TS \"%s\" and Part = %d", askg.TS, m3f.B.Part)
-					}
-				}
-				// Disposition is filled
-				if m3t, ok := m2[true]; ok { // true branch is present
+							return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Continue}), nil
 
-					if m3f.E == repo.True { // false branch needs next part -- still waiting for dataPiece with d.E == repo.Probably which is current one
+						}
 
-						m3f.E = d.E()
+						header, err := d.H(bou)
 
-						vv := map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{askd.IncPart(): {false: m3f, true: m3t}}
-						delete(s.R[askg], askd)
-						s.R[askg] = vv
+						if err != nil {
+							if strings.Contains(err.Error(), "is ending part") { // header in dataPiece's body present
 
-						return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Continue}), nil
+								if repo.IsLastBoundary(m3t.D.H, header, bou) {
+									adu := repo.AppDistributorUnit{H: repo.AppDistributorHeader{T: repo.ClientStream, S: repo.StreamData{SK: repo.StreamKey{TS: d.TS(), Part: m3t.B.Part}, M: repo.Message{S: "finish"}}}}
+									delete(s.R, askg)
 
-					}
+									return adu, fmt.Errorf("in store.Register dataPiece group with TS \"%s\" is finished", d.TS())
+								}
 
-					header, err := d.H(bou)
+								if repo.IsBoundary(m3t.D.H, header, bou) && bytes.Contains(header, []byte("Content-Disposition")) {
 
-					if err != nil {
-						if strings.Contains(err.Error(), "is ending part") { // header in dataPiece's body present
+									m3f.D.H = header[bytes.Index(header, []byte("Content-Disposition")):]
+									m3f.D.FormName, m3f.D.FileName = repo.GetFoFi(header)
+									m3f.B = m3t.B
+									m3f.E = d.E()
 
-							if repo.IsLastBoundary(m3t.D.H, header, bou) {
-								adu := repo.AppDistributorUnit{H: repo.AppDistributorHeader{T: repo.ClientStream, S: repo.StreamData{SK: repo.StreamKey{TS: d.TS(), Part: m3t.B.Part}, M: repo.Message{S: "finish"}}}}
-								delete(s.R, askg)
+									d.BodyCut(len(header))
 
-								return adu, fmt.Errorf("in store.Register dataPiece group with TS \"%s\" is finished", d.TS())
-							}
+									vv := map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{askd.IncPart(): {false: m3f}}
 
-							if repo.IsBoundary(m3t.D.H, header, bou) && bytes.Contains(header, []byte("Content-Disposition")) {
+									delete(s.R[askg], askd)
 
-								m3f.D.H = header[bytes.Index(header, []byte("Content-Disposition")):]
-								m3f.D.FormName, m3f.D.FileName = repo.GetFoFi(header)
-								m3f.B = m3t.B
+									s.R[askg] = vv
+
+									adu := repo.AppDistributorUnit{}
+
+									switch d.E() {
+									case repo.True:
+										adu = repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.StopLast, PostAction: repo.Continue})
+									case repo.False:
+
+										adu = repo.NewAppDistributorUnitUnaryComposed(m3f, d, repo.Message{PreAction: repo.StopLast, PostAction: repo.Close})
+									}
+
+									return adu, fmt.Errorf("in store.Register new dataPiece group with TS \"%s\" and Part = %d", askg.TS, m3f.B.Part)
+								}
+
+								d.Prepend(m3t.D.H)
+
 								m3f.E = d.E()
-
-								d.BodyCut(len(header))
 
 								vv := map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{askd.IncPart(): {false: m3f}}
 
@@ -148,156 +173,135 @@ func (s *StoreStruct) Register(d repo.DataPiece, bou repo.Boundary) (repo.AppDis
 
 								s.R[askg] = vv
 
-								adu := repo.AppDistributorUnit{}
+								return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Continue}), nil
 
-								switch d.E() {
-								case repo.True:
-									adu = repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.StopLast, PostAction: repo.Continue})
-								case repo.False:
-
-									adu = repo.NewAppDistributorUnitUnaryComposed(m3f, d, repo.Message{PreAction: repo.StopLast, PostAction: repo.Close})
-								}
-
-								return adu, fmt.Errorf("in store.Register new dataPiece group with TS \"%s\" and Part = %d", askg.TS, m3f.B.Part)
 							}
 
-							d.Prepend(m3t.D.H)
+							if strings.Contains(err.Error(), "no header found") {
 
-							m3f.E = d.E()
+								m3f.E = d.E()
 
-							vv := map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{askd.IncPart(): {false: m3f}}
+								vv := map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{askd.IncPart(): {false: m3f}}
+								delete(s.R[askg], askd)
+								s.R[askg] = vv
 
-							delete(s.R[askg], askd)
+								d.Prepend(m3t.D.H)
 
-							s.R[askg] = vv
+								return repo.NewDistributorUnitStream(s.R[askg][askd.IncPart()][false], d, repo.Message{PreAction: repo.Continue, PostAction: repo.Continue}), nil
 
-							return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Continue}), nil
+							}
+							if strings.Contains(err.Error(), "is the last") {
 
+								delete(s.R, askg)
+
+								adu := repo.NewDistributorUnitStreamEmpty(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Finish})
+
+								return adu, fmt.Errorf("in store.Register dataPiece group with TS \"%s\" is finished", d.TS())
+							}
 						}
-
-						if strings.Contains(err.Error(), "no header found") {
-
-							m3f.E = d.E()
-
-							vv := map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{askd.IncPart(): {false: m3f}}
-							delete(s.R[askg], askd)
-							s.R[askg] = vv
-
-							d.Prepend(m3t.D.H)
-
-							return repo.NewDistributorUnitStream(s.R[askg][askd.IncPart()][false], d, repo.Message{PreAction: repo.Continue, PostAction: repo.Continue}), nil
-
+						if repo.IsLastBoundary(m3t.D.H, header, bou) {
+							return repo.AppDistributorUnit{H: repo.AppDistributorHeader{T: repo.Tech, C: repo.CloseData{TS: d.TS()}}}, nil
 						}
-						if strings.Contains(err.Error(), "is the last") {
-
-							delete(s.R, askg)
-
-							adu := repo.NewDistributorUnitStreamEmpty(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Finish})
-
-							return adu, fmt.Errorf("in store.Register dataPiece group with TS \"%s\" is finished", d.TS())
-						}
-					}
-					if repo.IsLastBoundary(m3t.D.H, header, bou) {
-						return repo.AppDistributorUnit{H: repo.AppDistributorHeader{T: repo.Tech, C: repo.CloseData{TS: d.TS()}}}, nil
-					}
-				}
-				// no true branch
-				vvv := map[bool]repo.AppStoreValue{}
-				switch d.E() {
-
-				case repo.Probably: // deteiled group can be closed or finished
-
-					m2f, ok1 := m1[askd.F()]
-					m2t, ok2 := m1[askd.T()]
-					if ok1 && ok2 { // there is another ASKD with same part which has true branch only
-						m3t := m2t[true]
-
-						m3f := m2f[false]
-						m3f.E = d.E()
-
-						vvv := map[bool]repo.AppStoreValue{}
-						vvv[true] = m3t
-						vvv[false] = m3f
-
-						delete(s.R[askg], askd.T())
-						delete(s.R[askg], askd.F())
-						s.R[askg][askd.IncPart()] = vvv
-						return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Continue}), nil
 					}
 					// no true branch
+					vvv := map[bool]repo.AppStoreValue{}
+					switch d.E() {
 
-					m3f.E = d.E()
+					case repo.Probably: // deteiled group can be closed or finished
 
-					delete(s.R[askg], askd)
-					s.R[askg][askd] = map[bool]repo.AppStoreValue{false: m3f}
+						m2f, ok1 := m1[askd.F()]
+						m2t, ok2 := m1[askd.T()]
+						if ok1 && ok2 { // there is another ASKD with same part which has true branch only
+							m3t := m2t[true]
 
-					return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Continue}), fmt.Errorf("in store.Register got double-meaning dataPiece")
+							m3f := m2f[false]
+							m3f.E = d.E()
 
-				case repo.True: // detailed group shall be continued
+							vvv := map[bool]repo.AppStoreValue{}
+							vvv[true] = m3t
+							vvv[false] = m3f
 
-					vvv[false] = m3f
-					delete(s.R[askg], askd)
+							delete(s.R[askg], askd.T())
+							delete(s.R[askg], askd.F())
+							s.R[askg][askd.IncPart()] = vvv
+							return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Continue}), nil
+						}
+						// no true branch
 
-					s.R[askg][askd.IncPart()] = vvv
+						m3f.E = d.E()
 
-					adu := repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Continue})
+						delete(s.R[askg], askd)
+						s.R[askg][askd] = map[bool]repo.AppStoreValue{false: m3f}
 
-					return adu, nil
+						return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Continue}), fmt.Errorf("in store.Register got double-meaning dataPiece")
 
-				case repo.False:
+					case repo.True: // detailed group shall be continued
 
-					if m3t, ok := m2[true]; ok {
+						vvv[false] = m3f
+						delete(s.R[askg], askd)
 
-						boundaryTrimmed := repo.GenBoundary(bou)[2:]
-						lb := append(m3t.D.H, d.GetBody(repo.Min(d.LL(), repo.MaxHeaderLimit))...)
+						s.R[askg][askd.IncPart()] = vvv
 
-						if repo.LastBoundary(lb, boundaryTrimmed) {
+						adu := repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Continue})
 
-							delete(s.R, askg)
+						return adu, nil
 
-							return repo.NewDistributorUnitStreamEmpty(m3t, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Close}), fmt.Errorf("in store.Register dataPiece group with TS \"%s\" is finished", d.TS())
+					case repo.False:
+
+						if m3t, ok := m2[true]; ok {
+
+							boundaryTrimmed := repo.GenBoundary(bou)[2:]
+							lb := append(m3t.D.H, d.GetBody(repo.Min(d.LL(), repo.MaxHeaderLimit))...)
+
+							if repo.LastBoundary(lb, boundaryTrimmed) {
+
+								delete(s.R, askg)
+
+								return repo.NewDistributorUnitStreamEmpty(m3t, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Close}), fmt.Errorf("in store.Register dataPiece group with TS \"%s\" is finished", d.TS())
+							}
+
+							delete(s.R[askg], askd)
+
+							return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Close}), fmt.Errorf("in store.Register dataPiece group with TS %q and Part = %d is finished", d.TS(), m3f.B.Part)
 						}
 
 						delete(s.R[askg], askd)
 
-						return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Close}), fmt.Errorf("in store.Register dataPiece group with TS %q and Part = %d is finished", d.TS(), m3f.B.Part)
+						return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Close}), fmt.Errorf("in store.Register dataPiece group with TS %q and Part \"%d\" is finished", d.TS(), m3f.B.Part)
 					}
-
-					delete(s.R[askg], askd)
-
-					return repo.NewDistributorUnitStream(m3f, d, repo.Message{PreAction: repo.Continue, PostAction: repo.Close}), fmt.Errorf("in store.Register dataPiece group with TS %q and Part \"%d\" is finished", d.TS(), m3f.B.Part)
 				}
+				// askd not met
+
+				s.BufferAdd(d)
+
+				for i := range s.R[askg] {
+
+					askdParts = append(askdParts, i.SK.Part)
+
+				}
+				sort.Ints(askdParts)
+
+				if len(askdParts) == 1 {
+					return du, fmt.Errorf("in store.Register dataPiece's Part for given TS \"%s\" should be \"%d\" but got \"%d\"", d.TS(), askdParts[0], d.Part())
+				}
+				if len(askdParts) > 1 {
+					return du, fmt.Errorf("in store.Register dataPiece's Part for given TS \"%s\" should be one of \"%d\" but got \"%d\"", d.TS(), askdParts, d.Part())
+				}
+
 			}
-			// askd not met
+			// askg not met
 
 			s.BufferAdd(d)
-
-			for i := range s.R[askg] {
-
-				askdParts = append(askdParts, i.SK.Part)
-
-			}
-			sort.Ints(askdParts)
-
-			if len(askdParts) == 1 {
-				return du, fmt.Errorf("in store.Register dataPiece's Part for given TS \"%s\" should be \"%d\" but got \"%d\"", d.TS(), askdParts[0], d.Part())
-			}
-			if len(askdParts) > 1 {
-				return du, fmt.Errorf("in store.Register dataPiece's Part for given TS \"%s\" should be one of \"%d\" but got \"%d\"", d.TS(), askdParts, d.Part())
-			}
-
+			return du, fmt.Errorf("in store.Register dataPiece's TS %q is unknown", askg.TS)
 		}
-		// askg not met
-
-		s.BufferAdd(d)
-		return du, fmt.Errorf("in store.Register dataPiece's TS %q is unknown", askg.TS)
-	}
+	*/
 	return du, nil
 }
 
 // BufferAdd adds dataPiece to store.B.
 // Store.B keeps being sorted after each addition.
 // Tested in store_test.go
+
 func (s *StoreStruct) BufferAdd(d repo.DataPiece) {
 
 	askg := repo.NewAppStoreKeyGeneralFromDataPiece(d)
@@ -443,109 +447,112 @@ func (s *StoreStruct) CleanBuffer(ids repo.AppStoreBufferIDs) {
 // RegisterBuffer ranges overt store.B elements.
 // Registers them until first fail
 // Tested in store_test.go
+
 func (s *StoreStruct) RegisterBuffer(askg repo.AppStoreKeyGeneral, bou repo.Boundary) ([]repo.AppDistributorUnit, []error) {
-	ids, adus, errs, repeat, _ := repo.NewAppStoreBufferIDs(), make([]repo.AppDistributorUnit, 0), make([]error, 0), true, len(s.B[askg]) > 0 && !s.C[askg].Blocked
+	errs, adus := make([]error, 0), make([]repo.AppDistributorUnit, 0)
+	/*
+		ids, repeat, _ := repo.NewAppStoreBufferIDs(), true, len(s.B[askg]) > 0 && !s.C[askg].Blocked
 
-	if len(s.B) == 0 {
-		errs = append(errs, fmt.Errorf("in store.RegisterBuffer buffer has no elements"))
-		return adus, errs
-	}
-
-	if len(s.B[askg]) == 1 {
-		if s.B[askg][0].B() == repo.False && s.B[askg][0].E() == repo.False {
-			if s.C[askg].Cur == 1 && !s.C[askg].Blocked {
-				switch s.C[askg].Max {
-				case 1:
-					adus = append(adus, repo.NewAppDistributorUnitUnary(s.B[askg][0], bou, repo.Message{PreAction: repo.Start, PostAction: repo.Finish}))
-				default:
-					adus = append(adus, repo.NewAppDistributorUnitUnary(s.B[askg][0], bou, repo.Message{PreAction: repo.None, PostAction: repo.Finish}))
-				}
-				return adus, nil
-
-			}
-		}
-	}
-	if len(s.B[askg]) == 1 && s.C[askg].Cur == 1 {
-		if s.C[askg].Blocked {
-			errs = append(errs, fmt.Errorf("in store.RegisterBuffer buffer has single element and current counter == 1 and blocked"))
+		if len(s.B) == 0 {
+			errs = append(errs, fmt.Errorf("in store.RegisterBuffer buffer has no elements"))
 			return adus, errs
 		}
 
-	}
-
-	for i, v := range s.B {
-
-		if i.TS != askg.TS {
-			continue
-		}
-
-		for repeat {
-			repeat = false
-
-			for j, w := range v {
-
-				askg, askd := repo.NewAppStoreKeyGeneralFromDataPiece(w), repo.NewAppStoreKeyDetailed(w)
-
-				if isIn(j, ids.GetIDs(askg)) { // index'v been registered already, skipping
-
-					if len(ids.GetIDs(askg)) == len(s.B[askg]) {
-						break
+		if len(s.B[askg]) == 1 {
+			if s.B[askg][0].B() == repo.False && s.B[askg][0].E() == repo.False {
+				if s.C[askg].Cur == 1 && !s.C[askg].Blocked {
+					switch s.C[askg].Max {
+					case 1:
+						adus = append(adus, repo.NewAppDistributorUnitUnary(s.B[askg][0], bou, repo.Message{PreAction: repo.Start, PostAction: repo.Finish}))
+					default:
+						adus = append(adus, repo.NewAppDistributorUnitUnary(s.B[askg][0], bou, repo.Message{PreAction: repo.None, PostAction: repo.Finish}))
 					}
-					continue
+					return adus, nil
+
 				}
-
-				if m1, ok := s.R[askg]; ok {
-					if _, ok := m1[askd]; ok {
-						if !s.C[askg].Blocked {
-							adu, err := s.Register(w, bou)
-
-							if err != nil {
-								errs = append(errs, err)
-							}
-							if s.C[askg].Cur == 1 {
-								if adu.H.T == repo.Unary {
-									adu.H.U.M.PostAction = repo.Finish
-								}
-								if adu.H.T == repo.ClientStream {
-									adu.H.S.M.PostAction = repo.Finish
-								}
-							}
-							s.Dec(w)
-
-							adus = append(adus, adu)
-							ids.Add(repo.NewAppStoreBufferID(i, j))
-
-							continue
-						}
-						if s.C[askg].Blocked && s.C[askg].Cur > 1 {
-							adu, err := s.Register(w, bou)
-							if err != nil {
-								errs = append(errs, err)
-							}
-
-							s.Dec(w)
-							adus = append(adus, adu)
-							repeat = true
-							ids.Add(repo.NewAppStoreBufferID(i, j))
-							continue
-
-						}
-						if s.C[askg].Blocked && s.C[askg].Cur == 1 {
-							errs = append(errs, fmt.Errorf("in store.RegisterBuffer buffer has single element and current counter == 1 and blocked"))
-							repeat = false
-							break
-						}
-
-					}
-				}
-				repeat = false
 			}
 		}
-	}
-	if len(ids.I) > 0 && len(s.B[askg]) > 0 {
-		s.CleanBuffer(*ids)
-	}
+		if len(s.B[askg]) == 1 && s.C[askg].Cur == 1 {
+			if s.C[askg].Blocked {
+				errs = append(errs, fmt.Errorf("in store.RegisterBuffer buffer has single element and current counter == 1 and blocked"))
+				return adus, errs
+			}
 
+		}
+
+		for i, v := range s.B {
+
+			if i.TS != askg.TS {
+				continue
+			}
+
+			for repeat {
+				repeat = false
+
+				for j, w := range v {
+
+					askg, askd := repo.NewAppStoreKeyGeneralFromDataPiece(w), repo.NewAppStoreKeyDetailed(w)
+
+					if isIn(j, ids.GetIDs(askg)) { // index'v been registered already, skipping
+
+						if len(ids.GetIDs(askg)) == len(s.B[askg]) {
+							break
+						}
+						continue
+					}
+
+					if m1, ok := s.R[askg]; ok {
+						if _, ok := m1[askd]; ok {
+							if !s.C[askg].Blocked {
+								adu, err := s.Register(w, bou)
+
+								if err != nil {
+									errs = append(errs, err)
+								}
+								if s.C[askg].Cur == 1 {
+									if adu.H.T == repo.Unary {
+										adu.H.U.M.PostAction = repo.Finish
+									}
+									if adu.H.T == repo.ClientStream {
+										adu.H.S.M.PostAction = repo.Finish
+									}
+								}
+								s.Dec(w)
+
+								adus = append(adus, adu)
+								ids.Add(repo.NewAppStoreBufferID(i, j))
+
+								continue
+							}
+							if s.C[askg].Blocked && s.C[askg].Cur > 1 {
+								adu, err := s.Register(w, bou)
+								if err != nil {
+									errs = append(errs, err)
+								}
+
+								s.Dec(w)
+								adus = append(adus, adu)
+								repeat = true
+								ids.Add(repo.NewAppStoreBufferID(i, j))
+								continue
+
+							}
+							if s.C[askg].Blocked && s.C[askg].Cur == 1 {
+								errs = append(errs, fmt.Errorf("in store.RegisterBuffer buffer has single element and current counter == 1 and blocked"))
+								repeat = false
+								break
+							}
+
+						}
+					}
+					repeat = false
+				}
+			}
+		}
+		if len(ids.I) > 0 && len(s.B[askg]) > 0 {
+			s.CleanBuffer(*ids)
+		}
+	*/
 	return adus, errs
 }
 
@@ -624,7 +631,7 @@ func (s *StoreStruct) Dec(d repo.DataPiece) (repo.Order, error) {
 				}
 				// !Blocked
 				s.Reset(askg)
-				return repo.Last, nil
+				return repo.Unordered, nil
 			}
 			return repo.Intermediate, nil
 		}
@@ -723,7 +730,7 @@ func (s *StoreStruct) Act(d repo.DataPiece, sc repo.StoreChange) {
 
 	switch sc.A {
 	case repo.Change:
-		if m1, ok := s.R[askg]; ok { // ASKD met
+		if m1, ok := s.R[askg]; ok { // ASKG met
 
 			for i, _ := range sc.From {
 				if _, ok := m1[i]; ok {
@@ -747,9 +754,12 @@ func (s *StoreStruct) Act(d repo.DataPiece, sc repo.StoreChange) {
 		s.R[askg] = make(map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue)
 
 	case repo.Buffer:
-		s.BufferAdd(d)
+		//s.BufferAdd(d)
 	case repo.Remove:
 		delete(s.R, askg)
+
+	case repo.ForseAdd:
+		s.R[askg] = sc.To
 	}
 }
 

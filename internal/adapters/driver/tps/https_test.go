@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vynovikov/postParser/internal/adapters/application"
-	"github.com/vynovikov/postParser/internal/repo"
+	"github.com/vynovikov/highLoadParser/internal/adapters/application"
+	"github.com/vynovikov/highLoadParser/internal/repo"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -71,10 +71,9 @@ func (s *tpsSuite) TestHandleRequest() {
 						params: []repo.AppUnit{
 							repo.ReceiverUnit{
 								H: repo.ReceiverHeader{
-									TS:      "qqq",
-									Part:    0,
-									Bou:     repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
-									Unblock: true,
+									TS:   "qqq",
+									Part: 0,
+									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
 								},
 								B: repo.ReceiverBody{
 									B: []byte(
@@ -139,10 +138,9 @@ func (s *tpsSuite) TestHandleRequest() {
 						params: []repo.AppUnit{
 							repo.ReceiverUnit{
 								H: repo.ReceiverHeader{
-									TS:      "qqq",
-									Part:    0,
-									Bou:     repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
-									Unblock: true,
+									TS:   "qqq",
+									Part: 0,
+									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
 								},
 								B: repo.ReceiverBody{
 									B: []byte(
@@ -214,10 +212,9 @@ func (s *tpsSuite) TestHandleRequest() {
 						params: []repo.AppUnit{
 							repo.ReceiverUnit{
 								H: repo.ReceiverHeader{
-									TS:      "qqq",
-									Part:    0,
-									Bou:     repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
-									Unblock: false,
+									TS:   "qqq",
+									Part: 0,
+									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
 								},
 								B: repo.ReceiverBody{
 									B: []byte(
@@ -289,10 +286,9 @@ func (s *tpsSuite) TestHandleRequest() {
 						params: []repo.AppUnit{
 							repo.ReceiverUnit{
 								H: repo.ReceiverHeader{
-									TS:      "qqq",
-									Part:    0,
-									Bou:     repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
-									Unblock: false,
+									TS:   "qqq",
+									Part: 0,
+									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
 								},
 								B: repo.ReceiverBody{
 									B: []byte(
@@ -317,10 +313,9 @@ func (s *tpsSuite) TestHandleRequest() {
 											"6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666")}},
 							repo.ReceiverUnit{
 								H: repo.ReceiverHeader{
-									TS:      "qqq",
-									Part:    1,
-									Bou:     repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
-									Unblock: true,
+									TS:   "qqq",
+									Part: 1,
+									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
 								},
 								B: repo.ReceiverBody{
 									B: []byte("6")}},
@@ -378,10 +373,9 @@ func (s *tpsSuite) TestHandleRequest() {
 						params: []repo.AppUnit{
 							repo.ReceiverUnit{
 								H: repo.ReceiverHeader{
-									TS:      "qqq",
-									Part:    0,
-									Bou:     repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
-									Unblock: false,
+									TS:   "qqq",
+									Part: 0,
+									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
 								},
 								B: repo.ReceiverBody{
 									B: []byte(
@@ -406,10 +400,9 @@ func (s *tpsSuite) TestHandleRequest() {
 											"6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666")}},
 							repo.ReceiverUnit{
 								H: repo.ReceiverHeader{
-									TS:      "qqq",
-									Part:    1,
-									Bou:     repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
-									Unblock: true,
+									TS:   "qqq",
+									Part: 1,
+									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
 								},
 								B: repo.ReceiverBody{
 									B: []byte(

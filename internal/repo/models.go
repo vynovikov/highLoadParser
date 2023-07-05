@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 type Vocabulaty struct {
@@ -30,7 +32,7 @@ type ReceiverHeader struct {
 	Part    int
 	TS      string
 	Bou     Boundary
-	Unblock bool
+	Unblock bool // Don't need
 }
 
 func NewReceiverHeader(ts string, p int, bou Boundary) ReceiverHeader {
@@ -50,14 +52,6 @@ func NewReceiverBody(n int) ReceiverBody {
 	return ReceiverBody{
 		B: make([]byte, n),
 	}
-}
-
-type ReceiverSignal struct {
-	Signal string
-}
-
-func (rh *ReceiverHeader) SetPart(p int) {
-	rh.Part = p
 }
 
 type ReceiverUnit struct {
@@ -263,18 +257,39 @@ func NewUnary(uk UnaryKey, f FiFo, m Message) UnaryData {
 	}
 }
 
+type Info struct {
+	FileName []byte
+	Started  bool
+	Finished bool
+}
+
+func NewInfo(fn []byte, s, f bool) Info {
+	return Info{
+		FileName: fn,
+		Started:  s,
+		Finished: f,
+	}
+}
+
 type AppDistributorHeader struct {
-	// Transfer type
-	T comm
+	/*
+		// Transfer type
+		T comm
 
-	// Unary info
-	U UnaryData
+		// Unary info
+		U UnaryData
 
-	// Stream info
-	S StreamData
+		// Stream info
+		S StreamData
 
-	// Close info
-	C CloseData
+		// Close info
+		C CloseData
+	*/
+	// For kafka message
+	TS       string
+	FormName string
+	FileName string
+	IsLast   bool
 }
 
 func NewCurrentPieceHeader(ts string, p int) CurrentPieceHeader {
@@ -300,27 +315,43 @@ func NewUnaryData(uk UnaryKey, f FiFo, m Message) UnaryData {
 		M:  m,
 	}
 }
-
-func NewAppDistributorHeader(t comm, s StreamData, u UnaryData) AppDistributorHeader {
+func NewAppDistributorKafkaHeader(ts string, fo, fi string, l bool) AppDistributorHeader {
+	if len(fi) > 0 {
+		return AppDistributorHeader{
+			TS:       ts,
+			FormName: fo,
+			FileName: fi,
+			IsLast:   l,
+		}
+	}
 	return AppDistributorHeader{
-		T: t,
-		S: s,
-		U: u,
+		TS:       ts,
+		FormName: fo,
+		IsLast:   l,
+	}
+}
+func NewAppDistributorHeaderKafkaPrepared(d DataPiece, header []byte, headerErr error) AppDistributorHeader {
+	fo, fi := GetFoFi(header)
+	return AppDistributorHeader{
+		TS:       d.TS(),
+		FormName: fo,
+		FileName: fi,
+		IsLast:   d.E() == Last,
 	}
 }
 
-func NewAppDistributorHeaderStream(d DataPiece, f FiFo, m Message, b BeginningData) AppDistributorHeader {
+func NewAppDistributorHeaderKafkaFromSC(d DataPiece, sc StoreChange) AppDistributorHeader {
+
+	dispo := sc.From[NewAppStoreKeyDetailed(d)][false].D
+	if dispo.FormName == "" {
+		dispo = sc.To[NewAppStoreKeyDetailed(d).IncPart()][false].D
+	}
+
 	return AppDistributorHeader{
-		T: ClientStream,
-		S: StreamData{
-			SK: StreamKey{
-				TS:   d.TS(),
-				Part: d.Part(),
-			},
-			F: f,
-			M: m,
-			B: b,
-		},
+		TS:       d.TS(),
+		FormName: dispo.FormName,
+		FileName: dispo.FileName,
+		IsLast:   d.E() == Last,
 	}
 }
 
@@ -355,35 +386,7 @@ func (adu AppDistributorUnit) GetBody() []byte {
 	return adu.B.B
 }
 
-func NewDistributorUnitStream(ask AppStoreValue, d DataPiece, m Message) AppDistributorUnit {
-	sk := NewStreamKey(d.TS(), d.Part(), false)
-	fifo := NewFiFo(ask.D.FormName, ask.D.FileName)
-	b := ask.B
-	sm := m
-
-	sd := NewStreamData(sk, fifo, sm, b)
-	adu := AppDistributorUnit{
-		H: NewAppDistributorHeader(ClientStream, sd, UnaryData{}),
-		B: NewDistributorBody(d.GetBody(0)),
-	}
-
-	return adu
-
-}
-
-func NewDistributorUnitStreamEmpty(ask AppStoreValue, d DataPiece, m Message) AppDistributorUnit {
-	sk := NewStreamKey(d.TS(), d.Part(), false)
-	fifo := NewFiFo("", "")
-	sm := NewStreamMessage(m)
-
-	sd := NewStreamData(sk, fifo, sm, BeginningData{})
-
-	return AppDistributorUnit{
-		H: NewAppDistributorHeader(ClientStream, sd, UnaryData{}),
-	}
-}
-
-func NewAppDistributorUnitUnary(d DataPiece, bou Boundary, m Message) AppDistributorUnit {
+func NewAppDistributorUnitKafka(d DataPiece, bou Boundary) AppDistributorUnit {
 	h, err := d.H(bou)
 	if err != nil &&
 		!strings.Contains(err.Error(), "is ending part") {
@@ -394,28 +397,19 @@ func NewAppDistributorUnitUnary(d DataPiece, bou Boundary, m Message) AppDistrib
 	}
 
 	fo, fi := GetFoFi(h)
-	fifo := NewFiFo(fo, fi)
-
-	uk := NewUnaryKey(d.TS(), d.Part())
 
 	return AppDistributorUnit{
-		H: NewAppDistributorHeader(Unary, StreamData{}, NewUnary(uk, fifo, m)),
+		H: NewAppDistributorKafkaHeader(d.TS(), fo, fi, d.E() == Last),
 		B: NewDistributorBody(d.GetBody(0)[len(h):]),
 	}
 }
 
-func NewAppDistributorUnitUnaryComposed(ask AppStoreValue, d DataPiece, m Message) AppDistributorUnit {
-	uk := NewUnaryKey(d.TS(), d.Part())
-	fifo := NewFiFo(ask.D.FormName, ask.D.FileName)
-	sm := m
-
-	ud := NewUnaryData(uk, fifo, sm)
-	adu := AppDistributorUnit{
-		H: NewAppDistributorHeader(Unary, StreamData{}, ud),
-		B: NewDistributorBody(d.GetBody(0)),
+func NewAppDistributorUnitKafkaPrepared(d DataPiece, header []byte, errHeader error, adub AppDistributorBody) AppDistributorUnit {
+	h := NewAppDistributorHeaderKafkaPrepared(d, header, errHeader)
+	return AppDistributorUnit{
+		H: h,
+		B: adub,
 	}
-
-	return adu
 }
 
 type disposition int
@@ -424,6 +418,7 @@ const (
 	False disposition = iota
 	True
 	Probably
+	Last
 )
 
 type comm int
@@ -449,8 +444,13 @@ type AppPieceHeader struct {
 	E    disposition //is end needed?
 }
 
-func NewAppPieceHeader() AppPieceHeader {
-	aph := AppPieceHeader{}
+func NewAppPieceHeader(p int, ts string, b, e disposition) AppPieceHeader {
+	aph := AppPieceHeader{
+		TS:   ts,
+		Part: p,
+		B:    b,
+		E:    e,
+	}
 	return aph
 }
 
@@ -543,8 +543,10 @@ type AppSub struct {
 	ASB AppSubBody
 }
 
-func NewAppSub() AppSub {
-	return AppSub{}
+func NewAppSub(p int, ts string) AppSub {
+	return AppSub{
+		ASH: AppSubHeader{TS: ts, Part: p},
+	}
 }
 
 func (a *AppSub) SetPart(p int) {
@@ -786,9 +788,10 @@ func CompleteAppStoreValue(asv AppStoreValue, d DataPiece, bou Boundary) (AppSto
 
 			asv.D.H = raw[bytes.Index(raw, []byte("Content-Disposition")):]
 			asv.D.FormName, asv.D.FileName = GetFoFi(asv.D.H)
+			asv.B = NewBeginningData(d.Part())
 			asv.E = d.E()
 
-			return asv, nil
+			return asv, fmt.Errorf("in CompleteAppStoreValue form name changed")
 		}
 
 		return asv, err
@@ -967,6 +970,16 @@ func NewStoreChange(d DataPiece, p Presense, bou Boundary) (StoreChange, error) 
 	sc, _, asv, dr, gr, askd, ok, err := StoreChange{}, make([]AppStoreKeyDetailed, 0), AppStoreValue{}, make(map[bool]AppStoreValue), make(map[AppStoreKeyDetailed]map[bool]AppStoreValue), NewAppStoreKeyDetailed(d), false, errors.New("")
 
 	if d.B() == True {
+		if cmp.Equal(p, Presense{}) {
+			if d.E() == Probably { // update for highLoad case
+
+				asv.B.Part = d.Part()
+				asv.E = d.E()
+				sc.A = ForseAdd
+				sc.To = map[AppStoreKeyDetailed]map[bool]AppStoreValue{askd: {false: asv}}
+				return sc, nil
+			}
+		}
 		if !p.ASKG {
 			sc.A = Buffer
 			return sc, fmt.Errorf("in repo.NewStoreChange TS \"%s\" is unknown", d.TS())
@@ -975,7 +988,9 @@ func NewStoreChange(d DataPiece, p Presense, bou Boundary) (StoreChange, error) 
 			sc.A = Buffer
 			return sc, fmt.Errorf("in repo.NewStoreChange for given TS \"%s\", Part \"%d\" is unexpected", d.TS(), d.Part())
 		}
+
 		sc.From = p.GR
+
 		if asv, ok = p.GR[askd][false]; ok {
 
 			if asv.D.FormName == "" {
@@ -1011,21 +1026,22 @@ func NewStoreChange(d DataPiece, p Presense, bou Boundary) (StoreChange, error) 
 					m3t := p.GR[askd][true]
 					asv, err = CompleteAppStoreValue(m3t, d, bou)
 
-					if err != nil {
-						if strings.Contains(err.Error(), "no header found") { // no new asv
+					if err != nil && strings.Contains(err.Error(), "no header found") { // no new asv
 
-							gr[askd.IncPart().F()] = dr
-							sc.To = gr
+						gr[askd.IncPart().F()] = dr
+						sc.To = gr
 
-							return sc, err
-						}
+						return sc, err
 					}
+
 					// got new asv
 
 					dr[false] = asv
 					gr[askd.IncPart().F()] = dr
 					sc.To = gr
-
+					if err != nil && strings.Contains(err.Error(), "changed") {
+						return sc, fmt.Errorf("in repo.NewAppStoreChange form name changed")
+					}
 					return sc, nil
 				}
 
@@ -1156,11 +1172,11 @@ func NewStoreChange(d DataPiece, p Presense, bou Boundary) (StoreChange, error) 
 type StoreAction int
 
 const (
-	Buffer StoreAction = iota // store dataPiece in Buffer
-	Change                    // mutate store record
-	Delete                    // delete detailed record
-	Remove                    // delete general record. Should be seg an application.Handle based on s.Counter == 0
-
+	Buffer   StoreAction = iota // store dataPiece in Buffer
+	Change                      // mutate store record
+	Delete                      // delete detailed record
+	Remove                      // delete general record. Should be seg an application.Handle based on s.Counter == 0
+	ForseAdd                    // add to store no matter of B()
 )
 
 type StoreChange struct {
@@ -1183,11 +1199,11 @@ func NewCounter() Counter {
 type Order int
 
 const (
-	Unordered    Order = iota // tech value if max was decrenebted
-	First                     // first adu of the TS
-	Last                      // last adu of the TS
-	FirstAndLast              // first and last simultaneously
-	Intermediate              // not first and not last
+	Unordered Order = iota // tech value if max was decrenebted
+	First                  // first adu of the TS
+	//	Last                      // last adu of the TS
+	FirstAndLast // first and last simultaneously
+	Intermediate // not first and not last
 )
 
 // IsPartChanged returns true of part of ASKD to be changed due to sc.
@@ -1217,7 +1233,7 @@ type rType int
 
 type GRequest struct {
 	ts        string
-	FieldName string
+	FormName  string
 	FileInfo  bool
 	FileData  bool
 	FileName  string
@@ -1276,7 +1292,7 @@ func IsOk(name string, want, got []GRequest) bool {
 		if v.RType == U { // unary comparision
 
 			for _, w := range want {
-				if v.FieldName == w.FieldName &&
+				if v.FormName == w.FormName &&
 					v.FileName == w.FileName &&
 					len(v.ByteChunk) == len(w.ByteChunk) &&
 					bytes.Contains(v.ByteChunk, w.ByteChunk) {
@@ -1299,7 +1315,7 @@ func IsOk(name string, want, got []GRequest) bool {
 			for j, w := range want {
 				found = false
 
-				if v.RType == w.RType && v.FieldName == w.FieldName && v.FileName == w.FileName {
+				if v.RType == w.RType && v.FormName == w.FormName && v.FileName == w.FileName {
 
 					nlast = 0
 					m := j + 1

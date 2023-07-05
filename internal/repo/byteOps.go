@@ -242,30 +242,45 @@ func Reverse(bb []byte) []byte {
 
 // Slicer checks b and extracts partial filled dataPiece units from it.
 // Tested in byteOps_test.go
-func Slicer(b []byte, bou Boundary) (AppPieceUnit, []AppPieceUnit, AppSub) {
-	var (
-		m []AppPieceUnit
-	)
-	boundaryCore := GenBoundary(bou)[2:]
-	boundaryMiddle := append([]byte("\r\n"), boundaryCore...)
-	boundaryMiddle = append(boundaryMiddle, []byte("\r\n")...)
+func Slicer(afu AppFeederUnit) []DataPiece {
+	dp := make([]DataPiece, 0, 8)
+	bou := afu.R.H.Bou
+	b := afu.GetBody()
+
+	if len(b) < MaxLineLimit && IsLastBoundaryEnding(b, bou) { // only possible in the last part with ending of last boundary
+		aphCur := NewAppPieceHeader(afu.R.H.Part, afu.R.H.TS, True, Last)
+		apuCur := NewAppPieceUnit(aphCur, AppPieceBody{})
+		dp = append(dp, &apuCur)
+		return dp
+	}
+	generatedBoundary := GenBoundary(bou)
+	boundaryMiddle := append(generatedBoundary, []byte("\r\n")...)
 	boundNum := bytes.Count(b, boundaryMiddle)
 
-	aphb := NewAppPieceHeader()
-	apbb := NewAppPieceBodyEmpty()
-	aphb.SetB(True)
+	aphCur := NewAppPieceHeader(afu.R.H.Part, afu.R.H.TS, False, False)
+	apbCur := NewAppPieceBodyEmpty()
+	aphCur.SetB(True)
 
-	if bytes.Contains(b, boundaryMiddle) {
-		aphb.SetE(False)
-		apub := NewAppPieceUnitEmpty()
+	if bytes.Contains(b, generatedBoundary) {
 
-		fbi := bytes.Index(b, boundaryMiddle)
-		apbb.SetBody(b[:fbi])
+		fbi := bytes.Index(b, generatedBoundary)
 
 		if !bytes.Contains(b, []byte("boundary=")) {
-			apbb.SetBody(b[:fbi])
-			apub.SetAPB(apbb)
-			apub.SetAPH(aphb)
+			apbCur.SetBody(b[:fbi])
+
+		}
+
+		if len(b)-fbi < MaxLineLimit && IsLastBoundary(b[fbi:], nil, bou) {
+
+			aphCur.E = Last
+			apuCur := NewAppPieceUnit(aphCur, apbCur)
+			dp = append(dp, &apuCur)
+
+			return dp
+		} else {
+			aphCur.E = False
+			apuCur := NewAppPieceUnit(aphCur, apbCur)
+			dp = append(dp, &apuCur)
 		}
 
 		b = b[fbi+len(boundaryMiddle):]
@@ -273,149 +288,190 @@ func Slicer(b []byte, bou Boundary) (AppPieceUnit, []AppPieceUnit, AppSub) {
 		if boundNum > 1 { // >1 boundaries
 			for i := 0; i < boundNum-1; i++ {
 
-				aph := NewAppPieceHeader()
-				aph.SetB(False)
-				aph.SetE(False)
+				aph := NewAppPieceHeader(afu.R.H.Part, afu.R.H.TS, False, False)
 
 				ni := bytes.Index(b[1:], boundaryMiddle) + 1
 				apb := NewAppPieceBodyFilled(b[:ni])
 
 				apum := NewAppPieceUnit(aph, apb)
-				m = append(m, apum)
+				dp = append(dp, &apum)
 
 				b = b[ni+len(boundaryMiddle):]
 			}
 		}
-		// last boundary piece
-		apbe := NewAppPieceBodyEmpty()
-		aphe := NewAppPieceHeader()
-		aphe.SetB(False)
-		be := make([]byte, 0)
-		if len(b) > MaxHeaderLimit {
-			be = b[len(b)-MaxLineLimit:]
-		} else {
-			be = b
-		}
-		lenbe := len(be)
-		ll := GetLineWithCRLFLeft(be, lenbe-1, MaxLineLimit, bou)
-
-		if len(ll) > 2 && BeginningEqual(ll[2:], boundaryCore) { // last line equal to boundary begginning or vice versa
-
-			apbe := NewAppPieceBodyFilled(b[:len(b)-len(ll)])
-
-			if IsLastBoundary(ll, []byte(""), bou) { // last boundary in last line
-
-				aphe.SetE(False)
-				apume := NewAppPieceUnit(aphe, apbe)
-
-				m = append(m, apume)
-
-				return apub, m, AppSub{}
-			}
-
-			aphe.SetE(Probably)
-
-			apue := NewAppPieceUnit(aphe, apbe)
-			m = append(m, apue)
-
-			as := NewAppSub()
-			as.SetBody(ll)
-			return apub, m, as
-		}
-		if (len(ll) == 1 && bytes.Contains(ll, []byte("\r"))) || // last line is CR
-			(len(ll) == 2 && bytes.Contains(ll, []byte("\r\n"))) { // last line is LF
-			aphe.SetE(Probably)
-			apbe.SetBody(b[:len(b)-len(ll)])
-			apue := NewAppPieceUnit(aphe, apbe)
-
-			m = append(m, apue)
-
-			as := NewAppSub()
-			as.SetBody(ll)
-
-			return apub, m, as
-		}
-
-		apbe.SetBody(b)
-
-		aphe.SetE(True)
-
-		apue := NewAppPieceUnit(aphe, apbe)
-		m = append(m, apue)
-
-		return apub, m, AppSub{}
-
-	} // 0 boundaries
-
-	switch bytes.Count(b, []byte("\r")) {
-	case 0:
-
-		apbb.SetBody(b)
-
-		aphb.SetE(True)
-
-		apub := NewAppPieceUnit(aphb, apbb)
-
-		return apub, nil, AppSub{}
-
-	default:
-		if len(b) < MaxLineLimit && (b[len(b)-1] == 13 || (b[len(b)-1] == 10 && b[len(b)-2] == 13)) {
-			aphb.SetE(False)
-			apbb.SetBody(b)
-
-			apub := NewAppPieceUnit(aphb, apbb)
-			return apub, nil, AppSub{}
-		}
-		be := make([]byte, 0)
-		if len(b) > MaxHeaderLimit {
-			be = b[len(b)-MaxLineLimit:]
-		} else {
-			be = b
-		}
-		lenbe := len(be)
-
-		ll := GetLineWithCRLFLeft(be, lenbe-1, MaxLineLimit, bou)
-		if (len(ll) > 2 && BeginningEqual(ll[2:], boundaryCore)) || IsLastBoundary(ll, []byte(""), bou) { // last line equal to boundary begginning or vice versa
-			if len(ll) == len(b) {
-				apbb.SetBody(b)
-			} else {
-				apbb.SetBody(b[:len(b)-len(ll)])
-			}
-			if IsLastBoundary(ll, []byte(""), bou) { // last boundary in last line
-				aphb.SetE(False)
-				apub := NewAppPieceUnit(aphb, apbb)
-
-				return apub, nil, AppSub{}
-			}
-
-			aphb.SetE(Probably)
-
-			apub := NewAppPieceUnit(aphb, apbb)
-			as := NewAppSub()
-			as.SetBody(ll)
-
-			return apub, nil, as
-		}
-
-		if (len(ll) == 1 && bytes.Contains(ll, []byte("\r"))) || // last line is CR
-			(len(ll) == 2 && bytes.Contains(ll, []byte("\r\n"))) { // last line is LF
-			aphb.SetE(Probably)
-			apbb.SetBody(b[:len(b)-len(ll)])
-			apub := NewAppPieceUnit(aphb, apbb)
-			as := NewAppSub()
-			as.SetBody(ll)
-
-			return apub, nil, as
-
-		}
-		aphb.SetE(True)
-		apbb.SetBody(b)
-
-		apub := NewAppPieceUnit(aphb, apbb)
-		return apub, nil, AppSub{}
 	}
+
+	// last boundary piece
+
+	//apbe := NewAppPieceBodyEmpty()
+	/*
+		aphe := NewAppPieceHeader(afu.R.H.Part, afu.R.H.TS, False, False)
+	*/
+	be := make([]byte, 0, MaxLineLimit)
+	if len(b) > MaxHeaderLimit {
+		be = b[len(b)-MaxLineLimit:]
+	} else {
+		be = b
+	}
+	lenbe := len(be)
+
+	ll := GetLineWithCRLFLeft(be, lenbe-1, MaxLineLimit, bou)
+
+	if BeginningEqual(ll, generatedBoundary) {
+		apbCur.B = b[:len(b)-len(ll)]
+		/*
+			apuCur := NewAppPieceUnit(aphCur, apbCur)
+			dp = append(dp, &apuCur) // last line equal to boundary begginning or vice versa
+		*/
+		//apbe := NewAppPieceBodyFilled(b[:len(b)-len(ll)])
+
+		if IsLastBoundary(ll, []byte(""), bou) { // last boundary in last line
+
+			if len(dp) > 0 {
+				aphCur.B = False
+
+			}
+			aphCur.E = Last
+			apuCur := NewAppPieceUnit(aphCur, apbCur)
+
+			dp = append(dp, &apuCur)
+
+			return dp
+		}
+		if len(dp) > 0 {
+			aphCur.SetB(False)
+		}
+		aphCur.SetE(Probably)
+		apuCur := NewAppPieceUnit(aphCur, apbCur)
+		dp = append(dp, &apuCur)
+
+		as := NewAppSub(afu.R.H.Part, afu.R.H.TS)
+		as.SetBody(ll)
+		dp = append(dp, &as)
+		return dp
+
+	}
+	// no boundary traces in last line
+	apbCur.B = b
+	aphCur.E = True
+	if len(dp) > 0 {
+		aphCur.B = False
+	}
+	apuCur := NewAppPieceUnit(aphCur, apbCur)
+	dp = append(dp, &apuCur)
+	/*
+		if (len(ll) == 1 && bytes.Contains(ll, []byte("\r"))) || // last line is CR
+			(len(ll) == 2 && bytes.Contains(ll, []byte("\r\n"))) { // last line is LF
+			apbe := NewAppPieceBodyFilled(b[:len(b)-len(ll)])
+			if len(apbb.B) == 0 {
+				aphb.SetE(Probably)
+				apuCur = NewAppPieceUnit(aphb, apbe)
+				dp = append(dp, &apuCur)
+			} else {
+				apume := NewAppPieceUnit(aphe, apbe)
+				dp = append(dp, &apume)
+			}
+
+			as := NewAppSub(afu.R.H.Part, afu.R.H.TS)
+			as.SetBody(ll)
+			dp = append(dp, &as)
+
+			return dp
+		}
+	*/
+	// ll doesn't contain boundary trace
+
+	return dp
 }
 
+/*
+			} // 0 boundaries
+
+		switch bytes.Count(b, []byte("\r")) {
+		case 0:
+
+			apbb.SetBody(b)
+
+			aphb.SetE(True)
+			aphb.SetTS(afu.R.H.TS)
+			aphb.SetPart(afu.R.H.Part)
+
+			apuCur := NewAppPieceUnit(aphb, apbb)
+
+			return append(dp, &apuCur)
+
+		default:
+			/*
+				if len(b) < MaxLineLimit && (b[len(b)-1] == 13 || (b[len(b)-1] == 10 && b[len(b)-2] == 13)) {
+					aphb.SetE(False)
+					apbb.SetBody(b)
+
+					apuCur := NewAppPieceUnit(aphb, apbb)
+					return apuCur, nil, AppSub{}
+				}
+
+			be := make([]byte, 0)
+			if len(b) > MaxHeaderLimit {
+				be = b[len(b)-MaxLineLimit:]
+			} else {
+				be = b
+			}
+			lenbe := len(be)
+
+			ll := GetLineWithCRLFLeft(be, lenbe-1, MaxLineLimit, bou)
+			if (len(ll) > 2 && BeginningEqual(ll[2:], boundaryCore)) || IsLastBoundary(ll, []byte(""), bou) { // last line equal to boundary begginning or vice versa
+				if len(ll) == len(b) {
+					apbb.SetBody(b)
+				} else {
+					apbb.SetBody(b[:len(b)-len(ll)])
+				}
+				if IsLastBoundary(ll, []byte(""), bou) { // last boundary in last line
+					aphb.SetE(False)
+					apuCur := NewAppPieceUnit(aphb, apbb)
+
+					return append(dp, &apuCur)
+				}
+
+				aphb.SetE(Probably)
+
+				apuCur := NewAppPieceUnit(aphb, apbb)
+				as := NewAppSub(afu.R.H.Part, afu.R.H.TS)
+				as.SetBody(ll)
+
+				dp = append(dp, &apuCur)
+				dp = append(dp, &as)
+
+				return dp
+			}
+
+			if (len(ll) == 1 && bytes.Contains(ll, []byte("\r"))) || // last line is CR
+				(len(ll) == 2 && bytes.Contains(ll, []byte("\r\n"))) { // last line is LF
+				aphb.SetE(Probably)
+				apbb.SetBody(b[:len(b)-len(ll)])
+				apuCur := NewAppPieceUnit(aphb, apbb)
+				as := NewAppSub(afu.R.H.Part, afu.R.H.TS)
+				as.SetBody(ll)
+
+				dp = append(dp, &apuCur)
+				dp = append(dp, &as)
+
+				return dp
+
+			}
+			aphb.SetE(True)
+			apbb.SetBody(b)
+
+			apuCur := NewAppPieceUnit(aphb, apbb)
+
+			dp = append(dp, &apuCur)
+
+			return dp
+
+		}
+
+	return dp
+}
+*/
 // IsPartlyBoundaryRight returns true if boundary contains b and starts with it.
 // Tested in byteOps_test.go
 func IsPartlyBoundaryRight(b []byte, bou Boundary) bool {
@@ -953,6 +1009,19 @@ func GetFoFi(b []byte) (string, string) {
 	return fo, fi
 }
 
+func GetFoFiBytes(b []byte) ([]byte, []byte) {
+	fo, fi, foPre, fiPre := make([]byte, 0, 16), make([]byte, 0, 16), []byte(" name=\""), []byte(" filename=\"")
+	if len(b) > 0 {
+		if bytes.Contains(b, foPre) {
+			fo = b[bytes.Index(b, foPre)+len(foPre) : FindNext(b, []byte("\""), bytes.Index(b, foPre)+len(foPre))]
+			if bytes.Contains(b, fiPre) {
+				fi = b[bytes.Index(b, fiPre)+len(fiPre) : FindNext(b, []byte("\""), bytes.Index(b, fiPre)+len(fiPre))]
+			}
+		}
+	}
+	return fo, fi
+}
+
 // GetHeaderLines returns header lines found in b
 // Tested in byteOps_test.go
 func GetHeaderLines(b []byte, bou Boundary) ([]byte, error) {
@@ -980,9 +1049,15 @@ func GetHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 			resL = append(resL, []byte("\r\n\r\n")...)
 			return resL, fmt.Errorf("in repo.GetHeaderLines header \"%s\" is ending part", resL)
 
-		default: //  LF + CDinsuf + CRLF + CT + 2*CRLF + rand
+		default: //  LF + CDinsuf + CRLF + CT + 2*CRLF + rand || LF + boundary + CDinsuf + CRLF + CT + 2*CRLF + rand ||
 			l0 := b[1:bytes.Index(b, []byte("\r\n"))]
 			l1 := b[bytes.Index(b, []byte("\r\n"))+2 : RepeatedIntex(b, []byte("\r\n"), 2)]
+			l2 := b[len(l0)+len(l1)+2*len("\r\n")+1 : RepeatedIntex(b, []byte("\r\n"), 3)]
+			//logger.L.Infof("in repo.GetHeaderLines, l2 = %q\n", l2)
+			if IsBoundaryEnding(l0, bou) {
+				resL = b[:1+len(l0)+len(l1)+len(l2)+4*len("\r\n")]
+				return resL, fmt.Errorf("in repo.GetHeaderLines header \"%s\" is ending part", resL)
+			}
 			if Sufficiency(l0) == Insufficient {
 				resL = append(b[:1], l0...)
 				resL = append(resL, []byte("\r\n")...)
@@ -992,6 +1067,7 @@ func GetHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 					return resL, fmt.Errorf("in repo.GetHeaderLines header \"%s\" is ending part", resL)
 				}
 			}
+
 			resL = append(resL, b[0])
 			return resL, fmt.Errorf("in repo.GetHeaderLines header \"%s\" is ending part", resL)
 		}
@@ -1233,31 +1309,58 @@ func KnownBoundaryPart(b []byte, bou Boundary) []byte {
 // IsBoundary returns true if p + n == boundary.
 // Tested in byteOps_test.go
 func IsBoundary(p, n []byte, bou Boundary) bool {
-	cd := []byte("Content-Disposition")
+	cd, nBou := []byte("Content-Disposition"), make([]byte, 0, len(GenBoundary(bou)))
 
-	if !bytes.Contains(n, cd) {
-		return false
+	if bytes.Contains(n, cd) {
+		nBou = n[:bytes.Index(n, cd)]
+		if nBou[0] == 10 {
+			nBou = nBou[1:]
+		}
+	} else { // if n == boundary
+		nBou = n
 	}
-
-	nBou := n[:bytes.Index(n, cd)]
 
 	if len(nBou) < 1 {
 		return false
 	}
 
-	boundary := append(GenBoundary(bou)[2:], []byte("\r\n")...)
+	boundary := append(GenBoundary(bou)[2:])
 
-	bs := append(p, nBou...)
-	return bytes.Contains(bs, boundary)
+	if len(p) > 2 {
+		nBou = append(p, nBou...)
+	}
+	return bytes.Contains(nBou, boundary)
+}
+
+// IsLastBoundaryEnding returns trye if b is the ending of last boundary
+func IsLastBoundaryEnding(b []byte, bou Boundary) bool {
+	boundary := GenBoundary(bou)
+	matchIndex, lenBoundary := -1, len(boundary)
+	for i := len(b) - 1; i > 0; i-- {
+		if b[i] == boundary[lenBoundary-1] {
+			matchIndex = i
+			break
+		}
+	}
+	if matchIndex < 0 {
+		return true
+	}
+	return IsBoundaryEnding(b[:matchIndex], bou)
+
+}
+
+// IsBoundaryEnding returns true if b is boundary ending
+func IsBoundaryEnding(b []byte, bou Boundary) bool {
+	return bytes.Contains(append(GenBoundary(bou), []byte("\r\n")...), b)
 }
 
 // IsLastBoundary returns true if p + n form last boundary
 func IsLastBoundary(p, n []byte, bou Boundary) bool {
 	realBoundary := GenBoundary(bou)
 	combined := append(p, n...)
-	if len(combined) > len(realBoundary) &&
-		bytes.Contains(combined, realBoundary) &&
-		!bytes.Contains(combined[len(realBoundary):len(realBoundary)+2], []byte("\r\n")) {
+	if bytes.Contains(combined, realBoundary) &&
+		(len(combined) >= len(realBoundary)+2 && !bytes.Contains(combined[len(realBoundary):len(realBoundary)+2], []byte("\r\n")) ||
+			len(combined) == len(realBoundary)+1 && !bytes.Contains(combined[len(realBoundary):len(realBoundary)+1], []byte("\r"))) {
 		return true
 	}
 

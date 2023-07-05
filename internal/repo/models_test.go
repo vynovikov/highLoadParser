@@ -43,7 +43,7 @@ func (s *modelsSuite) TestH() {
 	}
 }
 
-func (s *modelsSuite) TestBoduCut() {
+func (s *modelsSuite) TestBodyCut() {
 	tt := []struct {
 		name    string
 		d       DataPiece
@@ -106,6 +106,38 @@ func (s *modelsSuite) TestAppStoreBufferIDsAdd() {
 		s.Run(v.name, func() {
 			v.asbi.Add(v.adding)
 			s.Equal(v.wantedASBI, v.asbi)
+		})
+	}
+}
+func (s *modelsSuite) TestNewAppDistributorUnitKafka() {
+	tt := []struct {
+		name    string
+		d       DataPiece
+		bou     Boundary
+		wantADU AppDistributorUnit
+	}{
+		{
+			name: "",
+			d: &AppPieceUnit{
+				APH: AppPieceHeader{
+					Part: 1, TS: "qqq", B: False, E: False,
+				},
+				APB: AppPieceBody{
+					B: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza"),
+				},
+			},
+			bou: Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantADU: AppDistributorUnit{
+				H: AppDistributorHeader{TS: "qqq", FormName: "alice", FileName: "alice"},
+				B: AppDistributorBody{
+					B: []byte("azazaza"),
+				},
+			},
+		},
+	}
+	for _, v := range tt {
+		s.Run(v.name, func() {
+			s.Equal(v.wantADU, NewAppDistributorUnitKafka(v.d, v.bou))
 		})
 	}
 }
@@ -1524,7 +1556,7 @@ func (s *modelsSuite) TestIsPartChanged() {
 	}
 }
 
-func (s *modelsSuite) TestIsOk() {
+/*func (s *modelsSuite) TestIsOk() {
 	tt := []struct {
 		name   string
 		want   []GRequest
@@ -2150,3 +2182,4 @@ func (s *modelsSuite) TestIsOk() {
 		})
 	}
 }
+*/

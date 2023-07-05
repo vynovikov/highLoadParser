@@ -7,12 +7,12 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/vynovikov/postParser/internal/adapters/application"
-	"github.com/vynovikov/postParser/internal/adapters/driven/rpc"
-	"github.com/vynovikov/postParser/internal/adapters/driven/store"
-	"github.com/vynovikov/postParser/internal/adapters/driver/tp"
-	"github.com/vynovikov/postParser/internal/adapters/driver/tps"
-	"github.com/vynovikov/postParser/internal/logger"
+	"github.com/vynovikov/highLoadParser/internal/adapters/application"
+	"github.com/vynovikov/highLoadParser/internal/adapters/driven/rpc"
+	"github.com/vynovikov/highLoadParser/internal/adapters/driven/store"
+	"github.com/vynovikov/highLoadParser/internal/adapters/driver/tp"
+	"github.com/vynovikov/highLoadParser/internal/adapters/driver/tps"
+	"github.com/vynovikov/highLoadParser/internal/logger"
 )
 
 var (
@@ -20,7 +20,7 @@ var (
 )
 
 func main() {
-	t := rpc.NewTransmitter(nil)
+	t := rpc.NewTransmitter("data")
 	s := store.NewStore()
 
 	app, done := application.NewAppFull(s, t)

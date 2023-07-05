@@ -8,9 +8,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/vynovikov/postParser/internal/adapters/application"
-	"github.com/vynovikov/postParser/internal/logger"
-	"github.com/vynovikov/postParser/internal/repo"
+	"github.com/vynovikov/highLoadParser/internal/adapters/application"
+	"github.com/vynovikov/highLoadParser/internal/logger"
+	"github.com/vynovikov/highLoadParser/internal/repo"
 )
 
 type TpServer struct {
@@ -48,10 +48,10 @@ func NewTpReceiver(a application.Application) *tpReceiverStruct {
 func (r *tpReceiverStruct) Run() {
 	for {
 		conn, err := r.srv.l.Accept()
-		if err != nil && conn == nil && r.A.Stopping() {
+		if err != nil && conn == nil {
 
 			r.wg.Wait()
-			r.A.ChainInClose()
+			r.A.ChanInClose()
 
 			return
 
@@ -80,14 +80,12 @@ func (r *tpReceiverStruct) HandleRequest(conn net.Conn, ts string, wg *sync.Wait
 		if errFirst != nil {
 
 			if errFirst == io.EOF || errFirst == io.ErrUnexpectedEOF || os.IsTimeout(errFirst) {
-				u.H.Unblock = true
 				r.A.AddToFeeder(u)
 				break
 			}
 		}
 		if errSecond != nil {
 			if errSecond == io.EOF || errSecond == io.ErrUnexpectedEOF || os.IsTimeout(errSecond) {
-				u.H.Unblock = true
 				r.A.AddToFeeder(u)
 				break
 			}
@@ -105,7 +103,7 @@ func (r *tpReceiverStruct) HandleRequest(conn net.Conn, ts string, wg *sync.Wait
 
 	wg.Done()
 	if r.A.Stopping() {
-		r.A.ChainInClose()
+		r.A.ChanInClose()
 	}
 }
 func (r *tpReceiverStruct) Stop(wg *sync.WaitGroup) {

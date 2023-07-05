@@ -11,9 +11,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/vynovikov/postParser/internal/adapters/application"
-	"github.com/vynovikov/postParser/internal/logger"
-	"github.com/vynovikov/postParser/internal/repo"
+	"github.com/vynovikov/highLoadParser/internal/adapters/application"
+	"github.com/vynovikov/highLoadParser/internal/logger"
+	"github.com/vynovikov/highLoadParser/internal/repo"
 )
 
 type TpsServer struct {
@@ -65,6 +65,7 @@ func (r *tpsReceiverStruct) Run() {
 			if r.A.Stopping() {
 				return
 			}
+
 			logger.L.Error(err)
 		}
 		r.wg.Add(1)
@@ -91,14 +92,12 @@ func (r *tpsReceiverStruct) HandleRequest(conn net.Conn, ts string, wg *sync.Wai
 
 		if errFirst != nil {
 			if errFirst == io.EOF || errFirst == io.ErrUnexpectedEOF || os.IsTimeout(errFirst) {
-				u.H.Unblock = true
 				r.A.AddToFeeder(u)
 				break
 			}
 		}
 		if errSecond != nil {
 			if errSecond == io.EOF || errSecond == io.ErrUnexpectedEOF || os.IsTimeout(errSecond) {
-				u.H.Unblock = true
 				r.A.AddToFeeder(u)
 				break
 			}
@@ -115,7 +114,7 @@ func (r *tpsReceiverStruct) HandleRequest(conn net.Conn, ts string, wg *sync.Wai
 	repo.Respond(conn)
 	wg.Done()
 	if r.A.Stopping() {
-		r.A.ChainInClose()
+		r.A.ChanInClose()
 	}
 }
 

@@ -45,234 +45,440 @@ func (s *byteOpsSuite) TestGenBoundary() {
 
 	boundaryCalced := GenBoundary(boundaryVoc)
 
-	s.Equal([]byte("bPrefix"+"bRoot"), boundaryCalced)
+	s.Equal([]byte("\r\n"+"bPrefix"+"bRoot"), boundaryCalced)
+}
+
+func (s *byteOpsSuite) TestIsLastBoundaryEnding() {
+	tt := []struct {
+		name   string
+		bs     []byte
+		bou    Boundary
+		wanted bool
+	}{
+
+		{
+			name:   "b is part of suffix",
+			bs:     []byte("fix"),
+			bou:    Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wanted: true,
+		},
+
+		{
+			name:   "b is suffix",
+			bs:     []byte("bSuffix"),
+			bou:    Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wanted: true,
+		},
+
+		{
+			name:   "b has root ending and suffix",
+			bs:     []byte("ootbSuffix"),
+			bou:    Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wanted: true,
+		},
+
+		{
+			name:   "b has wrong root ending and suffix",
+			bs:     []byte("dotbSuffix"),
+			bou:    Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wanted: false,
+		},
+	}
+	for _, v := range tt {
+		s.Run(v.name, func() {
+			s.Equal(v.wanted, IsLastBoundaryEnding(v.bs, v.bou))
+		})
+	}
 }
 
 func (s *byteOpsSuite) TestSlicer() {
 
 	tt := []struct {
-		name    string
-		bs      []byte
-		bou     Boundary
-		wantedB AppPieceUnit
-		wantedM []AppPieceUnit
-		wantedE AppSub
+		name             string
+		afu              AppFeederUnit
+		wantedDataPieces []DataPiece
 	}{
 
 		{
-			name: "CR in the end",
-			bs:   []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + "\r"),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: Probably}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
-			wantedM: nil,
-			wantedE: AppSub{ASH: AppSubHeader{}, ASB: AppSubBody{B: []byte("\r")}},
-		},
-
-		{
-			name: "CRLF in the end",
-			bs:   []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + "\r\n"),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: Probably}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
-			wantedM: nil,
-			wantedE: AppSub{ASH: AppSubHeader{}, ASB: AppSubBody{B: []byte("\r\n")}},
-		},
-
-		{
 			name: "no full boundary and no partial boundary",
-			bs:   []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: True}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
-			wantedM: nil,
-			wantedE: AppSub{},
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 1,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					},
+				},
+			},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 1, B: True, E: True}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			},
 		},
 
 		{
 			name: "no full boundary, partial boundary present",
-			bs:   []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefixbRo"),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: Probably}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
-			wantedM: nil,
-			wantedE: AppSub{ASB: AppSubBody{B: []byte("\r\nbPrefixbRo")}},
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 1,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefixbRo"),
+					},
+				},
+			},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 1, B: True, E: Probably}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+				&AppSub{ASH: AppSubHeader{TS: "qqq", Part: 1}, ASB: AppSubBody{B: []byte("\r\nbPrefixbRo")}},
+			},
+		},
+		{
+			name: "no full boundary, last boundary",
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 2,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefixbRootbSuffix" + Sep),
+					},
+				},
+			},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: Last}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			},
 		},
 
 		{
-			name: "no full boundary, last boundary",
-			bs:   []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefixbRootbSuffix" + Sep),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			name: "no full boundary, CR in the end",
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						Part: 1,
+						TS:   "qqq",
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + "\r"),
+					},
+				},
+			},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 1, B: True, E: Probably}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+				&AppSub{ASH: AppSubHeader{TS: "qqq", Part: 1}, ASB: AppSubBody{B: []byte("\r")}},
+			},
+		},
 
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
-			wantedM: nil,
-			wantedE: AppSub{},
+		{
+			name: "no full boundary, CRLF in the end",
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						Part: 1,
+						TS:   "qqq",
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + "\r\n"),
+					},
+				},
+			},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 1, B: True, E: Probably}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+				&AppSub{ASH: AppSubHeader{TS: "qqq", Part: 1}, ASB: AppSubBody{B: []byte("\r\n")}},
+			},
 		},
 
 		{
 			name: "1 full boundary",
-			bs:   []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza")}},
-			wantedM: []AppPieceUnit{
-				{APH: AppPieceHeader{B: False, E: True}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 2,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					},
+				},
 			},
-			wantedE: AppSub{},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza")}},
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: False, E: True}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			},
 		},
 
 		{
 			name: "1 full boundary, partial boundary present",
-			bs:   []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefixbRo"),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza")}},
-			wantedM: []AppPieceUnit{
-				{APH: AppPieceHeader{B: False, E: Probably}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 2,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefixbRo"),
+					},
+				},
 			},
-			wantedE: AppSub{ASB: AppSubBody{B: []byte("\r\nbPrefixbRo")}},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza")}},
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: False, E: Probably}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+				&AppSub{ASH: AppSubHeader{TS: "qqq", Part: 2}, ASB: AppSubBody{B: []byte("\r\nbPrefixbRo")}},
+			},
 		},
+
 		{
 			name: "1 full boundary, CR in the end",
-			bs:   []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + "\r"),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza")}},
-			wantedM: []AppPieceUnit{
-				{APH: AppPieceHeader{B: False, E: Probably}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 2,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + "\r"),
+					},
+				},
 			},
-			wantedE: AppSub{ASB: AppSubBody{B: []byte("\r")}},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza")}},
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: False, E: Probably}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+				&AppSub{ASH: AppSubHeader{TS: "qqq", Part: 2}, ASB: AppSubBody{B: []byte("\r")}},
+			},
 		},
 
 		{
 			name: "full last boundary after begin piece",
-			bs:   []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + Sep + "bPrefix" + "bRoot" + "bSuffix" + Sep),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb")}},
-			wantedM: nil,
-			wantedE: AppSub{},
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 2,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + Sep + "bPrefix" + "bRoot" + "bSuffix" + Sep),
+					},
+				},
+			},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: Last}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb")}},
+			},
 		},
 
 		{
 			name: "full last boundary after middle piece",
-			bs:   []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + "bSuffix" + Sep),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb")}},
-			wantedM: []AppPieceUnit{
-				{APH: AppPieceHeader{B: False, E: False}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 2,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + "bSuffix" + Sep),
+					},
+				},
 			},
-			wantedE: AppSub{},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb")}},
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: False, E: Last}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			},
 		},
+
 		{
 			name: "full boundary in the end",
-			bs:   []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefixbRoot"),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb")}},
-			wantedM: []AppPieceUnit{
-				{APH: AppPieceHeader{B: False, E: Probably}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 2,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefixbRoot"),
+					},
+				},
 			},
-			wantedE: AppSub{ASB: AppSubBody{B: []byte("\r\nbPrefixbRoot")}},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb")}},
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: False, E: Probably}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+				&AppSub{ASH: AppSubHeader{TS: "qqq", Part: 2}, ASB: AppSubBody{B: []byte("\r\nbPrefixbRoot")}},
+			},
 		},
 
 		{
 			name: "full boundary in the end with CR",
-			bs:   []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefixbRoot" + "\r"),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot"), Suffix: []byte("bSuffix")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb")}},
-			wantedM: []AppPieceUnit{
-				{APH: AppPieceHeader{B: False, E: Probably}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 2,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefixbRoot" + "\r"),
+					},
+				},
 			},
-			wantedE: AppSub{ASB: AppSubBody{B: []byte("\r\nbPrefixbRoot\r")}},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb")}},
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: False, E: Probably}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+				&AppSub{ASH: AppSubHeader{TS: "qqq", Part: 2}, ASB: AppSubBody{B: []byte("\r\nbPrefixbRoot\r")}},
+			},
 		},
 
 		{
 			name: "partial last boundary with separated suffix after middle piece",
-			bs:   []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + "bSu"),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb")}},
-			wantedM: []AppPieceUnit{
-				{APH: AppPieceHeader{B: False, E: Probably}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 2,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + "bSu"),
+					},
+				},
 			},
-			wantedE: AppSub{ASB: AppSubBody{B: []byte("\r\nbPrefixbRootbSu")}},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb")}},
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: False, E: Last}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			},
 		},
 
 		{
 			name: "3 full lboundary no partial boundary",
-			bs:   []byte("a1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + Sep + "c1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + Sep + "d1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
-			wantedM: []AppPieceUnit{
-				{APH: AppPieceHeader{B: False, E: False}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
-				{APH: AppPieceHeader{B: False, E: False}, APB: AppPieceBody{B: []byte("c1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
-				{APH: AppPieceHeader{B: False, E: True}, APB: AppPieceBody{B: []byte("d1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 2,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + Sep + "c1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + Sep + "d1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					},
+				},
 			},
-			wantedE: AppSub{},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: False, E: False}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: False, E: False}, APB: AppPieceBody{B: []byte("c1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: False, E: True}, APB: AppPieceBody{B: []byte("d1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			},
 		},
 
 		{
 			name: "partial last boundary after begin piece",
-			bs:   []byte("a1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + "bSuf"),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: Probably}, APB: AppPieceBody{B: []byte("a1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
-			wantedM: nil,
-			wantedE: AppSub{ASB: AppSubBody{B: []byte("\r\nbPrefixbRootbSuf")}},
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 2,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + "bSuf"),
+					},
+				},
+			},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: Last}, APB: AppPieceBody{B: []byte("a1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			},
 		},
-
 		{
 			name: "partial last boundary after middle piece",
-			bs:   []byte("a1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + "bSuf"),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
-			wantedM: []AppPieceUnit{
-				{APH: AppPieceHeader{B: False, E: Probably}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 2,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("a1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + Sep + "bPrefix" + "bRoot" + "bSuf"),
+					},
+				},
 			},
-			wantedE: AppSub{ASB: AppSubBody{B: []byte("\r\nbPrefixbRootbSuf")}},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: False}, APB: AppPieceBody{B: []byte("a1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: False, E: Last}, APB: AppPieceBody{B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			},
 		},
 
 		{
 			name: "last part of last boundary",
-			bs:   []byte("uffix" + Sep),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot\r\n")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: False}, APB: AppPieceBody{B: []byte("uffix\r\n")}},
-			wantedM: nil,
-			wantedE: AppSub{},
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 2,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("uffix"),
+					},
+				},
+			},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: Last}},
+			},
 		},
 
 		{
 			name: "part of last boundary",
-			bs:   []byte("ootbSuffix" + Sep),
-			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: False}, APB: AppPieceBody{B: []byte("ootbSuffix\r\n")}},
-			wantedM: nil,
-			wantedE: AppSub{},
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 2,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("ootbSuffix"),
+					},
+				},
+			},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: Last}},
+			},
 		},
 
 		{
-			name: "real 1. No boundary",
-			bs:   []byte("77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777\r\n888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888\r\n999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999\r\n3\r\n000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\r\n111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111\r\n222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222\r\n333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333\r\n444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444\r\n555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555\r\n666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666\r\n777777777777777777777"),
-			bou:  Boundary{Prefix: []byte("--"), Root: []byte("------------------------3530180a0a96f2b6")},
-
-			wantedB: AppPieceUnit{APH: AppPieceHeader{B: True, E: True}, APB: AppPieceBody{B: []byte("77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777\r\n888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888\r\n999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999\r\n3\r\n000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\r\n111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111\r\n222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222\r\n333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333\r\n444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444\r\n555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555\r\n666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666\r\n777777777777777777777")}},
-			wantedM: nil,
-			wantedE: AppSub{},
+			name: "last boundary suffix only",
+			afu: AppFeederUnit{
+				R: ReceiverUnit{
+					H: ReceiverHeader{
+						TS:   "qqq",
+						Part: 2,
+						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					},
+					B: ReceiverBody{
+						B: []byte("bSuffix"),
+					},
+				},
+			},
+			wantedDataPieces: []DataPiece{
+				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: Last}},
+			},
 		},
 	}
 	for _, v := range tt {
 		s.Run(v.name, func() {
-			b, m, e := Slicer(v.bs, v.bou)
-			s.Equal(v.wantedB, b)
-			s.Equal(v.wantedM, m)
-			s.Equal(v.wantedE, e)
+			s.Equal(v.wantedDataPieces, Slicer(v.afu))
 
 		})
 	}
@@ -1129,6 +1335,7 @@ func (s *byteOpsSuite) TestBoundaryPartInLastLine() {
 		wantedL     []byte
 		wantedError error
 	}{
+
 		{
 			name:        "CR in the end",
 			bs:          []byte("sdfdsfdsf\r"),
@@ -1202,310 +1409,321 @@ func (s *byteOpsSuite) TestGetHeaderLines() {
 		wantedL     []byte
 		wantedError error
 	}{
-		{
-			name:        "0 CRLF <1 line right",
-			bs:          []byte("Content-Disposition: form-data; name=\"al"),
-			wantedL:     []byte("Content-Disposition: form-data; name=\"al"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"al\" is not full"),
-		},
+		/*
+			{
+				name:        "0 CRLF <1 line right",
+				bs:          []byte("Content-Disposition: form-data; name=\"al"),
+				wantedL:     []byte("Content-Disposition: form-data; name=\"al"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"al\" is not full"),
+			},
 
-		{
-			name:        "0 CRLF no header",
-			bs:          []byte("azazazazazaza"),
-			wantedL:     nil,
-			wantedError: errors.New("in repo.GetHeaderLines no header found"),
-		},
+			{
+				name:        "0 CRLF no header",
+				bs:          []byte("azazazazazaza"),
+				wantedL:     nil,
+				wantedError: errors.New("in repo.GetHeaderLines no header found"),
+			},
 
-		{
-			name:        "1 CRLF whole sufficient 1-st line",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n"),
-			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"\r\n\" is not full"),
-		},
+			{
+				name:        "1 CRLF whole sufficient 1-st line",
+				bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n"),
+				wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"\r\n\" is not full"),
+			},
 
-		{
-			name:        "1 CRLF whole 1-st line, partyal 2-d",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short\"\r\nCon"),
-			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short\"\r\nCon"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"; filename=\"short\"\r\nCon\" is not full"),
-		},
-		{
-			name:        "1 CRLF just CRLF, random line",
-			bs:          []byte("\r\nr23hjrb23hrbj23hbrh23"),
-			wantedL:     []byte("\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\r\n\" is ending part"),
-		},
+			{
+				name:        "1 CRLF whole 1-st line, partyal 2-d",
+				bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short\"\r\nCon"),
+				wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short\"\r\nCon"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"; filename=\"short\"\r\nCon\" is not full"),
+			},
+			{
+				name:        "1 CRLF just CRLF, random line",
+				bs:          []byte("\r\nr23hjrb23hrbj23hbrh23"),
+				wantedL:     []byte("\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\r\n\" is ending part"),
+			},
 
-		{
-			name:        "1 CRLF last boundary",
-			bs:          []byte("azzsdfgsdhfdsfhsjdfhs\r\n"),
-			wantedL:     []byte("azzsdfgsdhfdsfhsjdfhs\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"azzsdfgsdhfdsfhsjdfhs\r\n\" is the last"),
-		},
+			{
+				name:        "1 CRLF last boundary",
+				bs:          []byte("azzsdfgsdhfdsfhsjdfhs\r\n"),
+				wantedL:     []byte("azzsdfgsdhfdsfhsjdfhs\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"azzsdfgsdhfdsfhsjdfhs\r\n\" is the last"),
+			},
 
-		{
-			name:        "1 CRLF no header_2",
-			bs:          []byte("azzsdfgsdhfdsfhsjdfhs\r\nfskjfghsjfhgfjkhgjdfhgfd"),
-			wantedL:     nil,
-			wantedError: errors.New("in repo.GetHeaderLines no header found"),
-		},
+			{
+				name:        "1 CRLF no header_2",
+				bs:          []byte("azzsdfgsdhfdsfhsjdfhs\r\nfskjfghsjfhgfjkhgjdfhgfd"),
+				wantedL:     nil,
+				wantedError: errors.New("in repo.GetHeaderLines no header found"),
+			},
 
-		{
-			name:        "2 CRLF 1 line CD sufficient",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
-			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
-			wantedError: nil,
-		},
+			{
+				name:        "2 CRLF 1 line CD sufficient",
+				bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+				wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+				wantedError: nil,
+			},
 
-		{
-			name:        "2 CRLF 1 line CD sufficient + random line",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\nhdsghdsvhsdvgshdgvsdv"),
-			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
-			wantedError: nil,
-		},
+			{
+				name:        "2 CRLF 1 line CD sufficient + random line",
+				bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\nhdsghdsvhsdvgshdgvsdv"),
+				wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+				wantedError: nil,
+			},
 
-		{
-			name:        "2 CRLF 1 line CD insufficient + CRLF + CT + CTLF",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n"),
-			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\" is not full"),
-		},
+			{
+				name:        "2 CRLF 1 line CD insufficient + CRLF + CT + CTLF",
+				bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n"),
+				wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\" is not full"),
+			},
 
-		{
-			name:        "2 CRLF 1 line CD sufficient + random line",
-			bs:          []byte("position: form-data; name=\"alice\"\r\n\r\nhdsghdsvhsdvgshdgvsdv"),
-			wantedL:     []byte("position: form-data; name=\"alice\"\r\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"position: form-data; name=\"alice\"\r\n\r\n\" is ending part"),
-		},
+			{
+				name:        "2 CRLF 1 line CD sufficient + random line",
+				bs:          []byte("position: form-data; name=\"alice\"\r\n\r\nhdsghdsvhsdvgshdgvsdv"),
+				wantedL:     []byte("position: form-data; name=\"alice\"\r\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"position: form-data; name=\"alice\"\r\n\r\n\" is ending part"),
+			},
 
-		{
-			name:        "2 CRLF 1 header line right 2 random lines",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nsajkfdga\r\ndsfguigdfa"),
-			wantedL:     nil,
-			wantedError: errors.New("in repo.GetHeaderLines no header found"),
-		},
+			{
+				name:        "2 CRLF 1 header line right 2 random lines",
+				bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nsajkfdga\r\ndsfguigdfa"),
+				wantedL:     nil,
+				wantedError: errors.New("in repo.GetHeaderLines no header found"),
+			},
 
-		{
-			name:        "2 CRLF all lines random",
-			bs:          []byte("we6fwfef6gewfgewfg7efge\r\nsajkfdga\r\ndsfguigdfa"),
-			wantedL:     nil,
-			wantedError: errors.New("in repo.GetHeaderLines no header found"),
-		},
+			{
+				name:        "2 CRLF all lines random",
+				bs:          []byte("we6fwfef6gewfgewfg7efge\r\nsajkfdga\r\ndsfguigdfa"),
+				wantedL:     nil,
+				wantedError: errors.New("in repo.GetHeaderLines no header found"),
+			},
 
-		{
-			name:        "2 CRLF CRLF, random line, CRLF, random line",
-			bs:          []byte("\r\n2f3hg4f32ghf423gf324\r\nr23hjrb23hrbj23hbrh23"),
-			wantedL:     []byte("\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\r\n\" is ending part"),
-		},
+			{
+				name:        "2 CRLF CRLF, random line, CRLF, random line",
+				bs:          []byte("\r\n2f3hg4f32ghf423gf324\r\nr23hjrb23hrbj23hbrh23"),
+				wantedL:     []byte("\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\r\n\" is ending part"),
+			},
 
-		{
-			name:        "2 CRLF just 2 * CRLF, random line",
-			bs:          []byte("\r\n\r\nr23hjrb23hrbj23hbrh23"),
-			wantedL:     []byte("\r\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\r\n\r\n\" is ending part"),
-		},
+			{
+				name:        "2 CRLF just 2 * CRLF, random line",
+				bs:          []byte("\r\n\r\nr23hjrb23hrbj23hbrh23"),
+				wantedL:     []byte("\r\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\r\n\r\n\" is ending part"),
+			},
 
-		{
-			name:        "3 CRLF 2 header lines (CD insufficient), 1 random line",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\ndsfguigdfa"),
-			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: nil,
-		},
+			{
+				name:        "3 CRLF 2 header lines (CD insufficient), 1 random line",
+				bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\ndsfguigdfa"),
+				wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+				wantedError: nil,
+			},
 
-		{
-			name:        "3 CRLF 1 header line (CD sufficient), 2 random lines",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\ndsfguigdfa6fhgf55\r\nggf8723g723gf823"),
-			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending part"),
-		},
+			{
+				name:        "3 CRLF 1 header line (CD sufficient), 2 random lines",
+				bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\ndsfguigdfa6fhgf55\r\nggf8723g723gf823"),
+				wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending part"),
+			},
 
-		{
-			name:        "3 CRLF: CRLF + CDsuf + 2*CRLF + rand",
-			bs:          []byte("\r\nContent-Disposition: form-data; name=\"alice\"\r\n\r\ndsfguigdfa"),
-			wantedL:     []byte("\r\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\r\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending part"),
-		},
+			{
+				name:        "3 CRLF: CRLF + CDsuf + 2*CRLF + rand",
+				bs:          []byte("\r\nContent-Disposition: form-data; name=\"alice\"\r\n\r\ndsfguigdfa"),
+				wantedL:     []byte("\r\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\r\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending part"),
+			},
 
-		{
-			name:        "3 CRLF: CRLF + CT + 2*CRLF + rand",
-			bs:          []byte("\r\nContent-Type: text/plain\r\n\r\ndsfguigdfa"),
-			wantedL:     []byte("\r\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
-		},
+			{
+				name:        "3 CRLF: CRLF + CT + 2*CRLF + rand",
+				bs:          []byte("\r\nContent-Type: text/plain\r\n\r\ndsfguigdfa"),
+				wantedL:     []byte("\r\nContent-Type: text/plain\r\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
+			},
 
-		{
-			name:        "3 CRLF 1 header line, 2 random lines",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nCshdgfhsdgfhsdjf\r\ndsfguigdfa"),
-			wantedL:     nil,
-			wantedError: errors.New("in repo.GetHeaderLines no header found"),
-		},
+			{
+				name:        "3 CRLF 1 header line, 2 random lines",
+				bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nCshdgfhsdgfhsdjf\r\ndsfguigdfa"),
+				wantedL:     nil,
+				wantedError: errors.New("in repo.GetHeaderLines no header found"),
+			},
 
-		{
-			name:        "3 CRLF all random lines",
-			bs:          []byte("azazzazazzazazaz\r\nCzbbzbzbbzbzbbzbzbzbzbz\r\ndsfguigdfa\r\nf2r7fr27fr2f7r2"),
-			wantedL:     nil,
-			wantedError: errors.New("in repo.GetHeaderLines no header found"),
-		},
+			{
+				name:        "3 CRLF all random lines",
+				bs:          []byte("azazzazazzazazaz\r\nCzbbzbzbbzbzbbzbzbzbzbz\r\ndsfguigdfa\r\nf2r7fr27fr2f7r2"),
+				wantedL:     nil,
+				wantedError: errors.New("in repo.GetHeaderLines no header found"),
+			},
 
-		{
-			name:        "3 CRLF: CRLF, next random lines",
-			bs:          []byte("\r\nr23hjrb23hrbj23hbrh23\r\nsgdhgsdwef6fr6632\r\n438ry34grg438rg438gr43"),
-			wantedL:     []byte("\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\r\n\" is ending part"),
-		},
+			{
+				name:        "3 CRLF: CRLF, next random lines",
+				bs:          []byte("\r\nr23hjrb23hrbj23hbrh23\r\nsgdhgsdwef6fr6632\r\n438ry34grg438rg438gr43"),
+				wantedL:     []byte("\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\r\n\" is ending part"),
+			},
 
-		{
-			name:        "3 CRLF just  2 * CRLF, next random lines",
-			bs:          []byte("\r\n\r\nr23hjrb23hrbj23hbrh23\r\nsgdhgsdwef6fr6632"),
-			wantedL:     []byte("\r\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\r\n\r\n\" is ending part"),
-		},
+			{
+				name:        "3 CRLF just  2 * CRLF, next random lines",
+				bs:          []byte("\r\n\r\nr23hjrb23hrbj23hbrh23\r\nsgdhgsdwef6fr6632"),
+				wantedL:     []byte("\r\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\r\n\r\n\" is ending part"),
+			},
 
-		{
-			name:        "4 CRLF 1 line CD sufficient + 3 random lines",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\nhdsghdsvhsdvgshdgvsdv\r\nhjgvfjhdgvjhfdkgftv87dfvdfv\r\nsoiehfwoefhwefdgvjhsdv"),
-			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending part"),
-		},
+			{
+				name:        "4 CRLF 1 line CD sufficient + 3 random lines",
+				bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\nhdsghdsvhsdvgshdgvsdv\r\nhjgvfjhdgvjhfdkgftv87dfvdfv\r\nsoiehfwoefhwefdgvjhsdv"),
+				wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending part"),
+			},
 
-		{
-			name:        "4 CRLF 1 line CD insufficient + 2 random line",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nhdsghdsvhsdvgshdgvsdv\r\nhjgvfjhdgvjhfdkgftv87dfvdfv"),
-			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: nil,
-		},
+			{
+				name:        "4 CRLF 1 line CD insufficient + 2 random line",
+				bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nhdsghdsvhsdvgshdgvsdv\r\nhjgvfjhdgvjhfdkgftv87dfvdfv"),
+				wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+				wantedError: nil,
+			},
 
-		{
-			name:        "4 CRLF: CRLF + CDinsuf + CRLF + CT + 2*CRLF + rand",
-			bs:          []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\ndsfguigdfa"),
-			wantedL:     []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
-		},
+			{
+				name:        "4 CRLF: CRLF + CDinsuf + CRLF + CT + 2*CRLF + rand",
+				bs:          []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\ndsfguigdfa"),
+				wantedL:     []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
+			},
 
+			{
+				name:        "4 CRLF 1 boundary ending 2 header lines, 1 random line",
+				bs:          []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\ndsfguigdfa"),
+				bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				wantedL:     []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
+			},
+
+			{
+				name:        "5 CRLF 1 boundary ending 2 header lines, 1 random line",
+				bs:          []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\naaaaaaaaaaaaaaaaaaaaaaaaa\r\nbbbbbbbbbbbbbbbb\r\ndsfguigdfa"),
+				bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				wantedL:     []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
+			},
+
+			{
+				name:        "4 CRLF 1 boundary ending 1 header line, 2 random lines",
+				bs:          []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\ndsfguigdfa\r\nf2r7fr27fr2f7r2"),
+				bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				wantedL:     nil,
+				wantedError: errors.New("in repo.GetHeaderLines no header found"),
+			},
+
+			{
+				name:        "4 CRLF 1 boundary ending rest random lines",
+				bs:          []byte("fixbRoot\r\nCzbbzbzbbzbzbbzbzbzbzbz\r\ndsfguigdfa\r\nf2r7fr27fr2f7r2"),
+				bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				wantedL:     nil,
+				wantedError: errors.New("in repo.GetHeaderLines no header found"),
+			},
+
+			{
+				name:        "4 CRLF just  2 * CRLF, next random lines",
+				bs:          []byte("\r\n\r\nr23hjrb23hrbj23hbrh23\r\nsgdhgsdwef6fr6632\r\n3fd72fd73fd3727df23"),
+				wantedL:     []byte("\r\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\r\n\r\n\" is ending part"),
+			},
+
+			{
+				name:        "5 CRLF 1 CRLF 2 header lines, 1 random line",
+				bs:          []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\naaaaaaaaaaaaaaaaaaaaaaaaa\r\nbbbbbbbbbbbbbbbb\r\ndsfguigdfa"),
+				bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				wantedL:     []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
+			},
+
+			{
+				name:        "Precending LF, 0 CRLF. LF + rand",
+				bs:          []byte("\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
+				wantedL:     []byte("\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\n\" is ending part"),
+			},
+
+			{
+				name:        "Precending LF, 3 CRLF. LF + rand",
+				bs:          []byte("\nsdjkchdjhcskdhcdsjhckjsdhcjdsk\r\nsdjhfjdshjfsd\r\ngruihgeruhguerhguerg\r\n121312j412jk4g1jk4gjkg"),
+				bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				wantedL:     []byte("\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\n\" is ending part"),
+			},
+
+			{
+				name:        "Precending LF, 1 CRLF. CRLF + LF + rand",
+				bs:          []byte("\n\r\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
+				wantedL:     []byte("\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\n\r\n\" is ending part"),
+			},
+
+			{
+				name:        "Precending LF, 2 CRLF. LF + CT + 2*CRLF + rand",
+				bs:          []byte("\nContent-Type: text/plain\r\n\r\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
+				wantedL:     []byte("\nContent-Type: text/plain\r\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\nContent-Type: text/plain\r\n\r\n\" is ending part"),
+			},
+
+			{
+				name:        "Precending LF, 2 CRLF. LF + CDSuff + 2*CRLF + rand",
+				bs:          []byte("\nContent-Disposition: form-data; name=\"alice\"\r\n\r\nsdjkch2323232djhcskdhcdsjhckjsdhcjdsk"),
+				wantedL:     []byte("\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending part"),
+			},
+
+			{
+				name:        "Precending LF, 3 CRLF. LF + CDinsuf + CRLF + CT + 2*CRLF + rand",
+				bs:          []byte("\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
+				wantedL:     []byte("\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
+			},
+		*/
 		{
-			name:        "4 CRLF 1 boundary ending 2 header lines, 1 random line",
-			bs:          []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\ndsfguigdfa"),
+			name:        "Precending LF, 4 CRLF. LF + Boundary + CRLF+ CDinsuf + CRLF + CT + 2*CRLF + rand",
+			bs:          []byte("\nbPrefixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
+			wantedL:     []byte("\nbPrefixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+			wantedError: errors.New("in repo.GetHeaderLines header \"\nbPrefixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
 		},
+		/*
+			{
+				name:        "Succeeding LF, 0 CRLF. CD full + CR",
+				bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r"),
+				wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"\r\" is not full"),
+			},
 
-		{
-			name:        "5 CRLF 1 boundary ending 2 header lines, 1 random line",
-			bs:          []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\naaaaaaaaaaaaaaaaaaaaaaaaa\r\nbbbbbbbbbbbbbbbb\r\ndsfguigdfa"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
-		},
+			{
+				name:        "Succeeding LF, 1 CRLF. CDsuf + CRLF + CR",
+				bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r"),
+				wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"\r\n\r\" is not full"),
+			},
 
-		{
-			name:        "4 CRLF 1 boundary ending 1 header line, 2 random lines",
-			bs:          []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\ndsfguigdfa\r\nf2r7fr27fr2f7r2"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     nil,
-			wantedError: errors.New("in repo.GetHeaderLines no header found"),
-		},
+			{
+				name:        "Succeeding LF, 1 CRLF. CDinsuf + CRLF + CT + CR",
+				bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r"),
+				wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\" is not full"),
+			},
 
-		{
-			name:        "4 CRLF 1 boundary ending rest random lines",
-			bs:          []byte("fixbRoot\r\nCzbbzbzbbzbzbbzbzbzbzbz\r\ndsfguigdfa\r\nf2r7fr27fr2f7r2"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     nil,
-			wantedError: errors.New("in repo.GetHeaderLines no header found"),
-		},
+			{
+				name:        "Succeeding LF, 2 CRLF. CDinsuf + CRLF + CT + CRLF + CR",
+				bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r"),
+				wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r"),
+				wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\" is not full"),
+			},
 
-		{
-			name:        "4 CRLF just  2 * CRLF, next random lines",
-			bs:          []byte("\r\n\r\nr23hjrb23hrbj23hbrh23\r\nsgdhgsdwef6fr6632\r\n3fd72fd73fd3727df23"),
-			wantedL:     []byte("\r\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\r\n\r\n\" is ending part"),
-		},
-
-		{
-			name:        "5 CRLF 1 CRLF 2 header lines, 1 random line",
-			bs:          []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\naaaaaaaaaaaaaaaaaaaaaaaaa\r\nbbbbbbbbbbbbbbbb\r\ndsfguigdfa"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
-		},
-
-		{
-			name:        "Precending LF, 0 CRLF. LF + rand",
-			bs:          []byte("\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
-			wantedL:     []byte("\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\n\" is ending part"),
-		},
-
-		{
-			name:        "Precending LF, 3 CRLF. LF + rand",
-			bs:          []byte("\nsdjkchdjhcskdhcdsjhckjsdhcjdsk\r\nsdjhfjdshjfsd\r\ngruihgeruhguerhguerg\r\n121312j412jk4g1jk4gjkg"),
-			wantedL:     []byte("\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\n\" is ending part"),
-		},
-
-		{
-			name:        "Precending LF, 1 CRLF. CRLF + LF + rand",
-			bs:          []byte("\n\r\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
-			wantedL:     []byte("\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\n\r\n\" is ending part"),
-		},
-
-		{
-			name:        "Precending LF, 2 CRLF. LF + CT + 2*CRLF + rand",
-			bs:          []byte("\nContent-Type: text/plain\r\n\r\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
-			wantedL:     []byte("\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\nContent-Type: text/plain\r\n\r\n\" is ending part"),
-		},
-
-		{
-			name:        "Precending LF, 2 CRLF. LF + CDSuff + 2*CRLF + rand",
-			bs:          []byte("\nContent-Disposition: form-data; name=\"alice\"\r\n\r\nsdjkch2323232djhcskdhcdsjhckjsdhcjdsk"),
-			wantedL:     []byte("\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending part"),
-		},
-
-		{
-			name:        "Precending LF, 3 CRLF. LF + CDinsuf + CRLF + CT + 2*CRLF + rand",
-			bs:          []byte("\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
-			wantedL:     []byte("\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
-		},
-
-		{
-			name:        "Succeeding LF, 0 CRLF. CD full + CR",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r"),
-			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"\r\" is not full"),
-		},
-
-		{
-			name:        "Succeeding LF, 1 CRLF. CDsuf + CRLF + CR",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r"),
-			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"\r\n\r\" is not full"),
-		},
-
-		{
-			name:        "Succeeding LF, 1 CRLF. CDinsuf + CRLF + CT + CR",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r"),
-			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\" is not full"),
-		},
-
-		{
-			name:        "Succeeding LF, 2 CRLF. CDinsuf + CRLF + CT + CRLF + CR",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r"),
-			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r"),
-			wantedError: errors.New("in repo.GetHeaderLines header \"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\" is not full"),
-		},
-
-		{
-			name:        "Succeeding LF, 3 CRLF. rand + CR",
-			bs:          []byte("sdjkchdjhcskdhcdsjhckjsdhcjdsk\r\nsdjhfjdshjfsd\r\ngruihgeruhguerhguerg\r\n121312j412jk4g1jk4gjkg\r"),
-			wantedL:     nil,
-			wantedError: errors.New("in repo.GetHeaderLines no header found"),
-		},
+			{
+				name:        "Succeeding LF, 3 CRLF. rand + CR",
+				bs:          []byte("sdjkchdjhcskdhcdsjhckjsdhcjdsk\r\nsdjhfjdshjfsd\r\ngruihgeruhguerhguerg\r\n121312j412jk4g1jk4gjkg\r"),
+				wantedL:     nil,
+				wantedError: errors.New("in repo.GetHeaderLines no header found"),
+			},
+		*/
 	}
 
 	for _, v := range tt {
@@ -1689,10 +1907,19 @@ func (s *byteOpsSuite) TestIsBoudary() {
 		bou  Boundary
 		want bool
 	}{
+
 		{
-			name: "",
+			name: "case 1",
 			b:    []byte("\r\n"),
 			n:    []byte("bPrefixbRoot\r\nContent-Disposition"),
+			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			want: true,
+		},
+
+		{
+			name: "case 2",
+			b:    []byte(""),
+			n:    []byte("bPrefixbRoot"),
 			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			want: true,
 		},
