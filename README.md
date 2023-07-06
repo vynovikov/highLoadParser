@@ -8,4 +8,4 @@ It is version of [postParser](https://github.com/vynovikov/postParser) group ada
 Previously build [postParser](https://github.com/vynovikov/postParser) goes through adaptation steps:
 - Multi-threading is removed. Processing uses single thread. For simplicity and kubernetes resource allocation clearance. Tuning for incoming load is provided by Kubernetes autoscaling
 - gRPC transmitters/receivers are replaced with more performant Apache Kafka producers/consumers
-- Parser's obtains metric handling module necessary for autoscaling purposes
+- Parser obtains metric handling module necessary for autoscaling purposes
