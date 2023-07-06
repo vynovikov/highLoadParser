@@ -1334,19 +1334,21 @@ func IsBoundary(p, n []byte, bou Boundary) bool {
 
 // IsLastBoundaryEnding returns trye if b is the ending of last boundary
 func IsLastBoundaryEnding(b []byte, bou Boundary) bool {
-	boundary := GenBoundary(bou)
-	matchIndex, lenBoundary := -1, len(boundary)
-	for i := len(b) - 1; i > 0; i-- {
-		if b[i] == boundary[lenBoundary-1] {
-			matchIndex = i
-			break
+	/*
+		boundary := GenBoundary(bou)
+		matchIndex, lenBoundary := -1, len(boundary)
+		for i := len(b) - 1; i > 0; i-- {
+			if b[i] == boundary[lenBoundary-1] {
+				matchIndex = i
+				break
+			}
 		}
-	}
-	if matchIndex < 0 {
-		return true
-	}
-	return IsBoundaryEnding(b[:matchIndex], bou)
-
+		if matchIndex < 0 {
+			return true
+		}
+		return IsBoundaryEnding(b[:matchIndex], bou)
+	*/
+	return bytes.Contains([]byte("--"), b)
 }
 
 // IsBoundaryEnding returns true if b is boundary ending

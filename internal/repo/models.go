@@ -82,6 +82,15 @@ func IncPart(h *ReceiverHeader) {
 	h.Part++
 }
 
+// rfc1341
+// The encapsulation boundary following the last body part is a distinguished delimiter that
+// indicates that no further body parts will follow. Such a delimiter is identical to the previous delimiters,
+// with the addition of two more hyphens at the end of the line:
+//     --gc0p4Jq0M2Yt08jU534c0p--
+// so,
+// Prefix = []byte("--")
+// Suffix = []byte("--")
+
 type Boundary struct {
 	Prefix []byte
 	Root   []byte

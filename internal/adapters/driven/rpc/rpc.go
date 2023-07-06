@@ -100,7 +100,7 @@ func (t *TransmitAdapter) Transmit(adu repo.AppDistributorUnit) {
 	if err != nil {
 		logger.L.Errorf("in rpc.Transmit error %v\n", err)
 	}
-	//logger.L.Infof("in rpc.Transmit for adu %v made m %v\n", adu, m)
+	//logger.L.Infof("in rpc.Transmit for adu header %v body %q made m value %q\n", adu.GetHeader(), adu.GetBody(), m.Value)
 	err = t.KW.WriteMessages(context.Background(), m)
 	if err != nil {
 		logger.L.Errorf("in rpc.Transmit error %v\n", err)

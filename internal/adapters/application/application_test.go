@@ -194,7 +194,7 @@ func (s *applicationSuite) TestHandle() {
 			d: &repo.AppPieceUnit{
 				APH: repo.AppPieceHeader{Part: 0, TS: "qqq", B: repo.False, E: repo.True}, APB: repo.AppPieceBody{B: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza")},
 			},
-			bou: repo.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 			wantA: &App{
 				A: a,
 				S: &store.StoreStruct{
@@ -245,7 +245,7 @@ func (s *applicationSuite) TestHandle() {
 			d: &repo.AppPieceUnit{
 				APH: repo.AppPieceHeader{Part: 0, TS: "qqq", B: repo.False, E: repo.True}, APB: repo.AppPieceBody{B: []byte("Content-Disposition: form-data; name=\"alice\"; file")},
 			},
-			bou: repo.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 			wantA: &App{
 				A: a,
 				S: &store.StoreStruct{
@@ -292,7 +292,7 @@ func (s *applicationSuite) TestHandle() {
 			d: &repo.AppPieceUnit{
 				APH: repo.AppPieceHeader{Part: 1, TS: "qqq", B: repo.True, E: repo.True}, APB: repo.AppPieceBody{B: []byte("name=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza")},
 			},
-			bou: repo.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 			wantA: &App{
 				A: a,
 				S: &store.StoreStruct{
@@ -355,7 +355,59 @@ func (s *applicationSuite) TestHandle() {
 			d: &repo.AppPieceUnit{
 				APH: repo.AppPieceHeader{Part: 1, TS: "qqq", B: repo.True, E: repo.Last}, APB: repo.AppPieceBody{B: []byte("name=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza")},
 			},
-			bou: repo.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
+			wantA: &App{
+				A: a,
+				S: &store.StoreStruct{
+					R: map[repo.AppStoreKeyGeneral]map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{},
+				},
+				L: &DistributorSpyLogger{
+					calls: 1,
+					params: []repo.AppUnit{
+						repo.AppDistributorUnit{
+							H: repo.AppDistributorHeader{
+								TS:       "qqq",
+								FormName: "alice",
+								FileName: "short.txt",
+								IsLast:   true,
+							},
+							B: repo.AppDistributorBody{
+								B: []byte("azazaza"),
+							},
+						},
+					},
+				},
+			},
+		},
+
+		{
+			name: "B() == repo.True, E() == repo.Last, header was full",
+			a: &App{
+				A: a,
+				S: &store.StoreStruct{
+					R: map[repo.AppStoreKeyGeneral]map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{
+						{TS: "qqq"}: {
+							{SK: repo.StreamKey{TS: "qqq", Part: 1}, S: false}: {
+								false: repo.AppStoreValue{
+									D: repo.Disposition{
+										H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+										FormName: "alice",
+										FileName: "short.txt",
+									},
+									B: repo.BeginningData{Part: 0},
+									E: repo.True,
+								},
+							},
+						},
+					},
+				},
+				L: &DistributorSpyLogger{},
+			},
+
+			d: &repo.AppPieceUnit{
+				APH: repo.AppPieceHeader{Part: 1, TS: "qqq", B: repo.True, E: repo.Last}, APB: repo.AppPieceBody{B: []byte("azazaza")},
+			},
+			bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 			wantA: &App{
 				A: a,
 				S: &store.StoreStruct{
@@ -392,7 +444,7 @@ func (s *applicationSuite) TestHandle() {
 			d: &repo.AppPieceUnit{
 				APH: repo.AppPieceHeader{Part: 1, TS: "qqq", B: repo.True, E: repo.Probably}, APB: repo.AppPieceBody{B: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza")},
 			},
-			bou: repo.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 			wantA: &App{
 				A: a,
 				S: &store.StoreStruct{
@@ -436,7 +488,7 @@ func (s *applicationSuite) TestHandle() {
 				L: &DistributorSpyLogger{},
 			},
 			d:   &repo.AppSub{ASH: repo.AppSubHeader{TS: "qqq", Part: 1}, ASB: repo.AppSubBody{B: []byte("\r")}},
-			bou: repo.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 			wantA: &App{
 				A: a,
 				S: &store.StoreStruct{
@@ -483,7 +535,7 @@ func (s *applicationSuite) TestHandle() {
 				L: &DistributorSpyLogger{},
 			},
 			d:   &repo.AppSub{ASH: repo.AppSubHeader{TS: "qqq", Part: 1}, ASB: repo.AppSubBody{B: []byte("\r")}},
-			bou: repo.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 			wantA: &App{
 				A: a,
 				S: &store.StoreStruct{
@@ -546,9 +598,9 @@ func (s *applicationSuite) TestHandle() {
 				L: &DistributorSpyLogger{},
 			},
 			d: &repo.AppPieceUnit{
-				APH: repo.AppPieceHeader{Part: 2, TS: "qqq", B: repo.True, E: repo.True}, APB: repo.AppPieceBody{B: []byte("\nbPrefixbRoot\r\nContent-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza")},
+				APH: repo.AppPieceHeader{Part: 2, TS: "qqq", B: repo.True, E: repo.True}, APB: repo.AppPieceBody{B: []byte("\n--bRoot\r\nContent-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza")},
 			},
-			bou: repo.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 			wantA: &App{
 				A: a,
 				S: &store.StoreStruct{
@@ -618,9 +670,9 @@ func (s *applicationSuite) TestHandle() {
 				L: &DistributorSpyLogger{},
 			},
 			d: &repo.AppPieceUnit{
-				APH: repo.AppPieceHeader{Part: 2, TS: "qqq", B: repo.True, E: repo.Last}, APB: repo.AppPieceBody{B: []byte("\nbPrefixbRoot\r\nContent-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza")},
+				APH: repo.AppPieceHeader{Part: 2, TS: "qqq", B: repo.True, E: repo.Last}, APB: repo.AppPieceBody{B: []byte("\n--bRoot\r\nContent-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza")},
 			},
-			bou: repo.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 			wantA: &App{
 				A: a,
 				S: &store.StoreStruct{
@@ -664,7 +716,7 @@ func (s *applicationSuite) TestHandle() {
 								},
 								true: repo.AppStoreValue{
 									D: repo.Disposition{
-										H: []byte("\r\nb"),
+										H: []byte("\r\n-"),
 									},
 									B: repo.BeginningData{Part: 1},
 									E: repo.Probably,
@@ -677,9 +729,9 @@ func (s *applicationSuite) TestHandle() {
 				L: &DistributorSpyLogger{},
 			},
 			d: &repo.AppPieceUnit{
-				APH: repo.AppPieceHeader{Part: 2, TS: "qqq", B: repo.True, E: repo.True}, APB: repo.AppPieceBody{B: []byte("PrefixbRoot\r\nContent-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza")},
+				APH: repo.AppPieceHeader{Part: 2, TS: "qqq", B: repo.True, E: repo.True}, APB: repo.AppPieceBody{B: []byte("-bRoot\r\nContent-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza")},
 			},
-			bou: repo.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 			wantA: &App{
 				A: a,
 				S: &store.StoreStruct{
@@ -736,7 +788,7 @@ func (s *applicationSuite) TestHandle() {
 								},
 								true: repo.AppStoreValue{
 									D: repo.Disposition{
-										H: []byte("\r\nb"),
+										H: []byte("\r\n-"),
 									},
 									B: repo.BeginningData{Part: 1},
 									E: repo.Probably,
@@ -749,9 +801,9 @@ func (s *applicationSuite) TestHandle() {
 				L: &DistributorSpyLogger{},
 			},
 			d: &repo.AppPieceUnit{
-				APH: repo.AppPieceHeader{Part: 2, TS: "qqq", B: repo.True, E: repo.True}, APB: repo.AppPieceBody{B: []byte("Prazaza\r\nbzbzb")},
+				APH: repo.AppPieceHeader{Part: 2, TS: "qqq", B: repo.True, E: repo.True}, APB: repo.AppPieceBody{B: []byte("-razaza\r\nbzbzb")},
 			},
-			bou: repo.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 			wantA: &App{
 				A: a,
 				S: &store.StoreStruct{
@@ -781,7 +833,7 @@ func (s *applicationSuite) TestHandle() {
 								FileName: "short.txt",
 							},
 							B: repo.AppDistributorBody{
-								B: []byte("\r\nbPrazaza\r\nbzbzb"),
+								B: []byte("\r\n--razaza\r\nbzbzb"),
 							},
 						},
 					},
@@ -808,7 +860,7 @@ func (s *applicationSuite) TestHandle() {
 								},
 								true: repo.AppStoreValue{
 									D: repo.Disposition{
-										H: []byte("\r\nbPrefixbRoot"),
+										H: []byte("\r\n--bRoot"),
 									},
 									B: repo.BeginningData{Part: 1},
 									E: repo.Probably,
@@ -821,9 +873,9 @@ func (s *applicationSuite) TestHandle() {
 				L: &DistributorSpyLogger{},
 			},
 			d: &repo.AppPieceUnit{
-				APH: repo.AppPieceHeader{Part: 2, TS: "qqq", B: repo.True, E: repo.Last}, APB: repo.AppPieceBody{B: []byte("bSuffix")},
+				APH: repo.AppPieceHeader{Part: 2, TS: "qqq", B: repo.True, E: repo.Last}, APB: repo.AppPieceBody{B: []byte("--")},
 			},
-			bou: repo.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 			wantA: &App{
 				A: a,
 				S: &store.StoreStruct{
@@ -867,16 +919,16 @@ func (s *applicationSuite) TestCalcBody() {
 		{
 			name:     "no header present",
 			d:        &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 0, B: repo.True, E: repo.False}, APB: repo.AppPieceBody{B: []byte("azaza")}},
-			bou:      repo.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			bou:      repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 			wantADUB: repo.AppDistributorBody{B: []byte("azaza")},
 		},
 
 		{
 			name:       "header present",
-			d:          &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 0, B: repo.True, E: repo.False}, APB: repo.AppPieceBody{B: []byte("bPrefixbRoot\r\nContent-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\nbzbzbzbzb")}},
-			bou:        repo.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			d:          &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 0, B: repo.True, E: repo.False}, APB: repo.AppPieceBody{B: []byte("--bRoot\r\nContent-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\nbzbzbzbzb")}},
+			bou:        repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 			wantADUB:   repo.AppDistributorBody{B: []byte("bzbzbzbzb")},
-			wantHeader: []byte("bPrefixbRoot\r\nContent-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+			wantHeader: []byte("--bRoot\r\nContent-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 		},
 	}
 	for _, v := range tt {

@@ -174,7 +174,6 @@ func NewPieceKeyFromAPU(apu repo.AppPieceUnit) PieceKey {
 	}
 }
 
-// Handle runs as individual goroutine in concurrent way.
 // Handles dataPieces depending on its parameters and state of store.
 // Tested in application_test.go
 func (a *App) Handle(d repo.DataPiece, bou repo.Boundary) {
@@ -192,6 +191,7 @@ func (a *App) Handle(d repo.DataPiece, bou repo.Boundary) {
 
 	adu := repo.AppDistributorUnit{}
 	adub, header, bErr := CalcBody(d, bou)
+	//logger.L.Infof("application.Handle got dataPiece header %v, body %q\n", d.GetHeader(), d.GetBody(0))
 
 	presence, err := a.S.Presence(d)
 	if err != nil {
@@ -242,7 +242,13 @@ func (a *App) Handle(d repo.DataPiece, bou repo.Boundary) {
 		return
 	}
 	if len(adub.B) > 0 && len(header) > 0 {
-		adu := repo.NewAppDistributorUnitKafkaPrepared(d, header, nil, adub)
+		aduh := repo.NewAppDistributorHeaderKafkaFromSC(d, sc)
+		adu := repo.NewAppDistributorUnit(aduh, repo.AppDistributorBody{})
+		if d.E() != repo.Last || !repo.IsLastBoundaryEnding(header, bou) {
+			adu = repo.NewAppDistributorUnitKafkaPrepared(d, header, nil, adub)
+		} else {
+			a.S.Reset(repo.NewAppStoreKeyGeneralFromDataPiece(d))
+		}
 		a.toChanOut(adu)
 		return
 	}
@@ -251,14 +257,20 @@ func (a *App) Handle(d repo.DataPiece, bou repo.Boundary) {
 		if scErr != nil && strings.Contains(scErr.Error(), "no header found") {
 			prepErrs = append(prepErrs, scErr)
 
-			old := sc.From[repo.NewAppStoreKeyDetailed(d)][true].D.H
+			if len(sc.From[repo.NewAppStoreKeyDetailed(d)]) == 2 {
 
-			adub.B = append(old, adub.B...)
+				old := sc.From[repo.NewAppStoreKeyDetailed(d)][true].D.H
+				adub.B = append(old, adub.B...)
+			}
 
 			aduh := repo.NewAppDistributorHeaderKafkaFromSC(d, sc)
 			adu := repo.NewAppDistributorUnit(aduh, repo.AppDistributorBody{})
-			if d.E() == repo.Last && repo.IsLastBoundaryEnding(d.GetBody(0), bou) {
+
+			if d.E() == repo.Last {
 				a.S.Reset(repo.NewAppStoreKeyGeneralFromDataPiece(d))
+				if !repo.IsLastBoundaryEnding(d.GetBody(0), bou) {
+					adu.B = adub
+				}
 			} else {
 				adu.B = adub
 			}
