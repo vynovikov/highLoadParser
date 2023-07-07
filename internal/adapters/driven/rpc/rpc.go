@@ -93,6 +93,7 @@ func CreateTopic(conn *kafka.Conn, t string) error {
 }
 
 func (t *TransmitAdapter) Transmit(adu repo.AppDistributorUnit) {
+	//logger.L.Infof("in rpc.Transmit transmitting adu header %v body %q\n", adu.GetHeader(), adu.GetBody())
 	var (
 		m   kafka.Message
 		err error
@@ -121,7 +122,7 @@ func NewWriter(t string) *kafka.Writer {
 }
 func GenMessage(adu repo.AppDistributorUnit, t string) (kafka.Message, error) {
 	var m kafka.Message
-
+	//logger.L.Infof("in rpc.GenMessage adu header %v body %q\n", adu.GetHeader(), adu.GetBody())
 	serialized, err := serialize(adu)
 	if err != nil {
 		return m, err

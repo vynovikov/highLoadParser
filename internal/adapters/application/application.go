@@ -9,6 +9,7 @@ import (
 
 	"github.com/vynovikov/highLoadParser/internal/adapters/driven/rpc"
 	"github.com/vynovikov/highLoadParser/internal/adapters/driven/store"
+	"github.com/vynovikov/highLoadParser/internal/logger"
 	"github.com/vynovikov/highLoadParser/internal/repo"
 
 	"github.com/google/go-cmp/cmp"
@@ -192,6 +193,7 @@ func (a *App) Handle(d repo.DataPiece, bou repo.Boundary) {
 
 	adu := repo.AppDistributorUnit{}
 	adub, header, bErr := CalcBody(d, bou)
+
 	//logger.L.Infof("application.Handle got dataPiece header %v, body %q\n", d.GetHeader(), d.GetBody(0))
 
 	presence, err := a.S.Presence(d)
@@ -279,6 +281,15 @@ func (a *App) Handle(d repo.DataPiece, bou repo.Boundary) {
 			a.toChanOut(adu)
 
 		}
+	}
+	if len(adub.B) == 0 && d.E() == repo.Last { // last boundary ending
+		a.S.Reset(repo.NewAppStoreKeyGeneralFromDataPiece(d))
+		aduh := repo.NewAppDistributorKafkaHeader(d.TS(), "", "", true)
+		adu := repo.NewAppDistributorUnit(aduh, repo.AppDistributorBody{})
+		logger.L.Infof("application.Handle sending to chanOut dataPiece header %v, body %q, adu %v\n", d.GetHeader(), d.GetBody(0), adu)
+		a.toChanOut(adu)
+		return
+
 	}
 }
 

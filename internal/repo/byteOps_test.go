@@ -426,10 +426,10 @@ func (s *byteOpsSuite) TestSlicer() {
 					H: ReceiverHeader{
 						TS:   "qqq",
 						Part: 2,
-						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+						Bou:  Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 					},
 					B: ReceiverBody{
-						B: []byte("uffix"),
+						B: []byte("-"),
 					},
 				},
 			},
@@ -439,35 +439,16 @@ func (s *byteOpsSuite) TestSlicer() {
 		},
 
 		{
-			name: "part of last boundary",
+			name: "last boundary root part + suffix",
 			afu: AppFeederUnit{
 				R: ReceiverUnit{
 					H: ReceiverHeader{
 						TS:   "qqq",
 						Part: 2,
-						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+						Bou:  Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
 					},
 					B: ReceiverBody{
-						B: []byte("ootbSuffix"),
-					},
-				},
-			},
-			wantedDataPieces: []DataPiece{
-				&AppPieceUnit{APH: AppPieceHeader{TS: "qqq", Part: 2, B: True, E: Last}},
-			},
-		},
-
-		{
-			name: "last boundary suffix only",
-			afu: AppFeederUnit{
-				R: ReceiverUnit{
-					H: ReceiverHeader{
-						TS:   "qqq",
-						Part: 2,
-						Bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-					},
-					B: ReceiverBody{
-						B: []byte("bSuffix"),
+						B: []byte("ot--\r\n"),
 					},
 				},
 			},

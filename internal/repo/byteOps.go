@@ -246,6 +246,7 @@ func Slicer(afu AppFeederUnit) []DataPiece {
 	dp := make([]DataPiece, 0, 8)
 	bou := afu.R.H.Bou
 	b := afu.GetBody()
+	lenb := len(b)
 
 	if len(b) < MaxLineLimit && IsLastBoundaryEnding(b, bou) { // only possible in the last part with ending of last boundary
 		aphCur := NewAppPieceHeader(afu.R.H.Part, afu.R.H.TS, True, Last)
@@ -317,7 +318,7 @@ func Slicer(afu AppFeederUnit) []DataPiece {
 
 	ll := GetLineWithCRLFLeft(be, lenbe-1, MaxLineLimit, bou)
 
-	if BeginningEqual(ll, generatedBoundary) {
+	if lenb > len(generatedBoundary) && BeginningEqual(ll, generatedBoundary) {
 		apbCur.B = b[:len(b)-len(ll)]
 		/*
 			apuCur := NewAppPieceUnit(aphCur, apbCur)
@@ -357,7 +358,13 @@ func Slicer(afu AppFeederUnit) []DataPiece {
 	if len(dp) > 0 {
 		aphCur.B = False
 	}
+
+	if lenb < len(generatedBoundary) {
+		aphCur.E = Last
+		apbCur.B = nil
+	}
 	apuCur := NewAppPieceUnit(aphCur, apbCur)
+
 	dp = append(dp, &apuCur)
 	/*
 		if (len(ll) == 1 && bytes.Contains(ll, []byte("\r"))) || // last line is CR

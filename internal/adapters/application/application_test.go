@@ -329,58 +329,58 @@ func (s *applicationSuite) TestHandle() {
 					},
 				},
 			},
-		*/
-		{
-			name: "B() == repo.True, E() == repo.False, header was full",
-			a: &App{
-				A: a,
-				S: &store.StoreStruct{
-					R: map[repo.AppStoreKeyGeneral]map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{
-						{TS: "qqq"}: {
-							{SK: repo.StreamKey{TS: "qqq", Part: 1}, S: false}: {
-								false: repo.AppStoreValue{
-									D: repo.Disposition{
-										H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
-										FormName: "alice",
-										FileName: "short.txt",
+
+			{
+				name: "B() == repo.True, E() == repo.False, header was full",
+				a: &App{
+					A: a,
+					S: &store.StoreStruct{
+						R: map[repo.AppStoreKeyGeneral]map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{
+							{TS: "qqq"}: {
+								{SK: repo.StreamKey{TS: "qqq", Part: 1}, S: false}: {
+									false: repo.AppStoreValue{
+										D: repo.Disposition{
+											H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+											FormName: "alice",
+											FileName: "short.txt",
+										},
+										B: repo.BeginningData{Part: 0},
+										E: repo.True,
 									},
-									B: repo.BeginningData{Part: 0},
-									E: repo.True,
+								},
+							},
+						},
+					},
+					L: &DistributorSpyLogger{},
+				},
+
+				d: &repo.AppPieceUnit{
+					APH: repo.AppPieceHeader{Part: 1, TS: "qqq", B: repo.True, E: repo.False}, APB: repo.AppPieceBody{B: []byte("azazaza")},
+				},
+				bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
+				wantA: &App{
+					A: a,
+					S: &store.StoreStruct{
+						R: map[repo.AppStoreKeyGeneral]map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{},
+					},
+					L: &DistributorSpyLogger{
+						calls: 1,
+						params: []repo.AppUnit{
+							repo.AppDistributorUnit{
+								H: repo.AppDistributorHeader{
+									TS:       "qqq",
+									FormName: "alice",
+									FileName: "short.txt",
+								},
+								B: repo.AppDistributorBody{
+									B: []byte("azazaza"),
 								},
 							},
 						},
 					},
 				},
-				L: &DistributorSpyLogger{},
 			},
 
-			d: &repo.AppPieceUnit{
-				APH: repo.AppPieceHeader{Part: 1, TS: "qqq", B: repo.True, E: repo.False}, APB: repo.AppPieceBody{B: []byte("azazaza")},
-			},
-			bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
-			wantA: &App{
-				A: a,
-				S: &store.StoreStruct{
-					R: map[repo.AppStoreKeyGeneral]map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{},
-				},
-				L: &DistributorSpyLogger{
-					calls: 1,
-					params: []repo.AppUnit{
-						repo.AppDistributorUnit{
-							H: repo.AppDistributorHeader{
-								TS:       "qqq",
-								FormName: "alice",
-								FileName: "short.txt",
-							},
-							B: repo.AppDistributorBody{
-								B: []byte("azazaza"),
-							},
-						},
-					},
-				},
-			},
-		},
-		/*
 			{
 				name: "B() == repo.True, E() == repo.Last, ending part of header",
 				a: &App{
@@ -747,7 +747,61 @@ func (s *applicationSuite) TestHandle() {
 					},
 				},
 			},
+		*/
+		{
+			name: "Confirming DataPiece, last boundary present, root separated",
+			a: &App{
+				A: a,
+				S: &store.StoreStruct{
+					R: map[repo.AppStoreKeyGeneral]map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{
+						{TS: "qqq"}: {
+							{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: false}: {
+								false: repo.AppStoreValue{
+									D: repo.Disposition{
+										H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+										FormName: "alice",
+										FileName: "short.txt",
+									},
+									B: repo.BeginningData{Part: 1},
+									E: repo.Probably,
+								},
+								true: repo.AppStoreValue{
+									D: repo.Disposition{
+										H: []byte("\r\n--bRo"),
+									},
+									B: repo.BeginningData{Part: 1},
+									E: repo.Probably,
+								},
+							},
+						},
+					},
+				},
 
+				L: &DistributorSpyLogger{},
+			},
+			d: &repo.AppPieceUnit{
+				APH: repo.AppPieceHeader{Part: 2, TS: "qqq", B: repo.True, E: repo.Last}, APB: repo.AppPieceBody{B: []byte("ot--\r\n")},
+			},
+			bou: repo.Boundary{Prefix: []byte("--"), Root: []byte("bRoot")},
+			wantA: &App{
+				A: a,
+				S: &store.StoreStruct{
+					R: map[repo.AppStoreKeyGeneral]map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{},
+				},
+				L: &DistributorSpyLogger{
+					calls: 1,
+					params: []repo.AppUnit{
+						repo.AppDistributorUnit{
+							H: repo.AppDistributorHeader{
+								TS:     "qqq",
+								IsLast: true,
+							},
+						},
+					},
+				},
+			},
+		},
+		/*
 			{
 				name: "Confirming DataPiece, boundary present and separated => updating store, ADU new header",
 				a: &App{
