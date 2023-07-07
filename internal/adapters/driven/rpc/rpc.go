@@ -43,16 +43,17 @@ func NewTransmitter(t string) *TransmitAdapter {
 	if len(partitions) == 0 {
 		logger.L.Infof("in rpc.GetKafkaProducer no topics found\n")
 	}
+	//logger.L.Infoln("azaza")
 	for _, v := range partitions {
 		if t == v.Topic {
-			logger.L.Infof("in rpc.GetKafkaProducer topic %q found\n", t)
+			//logger.L.Infof("in rpc.GetKafkaProducer topic %q found\n", t)
 			return &TransmitAdapter{
 				KW: NewWriter(t),
 				t:  t,
 			}
 		}
 	}
-	logger.L.Infof("in rpc.GetKafkaProducer topic %q is not found should be created\n", t)
+	//logger.L.Infof("in rpc.GetKafkaProducer topic %q is not found should be created\n", t)
 	err = CreateTopic(conn, t)
 	if err != nil {
 		logger.L.Errorf("in rpc.GetKafkaProducer error %v", err)

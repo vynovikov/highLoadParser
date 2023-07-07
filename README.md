@@ -6,6 +6,6 @@ It is high load version of [postParser](https://github.com/vynovikov/postParser)
 
 #### Adaptation
 Previously built [postParser](https://github.com/vynovikov/postParser) is changed according to following steps:
-- Multi-threading is removed. Processing uses single thread. For simplicity and kubernetes resource allocation clearance. Tuning for incoming load is provided by Kubernetes autoscaling
+- Multi-threading is removed. Processing is carried out in single thread way for simplicity and kubernetes resource allocation clearance. Tuning for incoming load is provided by Kubernetes autoscaling
 - gRPC transmitters/receivers are replaced with more performant Apache Kafka producers/consumers
 - Parser is obtained metric handling module necessary for autoscaling purposes

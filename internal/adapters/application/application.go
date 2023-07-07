@@ -178,6 +178,7 @@ func NewPieceKeyFromAPU(apu repo.AppPieceUnit) PieceKey {
 // Tested in application_test.go
 func (a *App) Handle(d repo.DataPiece, bou repo.Boundary) {
 	prepErrs := make([]error, 0)
+	//logger.L.Infof("application.Handle got dataPiece header %v, body %q\n", d.GetHeader(), d.GetBody(0))
 	a.toChanLog(fmt.Sprintf("in highLoadparser application.Handle was invoked for dataPiece with header %v, body %q", d.GetHeader(), d.GetBody(0)))
 
 	if d.B() == repo.False && (d.E() == repo.False || d.E() == repo.Last) { // siglePart data
@@ -254,7 +255,7 @@ func (a *App) Handle(d repo.DataPiece, bou repo.Boundary) {
 	}
 
 	if len(adub.B) > 0 && len(header) == 0 {
-		if scErr != nil && strings.Contains(scErr.Error(), "no header found") {
+		if scErr == nil || (scErr != nil && strings.Contains(scErr.Error(), "no header found")) {
 			prepErrs = append(prepErrs, scErr)
 
 			if len(sc.From[repo.NewAppStoreKeyDetailed(d)]) == 2 {
@@ -266,9 +267,9 @@ func (a *App) Handle(d repo.DataPiece, bou repo.Boundary) {
 			aduh := repo.NewAppDistributorHeaderKafkaFromSC(d, sc)
 			adu := repo.NewAppDistributorUnit(aduh, repo.AppDistributorBody{})
 
-			if d.E() == repo.Last {
+			if d.E() == repo.Last || d.E() == repo.False {
 				a.S.Reset(repo.NewAppStoreKeyGeneralFromDataPiece(d))
-				if !repo.IsLastBoundaryEnding(d.GetBody(0), bou) {
+				if d.E() != repo.Last || !repo.IsLastBoundaryEnding(d.GetBody(0), bou) {
 					adu.B = adub
 				}
 			} else {
