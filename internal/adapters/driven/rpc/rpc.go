@@ -6,8 +6,10 @@ package rpc
 import (
 	"context"
 	"net"
+	"os"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/segmentio/kafka-go"
 	"github.com/vynovikov/highLoadParser/internal/adapters/driven/rpc/tosaver/pb"
@@ -29,10 +31,19 @@ type TransmitAdapter struct {
 }
 
 func NewTransmitter(t string) *TransmitAdapter {
-
-	conn, err := kafka.Dial("tcp", "localhost:9092")
-	if err != nil {
-		logger.L.Errorf("in rpc.GetKafkaProducer error %v", err)
+	var (
+		conn *kafka.Conn
+		err  error
+	)
+	kafkaHostname := os.Getenv("KAFKA_HOSTNAME")
+	for {
+		conn, err = kafka.Dial("tcp", kafkaHostname+":9092")
+		if err != nil {
+			logger.L.Errorf("in rpc.GetKafkaProducer error %v", err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		break
 	}
 	defer conn.Close()
 
@@ -48,7 +59,7 @@ func NewTransmitter(t string) *TransmitAdapter {
 		if t == v.Topic {
 			//logger.L.Infof("in rpc.GetKafkaProducer topic %q found\n", t)
 			return &TransmitAdapter{
-				KW: NewWriter(t),
+				KW: NewWriter(kafkaHostname, t),
 				t:  t,
 			}
 		}
@@ -59,7 +70,7 @@ func NewTransmitter(t string) *TransmitAdapter {
 		logger.L.Errorf("in rpc.GetKafkaProducer error %v", err)
 	}
 	return &TransmitAdapter{
-		KW: NewWriter(t),
+		KW: NewWriter(kafkaHostname, t),
 		t:  t,
 	}
 }
@@ -100,21 +111,21 @@ func (t *TransmitAdapter) Transmit(adu repo.AppDistributorUnit) {
 	)
 	m, err = GenMessage(adu, t.t)
 	if err != nil {
-		logger.L.Errorf("in rpc.Transmit error %v\n", err)
+		logger.L.Errorf("in rpc.Transmit generating message error %v\n", err)
 	}
 	//logger.L.Infof("in rpc.Transmit for adu header %v body %q made m value %q\n", adu.GetHeader(), adu.GetBody(), m.Value)
 	err = t.KW.WriteMessages(context.Background(), m)
 	if err != nil {
-		logger.L.Errorf("in rpc.Transmit error %v\n", err)
+		logger.L.Errorf("in rpc.Transmit writing message error %v\n", err)
 	}
 }
 func (t *TransmitAdapter) Log(s string) error {
 
 	return nil
 }
-func NewWriter(t string) *kafka.Writer {
+func NewWriter(host, t string) *kafka.Writer {
 	w := kafka.NewWriter(kafka.WriterConfig{
-		Brokers: []string{"localhost:9092"},
+		Brokers: []string{host + ":9092"},
 		Topic:   t,
 	})
 	//logger.L.Infof("in rpc.NewWriter w = %v\n", w)
