@@ -4,6 +4,8 @@ WORKDIR /highLoadParser
 
 COPY . .
 
+RUN ls
+
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o highLoadParser ./cmd/highLoadParser
 
 CMD ./highLoadParser

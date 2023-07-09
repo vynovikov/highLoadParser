@@ -1,0 +1,8 @@
+.devcontainer
+.vscode
+forManual
+internal/testFiles
+Dockerfile
+docker-compose.yaml
+Makefile
+README.md

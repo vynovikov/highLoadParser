@@ -36,8 +36,9 @@ func NewTransmitter(t string) *TransmitAdapter {
 		err  error
 	)
 	kafkaHostname := os.Getenv("KAFKA_HOSTNAME")
+	kafkaPort := os.Getenv("KAFKA_PORT")
 	for {
-		conn, err = kafka.Dial("tcp", kafkaHostname+":9092")
+		conn, err = kafka.Dial("tcp", kafkaHostname+":"+kafkaPort)
 		if err != nil {
 			logger.L.Errorf("in rpc.GetKafkaProducer error %v", err)
 			time.Sleep(5 * time.Second)
