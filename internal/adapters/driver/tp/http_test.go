@@ -29,7 +29,7 @@ func (s *tpSuite) SetupTest() {
 }
 
 // TestHandleRequest tests work of tp recriver. Testdouble spy is used to evaluate corectness of reciever operation
-func (s *tpSuite) TestHandleRequest() {
+func (s *tpSuite) TestHandleRequestFull() {
 
 	tt := []struct {
 		name    string
@@ -43,7 +43,7 @@ func (s *tpSuite) TestHandleRequest() {
 		wantRes []byte
 	}{
 		{
-			name: "len(req) < 512",
+			name: "len(req) < 512, no continue",
 			R: &tpReceiverStruct{
 				A: &application.App{
 					A: a,
@@ -73,7 +73,7 @@ func (s *tpSuite) TestHandleRequest() {
 								H: repo.ReceiverHeader{
 									TS:   "qqq",
 									Part: 0,
-									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
+									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b"), Suffix: []byte("")},
 								},
 
 								B: repo.ReceiverBody{
@@ -100,6 +100,39 @@ func (s *tpSuite) TestHandleRequest() {
 				"Content-Type: text/html\r\n" +
 				"\r\n" +
 				"200 OK"),
+		},
+		{
+			name: "len(req) < 512, continue",
+			R: &tpReceiverStruct{
+				Saved: map[string]struct{}{},
+				A: &application.App{
+					A: a,
+					L: &SpyLogger{},
+				},
+			},
+			req: "POST / HTTP/1.1\r\n" +
+				"Host: parsers-svc.parsers-ns.svc.cluster.local\r\n" +
+				"User-Agent: curl/7.47.0\r\n" +
+				"Accept: */*\r\n" +
+				"Content-Length: 145\r\n" +
+				"Expect: 100-continue\r\n" +
+				"Content-Type: multipart/form-data; boundary=------------------------ff0c865d39d048d3\r\n\r\n",
+			TS: "qqq",
+			wantR: &tpReceiverStruct{
+				Saved: map[string]struct{}{
+					"------------------------ff0c865d39d048d3": {},
+				},
+				A: &application.App{
+					A: a,
+					L: &SpyLogger{},
+				},
+			},
+
+			wantRes: []byte("HTTP/1.1 100 Continue\r\n" +
+				"Content-Length: 12\r\n" +
+				"Content-Type: text/html\r\n" +
+				"\r\n" +
+				"100 Continue"),
 		},
 
 		{
@@ -140,7 +173,7 @@ func (s *tpSuite) TestHandleRequest() {
 								H: repo.ReceiverHeader{
 									TS:   "qqq",
 									Part: 0,
-									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
+									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b"), Suffix: []byte("")},
 								},
 								B: repo.ReceiverBody{
 									B: []byte(
@@ -172,7 +205,6 @@ func (s *tpSuite) TestHandleRequest() {
 				"\r\n" +
 				"200 OK"),
 		},
-
 		{
 			name: "len(req) == 1024",
 			R: &tpReceiverStruct{
@@ -211,7 +243,7 @@ func (s *tpSuite) TestHandleRequest() {
 								H: repo.ReceiverHeader{
 									TS:   "qqq",
 									Part: 0,
-									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
+									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b"), Suffix: []byte("")},
 								},
 								B: repo.ReceiverBody{B: []byte(
 									"POST / HTTP/1.1\r\n" +
@@ -283,7 +315,7 @@ func (s *tpSuite) TestHandleRequest() {
 								H: repo.ReceiverHeader{
 									TS:   "qqq",
 									Part: 0,
-									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
+									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b"), Suffix: []byte("")},
 								},
 								B: repo.ReceiverBody{
 									B: []byte(
@@ -312,7 +344,7 @@ func (s *tpSuite) TestHandleRequest() {
 								H: repo.ReceiverHeader{
 									TS:   "qqq",
 									Part: 1,
-									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
+									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b"), Suffix: []byte("")},
 								},
 								B: repo.ReceiverBody{
 									B: []byte("6"),
@@ -374,7 +406,7 @@ func (s *tpSuite) TestHandleRequest() {
 								H: repo.ReceiverHeader{
 									TS:   "qqq",
 									Part: 0,
-									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
+									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b"), Suffix: []byte("")},
 								},
 								B: repo.ReceiverBody{B: []byte(
 									"POST / HTTP/1.1\r\n" +
@@ -402,7 +434,7 @@ func (s *tpSuite) TestHandleRequest() {
 								H: repo.ReceiverHeader{
 									TS:   "qqq",
 									Part: 1,
-									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b")},
+									Bou:  repo.Boundary{Prefix: []byte("--"), Root: []byte("------------------------c61fd8e07a9d3f9b"), Suffix: []byte("")},
 									//Unblock: true,
 								},
 								B: repo.ReceiverBody{
@@ -435,10 +467,11 @@ func (s *tpSuite) TestHandleRequest() {
 
 			v.wg.Add(1)
 
-			go v.R.HandleRequest(v.sr, v.TS, &v.wg)
+			go v.R.HandleRequestFull(v.sr, v.TS, &v.wg)
 
 			fmt.Fprint(v.cl, v.req)
 			time.Sleep(time.Millisecond * 50)
+			//logger.L.Infof("in tp.TestHandleRequestFull want: %q, got %q\n", v.wantRes, GetResponse(v.cl))
 			s.Equal(v.wantRes, GetResponse(v.cl))
 
 			v.wg.Wait()

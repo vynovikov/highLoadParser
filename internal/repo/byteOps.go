@@ -29,7 +29,7 @@ func FindNext(b, occ []byte, fromIndex int) int {
 func FindBoundary(b []byte) Boundary {
 
 	var err error
-	bPrefix, bRoot := []byte{}, []byte{}
+	bPrefix, bRoot, bSuffix := make([]byte, 0, 2), make([]byte, 0, 48), make([]byte, 0, 2)
 
 	if bytes.Contains(b, []byte(BoundaryField)) {
 
@@ -50,6 +50,7 @@ func FindBoundary(b []byte) Boundary {
 	return Boundary{
 		Prefix: bPrefix,
 		Root:   bRoot,
+		Suffix: bSuffix,
 	}
 
 }

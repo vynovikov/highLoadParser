@@ -20,7 +20,6 @@ func (s *rpcSuite) TestGenMessage() {
 	tt := []struct {
 		name  string
 		adu   repo.AppDistributorUnit
-		topic string
 		wantM kafka.Message
 	}{
 
@@ -62,7 +61,7 @@ func (s *rpcSuite) TestGenMessage() {
 	}
 	for _, v := range tt {
 		s.Run(v.name, func() {
-			m, _ := GenMessage(v.adu, v.topic)
+			m, _ := GenMessage(v.adu)
 			//logger.L.Infof("m = %q\n", m)
 			s.Equal(v.wantM, m)
 		})

@@ -1,10 +1,12 @@
 package repo
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -17,17 +19,22 @@ func AnalyzeHeader(conn net.Conn) (Boundary, []byte, error) {
 		(err != io.EOF && err != io.ErrUnexpectedEOF && !os.IsTimeout(err)) {
 		return Boundary{}, header, err
 	}
+	//logger.L.Infof("in repo.AnalyzeHeader got from request %q\n", header)
 	if n < len(header) {
 		header = header[:n]
 	}
 	bou := FindBoundary(header)
+	if bytes.Contains(header, []byte("100-continue")) {
+		return bou, header, fmt.Errorf("in repo.AnalyzeHeader expected 100-continue")
+	}
 	return bou, header, err
 }
 
 // AnalyzeBits returns result of reading 1024 bytes from connection
-func AnalyzeBits(conn net.Conn, i, p int, h []byte) (ReceiverBody, error) {
+func AnalyzeBits(conn net.Conn, i, p int, h []byte, errFirst error) (ReceiverBody, error) {
 	rb, ending := NewReceiverBody(i), make([]byte, 0)
-	if p == 0 {
+	if p == 0 &&
+		(errFirst == nil || errFirst != nil && !strings.Contains(errFirst.Error(), "100-continue")) {
 
 		lenh := len(h)
 		if lenh < 512 {
@@ -94,6 +101,28 @@ func AnalyzeBits(conn net.Conn, i, p int, h []byte) (ReceiverBody, error) {
 func Respond(conn net.Conn) {
 
 	body := "200 OK"
+	doRespond(conn, body)
+}
 
-	fmt.Fprintf(conn, "HTTP/1.1 200 OK\r\nContent-Length: %d\r\nContent-Type: text/html\r\n\r\n%s", len(body), body)
+func RespondContinue(conn net.Conn) {
+
+	body := "100 Continue"
+	doRespond(conn, body)
+}
+
+func doRespond(conn net.Conn, body string) {
+	//logger.L.Infof("in repo.doRespond responding %q\n", body)
+	fmt.Fprintf(conn, "HTTP/1.1 %s\r\nContent-Length: %d\r\nContent-Type: text/html\r\n\r\n%s", body, len(body), body)
+}
+
+func ReadFirst(conn net.Conn, n int) ([]byte, error) {
+	firstN := make([]byte, n, n)
+
+	conn.SetReadDeadline(time.Now().Add(time.Millisecond * 15))
+	_, err := io.ReadFull(conn, firstN)
+	if err != nil {
+		return firstN, err
+	}
+
+	return firstN, nil
 }

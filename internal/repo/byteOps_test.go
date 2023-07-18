@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/suite"
+	"github.com/vynovikov/highLoadParser/internal/logger"
 )
 
 type byteOpsSuite struct {
@@ -33,11 +33,36 @@ func (s *byteOpsSuite) TestReverse() {
 }
 
 func (s *byteOpsSuite) TestFindBoundary() {
-	bs := []byte("1111" + Sep + "2222" + Sep + "3333" + Sep + BoundaryField + "bRoot" + Sep + "4444" + Sep + "bPrefix" + "bRoot")
+	tt := []struct {
+		name   string
+		bs     []byte
+		wanted Boundary
+	}{
+		{
+			name:   "no continue",
+			bs:     []byte("1111" + Sep + "2222" + Sep + "3333" + Sep + BoundaryField + "bRoot" + Sep + "4444" + Sep + "bPrefix" + "bRoot"),
+			wanted: Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot"), Suffix: []byte("")},
+		},
 
-	boundary := FindBoundary(bs)
-
-	s.True(cmp.Equal(boundary, Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")}))
+		{
+			name: "100 continue",
+			bs: []byte("POST / HTTP/1.1" + Sep +
+				"Host: parsers-svc.parsers-ns.svc.cluster.local" + Sep +
+				"User-Agent: curl/7.47.0" + Sep +
+				"Accept: */*" + Sep +
+				"Content-Length: 145" + Sep +
+				"Expect: 100-continue" + Sep +
+				"Content-Type: multipart/form-data; boundary=------------------------ff0c865d39d048d3\r\n\r\n"),
+			wanted: Boundary{Prefix: []byte(""), Root: []byte("------------------------ff0c865d39d048d3"), Suffix: []byte("")},
+		},
+	}
+	for _, v := range tt {
+		s.Run(v.name, func() {
+			boundary := FindBoundary(v.bs)
+			logger.L.Infof("in repo.TestFindBoundary boundary %q\n", boundary)
+			s.Equal(v.wanted, boundary)
+		})
+	}
 }
 
 func (s *byteOpsSuite) TestGenBoundary() {

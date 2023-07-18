@@ -97,9 +97,10 @@ type Boundary struct {
 	Suffix []byte
 }
 
-func NewBoundary(r []byte) Boundary {
+func NewBoundary(p, r []byte) Boundary {
 	return Boundary{
-		Root: r,
+		Prefix: p,
+		Root:   r,
 	}
 }
 

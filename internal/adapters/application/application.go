@@ -124,7 +124,12 @@ func (a *App) Work(i int) {
 		}
 		// Reading feederUnit bytes chunk, finding to boundary appearance and slicing it into dataPieces
 		dataPieces := repo.Slicer(afu)
-
+		//logger.L.Infof("in application.Work for afu header %v, body %q made datapieces:\n", afu.GetHeader(), afu.GetBody())
+		/*
+			for i, v := range dataPieces {
+				logger.L.Infof("i = %d, header = %v, body = %q", i, v.GetHeader(), v.GetBody(0))
+			}
+		*/
 		for _, v := range dataPieces {
 			a.Handle(v, afu.R.H.Bou)
 		}
@@ -157,7 +162,11 @@ func (a *App) Send() {
 	for adu := range a.A.C.ChanOut {
 		a.T.Transmit(adu)
 	}
-	a.A.W.Sender.Done()
+	//	a.A.W.Sender.Done()
+	err := a.T.Stop()
+	if err != nil {
+		logger.L.Errorf("unable to stop transmitter %v\n", err)
+	}
 	close(a.A.C.Done)
 
 }

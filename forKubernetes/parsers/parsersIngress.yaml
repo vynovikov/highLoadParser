@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata: 
+  name: postparser-ingress
+  namespace: post
+spec:
+  rules:
+    - host: postparser.com
+      http:
+        paths:
+          - pathType: Exact
+            path: /
+            backend:
+              service:
+                name: postparser-service
+                port: 
+                  number: 80

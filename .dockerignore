@@ -1,6 +1,7 @@
 .devcontainer
 .vscode
 forManual
+forKubernetes
 internal/testFiles
 Dockerfile
 docker-compose.yaml
