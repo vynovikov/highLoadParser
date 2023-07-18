@@ -23,7 +23,7 @@ type TpsServer struct {
 
 type TpsReceiver interface {
 	Run()
-	HandleRequest(conn net.Conn, ts string, wg *sync.WaitGroup)
+	HandleRequestFull(conn net.Conn, ts string, wg *sync.WaitGroup)
 	Stop(*sync.WaitGroup)
 }
 

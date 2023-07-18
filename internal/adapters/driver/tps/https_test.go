@@ -432,7 +432,7 @@ func (s *tpsSuite) TestHandleRequest() {
 
 			v.wg.Add(1)
 
-			go v.R.HandleRequest(v.sr, v.TS, &v.wg)
+			go v.R.HandleRequestFull(v.sr, v.TS, &v.wg)
 
 			fmt.Fprint(v.cl, v.req)
 			time.Sleep(time.Millisecond * 50)
