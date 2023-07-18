@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: parser
-          image: vynovikov/highloadparser:0.20
+          image: vynovikov/highloadparser:0.28
           env:
             - name: KAFKA_ADDR
               valueFrom:

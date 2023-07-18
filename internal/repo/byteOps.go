@@ -28,7 +28,6 @@ func FindNext(b, occ []byte, fromIndex int) int {
 // Tested in byteOps_test.go
 func FindBoundary(b []byte) Boundary {
 
-	var err error
 	bPrefix, bRoot, bSuffix := make([]byte, 0, 2), make([]byte, 0, 48), make([]byte, 0, 2)
 
 	if bytes.Contains(b, []byte(BoundaryField)) {
@@ -37,15 +36,18 @@ func FindBoundary(b []byte) Boundary {
 
 		bRoot = LineRightLimit(b, startIndex, 70)
 
-		bb := b[startIndex+1:]
+		bPrefix = []byte("--")
+		/*
+			bb := b[startIndex+1:]
 
-		secBoundaryIndex := bytes.Index(bb, bRoot) - 1
+			secBoundaryIndex := bytes.Index(bb, bRoot) - 1
 
-		bPrefix, err = GetCurrentLineLeft(bb, secBoundaryIndex, MaxLineLimit)
+			bPrefix, err = GetCurrentLineLeft(bb, secBoundaryIndex, MaxLineLimit)
 
-		if err != nil {
-			return Boundary{}
-		}
+			if err != nil {
+				return Boundary{}
+			}
+		*/
 	}
 	return Boundary{
 		Prefix: bPrefix,

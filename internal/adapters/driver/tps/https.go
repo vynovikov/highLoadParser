@@ -87,7 +87,10 @@ func (r *tpsReceiverStruct) HandleRequestFull(conn net.Conn, ts string, wg *sync
 		//logger.L.Infof("in HandleReauest bou = %q, header = %q, errFirst = %v\n", bou, header, errFirst)
 		if errFirst != nil && strings.Contains(errFirst.Error(), "100-continue") {
 			r.Saved[string(repo.GenBoundary(bou)[2:])] = struct{}{}
-			go repo.RespondContinue(conn)
+			var wwg sync.WaitGroup
+			wwg.Add(1)
+			go repo.RespondContinue(conn, &wwg)
+			wwg.Wait()
 			return
 		}
 
@@ -145,7 +148,10 @@ func (r *tpsReceiverStruct) HandleRequestLast(conn net.Conn, ts string, bou repo
 
 		p++
 	}
-	go repo.Respond(conn)
+	var wwg sync.WaitGroup
+	wwg.Add(1)
+	go repo.Respond(conn, &wwg)
+	wwg.Wait()
 }
 
 func (r *tpsReceiverStruct) CleanSaved(s string) {

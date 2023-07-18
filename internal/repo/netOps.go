@@ -7,7 +7,10 @@ import (
 	"net"
 	"os"
 	"strings"
+	"sync"
 	"time"
+
+	"github.com/vynovikov/highLoadParser/internal/logger"
 )
 
 // AnalyzeHeader returns first 512 bytes of connection and boundary if found
@@ -88,6 +91,11 @@ func AnalyzeBits(conn net.Conn, i, p int, h []byte, errFirst error) (ReceiverBod
 
 			rb.B = rb.B[:n]
 
+			if errFirst != nil && strings.Contains(errFirst.Error(), "100-continue") {
+
+				rb.B = rb.B[len(h):]
+			}
+
 			return rb, err
 		}
 
@@ -98,20 +106,21 @@ func AnalyzeBits(conn net.Conn, i, p int, h []byte, errFirst error) (ReceiverBod
 }
 
 // Respond responds to connection with successful code
-func Respond(conn net.Conn) {
-
+func Respond(conn net.Conn, wg *sync.WaitGroup) {
+	defer wg.Done()
 	body := "200 OK"
 	doRespond(conn, body)
+
 }
 
-func RespondContinue(conn net.Conn) {
-
+func RespondContinue(conn net.Conn, wg *sync.WaitGroup) {
+	defer wg.Done()
 	body := "100 Continue"
 	doRespond(conn, body)
 }
 
 func doRespond(conn net.Conn, body string) {
-	//logger.L.Infof("in repo.doRespond responding %q\n", body)
+	logger.L.Infof("in repo.doRespond responding %q\n", body)
 	fmt.Fprintf(conn, "HTTP/1.1 %s\r\nContent-Length: %d\r\nContent-Type: text/html\r\n\r\n%s", body, len(body), body)
 }
 
