@@ -50,7 +50,7 @@ func NewTpReceiver(a application.Application) *tpReceiverStruct {
 func (r *tpReceiverStruct) Run() {
 	for {
 		conn, err := r.srv.l.Accept()
-		logger.L.Infoln("got request")
+
 		if err != nil && conn == nil {
 
 			r.wg.Wait()
@@ -59,7 +59,7 @@ func (r *tpReceiverStruct) Run() {
 			return
 
 		}
-		logger.L.Infoln("got request")
+
 		r.wg.Add(1)
 		ts := repo.NewTS()
 		// consider serial execution -> mutex
@@ -73,7 +73,7 @@ func (r *tpReceiverStruct) Run() {
 func (r *tpReceiverStruct) HandleRequestFull(conn net.Conn, ts string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	bou, header, errFirst := repo.AnalyzeHeader(conn)
-	logger.L.Infof("in HandleReauestFull 1 bou = %q, header = %q, errFirst = %v\n", bou, header, errFirst)
+	//logger.L.Infof("in HandleReauestFull 1 bou = %q, header = %q, errFirst = %v\n", bou, header, errFirst)
 	if errFirst != nil && strings.Contains(errFirst.Error(), "100-continue") {
 		r.Saved[string(repo.GenBoundary(bou)[2:])] = struct{}{}
 		var wwg sync.WaitGroup
@@ -117,7 +117,7 @@ func (r *tpReceiverStruct) HandleRequestLast(conn net.Conn, ts string, bou repo.
 	for {
 		h := repo.NewReceiverHeader(ts, p, bou)
 		b, errSecond := repo.AnalyzeBits(conn, 1024, p, header, errFirst)
-		logger.L.Infof("in HandleReauestLast b = %q, errSecond = %v\n", b, errSecond)
+		//logger.L.Infof("in HandleReauestLast b = %q, errSecond = %v\n", b, errSecond)
 
 		u := repo.NewReceiverUnit(h, b)
 		if errFirst != nil {

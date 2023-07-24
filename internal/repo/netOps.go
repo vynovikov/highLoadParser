@@ -9,8 +9,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/vynovikov/highLoadParser/internal/logger"
 )
 
 // AnalyzeHeader returns first 512 bytes of connection and boundary if found
@@ -120,7 +118,7 @@ func RespondContinue(conn net.Conn, wg *sync.WaitGroup) {
 }
 
 func doRespond(conn net.Conn, body string) {
-	logger.L.Infof("in repo.doRespond responding %q\n", body)
+	//logger.L.Infof("in repo.doRespond responding %q\n", body)
 	fmt.Fprintf(conn, "HTTP/1.1 %s\r\nContent-Length: %d\r\nContent-Type: text/html\r\n\r\n%s", body, len(body), body)
 }
 

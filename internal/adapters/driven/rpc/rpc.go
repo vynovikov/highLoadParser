@@ -26,8 +26,10 @@ type Transmitter interface {
 }
 
 type TransmitAdapter struct {
-	lock sync.Mutex
-	KC   *kafka.Conn
+	lock      sync.Mutex
+	KC        *kafka.Conn
+	Topic     string
+	Partition int
 }
 
 func NewTransmitter(t string) *TransmitAdapter {
@@ -36,15 +38,16 @@ func NewTransmitter(t string) *TransmitAdapter {
 		err  error
 	)
 	kafkaAddr := os.Getenv("KAFKA_ADDR")
-	topic := os.Getenv("KAFKA_TOPIC")
-	partition, err := strconv.Atoi(os.Getenv("KAFKA_PARTITION"))
+	kafkaTopic := os.Getenv("KAFKA_TOPIC")
+	kafkaPartitionString := os.Getenv("KAFKA_PARTITION")
+	partition, err := strconv.Atoi(kafkaPartitionString)
 	if err != nil {
-		logger.L.Errorf("in rpc.GetKafkaProducer unble to convers %q into int %v\n", os.Getenv("KAFKA_PARTITION"), err)
+		logger.L.Errorf("in rpc.GetKafkaProducer unble to convers %q into int %v\n", kafkaPartitionString, err)
 	}
-	//logger.L.Infof("addr = %s, topic = %s, partition = %d\n", kafkaAddr, topic, partition)
+	//logger.L.Infof("addr = %s, kafkaTopic = %s, partition = %d\n", kafkaAddr, kafkaTopic, partition)
 
 	for {
-		conn, err = kafka.DialLeader(context.Background(), "tcp", kafkaAddr, topic, partition)
+		conn, err = kafka.DialLeader(context.Background(), "tcp", kafkaAddr, kafkaTopic, partition)
 		if err != nil {
 			logger.L.Errorf("in rpc.GetKafkaProducer error %v", err)
 			time.Sleep(5 * time.Second)
@@ -54,7 +57,9 @@ func NewTransmitter(t string) *TransmitAdapter {
 	}
 
 	return &TransmitAdapter{
-		KC: conn,
+		KC:        conn,
+		Topic:     kafkaTopic,
+		Partition: partition,
 	}
 }
 
@@ -82,24 +87,30 @@ func CreateTopic(conn *kafka.Conn, t string) error {
 	if err != nil {
 		logger.L.Errorf("in rpc.CreateTopic error %v\n", err)
 	}
-	//logger.L.Infof("in rpc.GetKafkaProducer topic %q created\n", t)
+	//logger.L.Infof("in rpc.GetKafkaProducer kafkaTopic %q created\n", t)
 	return nil
 }
 
 func (t *TransmitAdapter) Transmit(adu repo.AppDistributorUnit) {
-	logger.L.Infof("in rpc.Transmit transmitting adu header %v body %q\n", adu.GetHeader(), adu.GetBody())
+	//logger.L.Infof("in rpc.Transmit transmitting adu header %v body %q\n", adu.GetHeader(), adu.GetBody())
 	var (
 		m   kafka.Message
 		err error
 	)
-	m, err = GenMessage(adu)
+	m, err = GenMessage(adu, t.Topic)
 	if err != nil {
 		logger.L.Errorf("in rpc.Transmit generating message error %v\n", err)
 	}
-	logger.L.Infof("in rpc.Transmit for adu header %v body %q made m value %q\n", adu.GetHeader(), adu.GetBody(), m.Value)
-	_, err = t.KC.WriteMessages(m)
-	if err != nil {
-		logger.L.Errorf("in rpc.Transmit writing message error %v\n", err)
+	//logger.L.Infof("in rpc.Transmit for adu header %v body %q made m %q\n", adu.GetHeader(), adu.GetBody(), m)
+	for {
+		_, err = t.KC.WriteMessages(m)
+		if err != nil {
+			logger.L.Errorf("in rpc.Transmit writing message error %v\n", err)
+			time.Sleep(time.Second * 5)
+			continue
+		}
+		logger.L.Infof("in rpc.Transmit message %q was sent\n", m)
+		break
 	}
 }
 func (t *TransmitAdapter) Stop() error {
@@ -109,14 +120,14 @@ func (t *TransmitAdapter) Log(s string) error {
 
 	return nil
 }
-func GenMessage(adu repo.AppDistributorUnit) (kafka.Message, error) {
+func GenMessage(adu repo.AppDistributorUnit, topic string) (kafka.Message, error) {
 	var m kafka.Message
 	//logger.L.Infof("in rpc.GenMessage adu header %v body %q\n", adu.GetHeader(), adu.GetBody())
 	serialized, err := serialize(adu)
 	if err != nil {
 		return m, err
 	}
-	//m.Topic = t
+	m.Topic = topic // exceptional
 	m.Key = []byte(adu.H.TS)
 	m.Value = serialized
 	//logger.L.Infof("in rpc.GenMessage m = %v\n", m)
