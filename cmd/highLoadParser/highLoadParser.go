@@ -20,7 +20,7 @@ var (
 )
 
 func main() {
-	t := rpc.NewTransmitter("data")
+	t := rpc.NewTransmitter()
 	s := store.NewStore()
 
 	app, done := application.NewAppFull(s, t)

@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -32,7 +33,7 @@ type TransmitAdapter struct {
 	Partition int
 }
 
-func NewTransmitter(t string) *TransmitAdapter {
+func NewTransmitter() *TransmitAdapter {
 	var (
 		conn *kafka.Conn
 		err  error
@@ -94,8 +95,9 @@ func CreateTopic(conn *kafka.Conn, t string) error {
 func (t *TransmitAdapter) Transmit(adu repo.AppDistributorUnit) {
 	//logger.L.Infof("in rpc.Transmit transmitting adu header %v body %q\n", adu.GetHeader(), adu.GetBody())
 	var (
-		m   kafka.Message
-		err error
+		m    kafka.Message
+		err  error
+		newT *TransmitAdapter
 	)
 	m, err = GenMessage(adu, t.Topic)
 	if err != nil {
@@ -103,9 +105,18 @@ func (t *TransmitAdapter) Transmit(adu repo.AppDistributorUnit) {
 	}
 	//logger.L.Infof("in rpc.Transmit for adu header %v body %q made m %q\n", adu.GetHeader(), adu.GetBody(), m)
 	for {
-		_, err = t.KC.WriteMessages(m)
+		if newT != nil {
+			_, err = newT.KC.WriteMessages(m)
+		} else {
+			_, err = t.KC.WriteMessages(m)
+		}
 		if err != nil {
 			logger.L.Errorf("in rpc.Transmit writing message error %v\n", err)
+			if strings.Contains(err.Error(), "broken pipe") {
+				logger.L.Infof("transmitter restarting")
+				newT = NewTransmitter()
+
+			}
 			time.Sleep(time.Second * 5)
 			continue
 		}
