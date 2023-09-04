@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: {{ include "parsers-chart.fullname" . }}-deployment
+  namespace: {{ include "parsers-chart.fullname" . }}-ns
+  labels:
+    {{- include "parsers-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: parsers-selector
+  template:
+    metadata:
+      labels:
+        app: parsers-selector
+    spec:
+      containers:
+        - name: {{ .Values.fullnameOverride | trimSuffix "-" }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          env:
+            - name: KAFKA_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: parsers-config
+                  key: kafka_addr            
+            - name: KAFKA_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: parsers-config
+                  key: kafka_topic
+            - name: KAFKA_PARTITION
+              valueFrom:
+                configMapKeyRef:
+                  name: parsers-config
+                  key: kafka_partition
+          ports:
+            - containerPort: {{ .Values.application.containerPort }}
