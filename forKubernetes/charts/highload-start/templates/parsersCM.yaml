@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.parsers.fullnameOverride }}-config
+  namespace: {{ .Values.parsers.fullnameOverride }}-ns
+data:
+  kafka_addr: {{ .Values.kafka.bootstrapURL }}
+  kafka_topic_name: {{ .Values.kafka.topicName }}
+  

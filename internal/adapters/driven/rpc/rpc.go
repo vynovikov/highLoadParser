@@ -27,10 +27,9 @@ type Transmitter interface {
 }
 
 type TransmitAdapter struct {
-	lock      sync.Mutex
-	KC        *kafka.Conn
-	Topic     string
-	Partition int
+	lock  sync.Mutex
+	KC    *kafka.Conn
+	Topic string
 }
 
 func NewTransmitter() *TransmitAdapter {
@@ -39,18 +38,27 @@ func NewTransmitter() *TransmitAdapter {
 		err  error
 	)
 	kafkaAddr := os.Getenv("KAFKA_ADDR")
-	kafkaTopic := os.Getenv("KAFKA_TOPIC")
-	kafkaPartitionString := os.Getenv("KAFKA_PARTITION")
-	partition, err := strconv.Atoi(kafkaPartitionString)
-	if err != nil {
-		logger.L.Errorf("in rpc.GetKafkaProducer unble to convers %q into int %v\n", kafkaPartitionString, err)
-	}
-	//logger.L.Infof("addr = %s, kafkaTopic = %s, partition = %d\n", kafkaAddr, kafkaTopic, partition)
+	kafkaTopicName := os.Getenv("KAFKA_TOPIC_NAME")
+	logger.L.Infof("in rpc.NewTransmitter kafkaTopicName: %s\n", kafkaTopicName)
+	hostName := os.Getenv("HOSTNAME")
+	logger.L.Infof("in rpc.NewTransmitter hostName: %s\n", hostName)
+
+	//kafkaPartitionString := os.Getenv("KAFKA_PARTITION")
+	/*
+		partition, err := strconv.Atoi(kafkaPartitionString)
+		if err != nil {
+			logger.L.Errorf("in rpc.GetKafkaProducer unble to convers %q into int %v\n", kafkaPartitionString, err)
+		}
+	*/
+	//logger.L.Infof("addr = %s, kafkaTopicName = %s, partition = %d\n", kafkaAddr, kafkaTopicName, partition)
+	index := hostName[strings.LastIndex(hostName, "-")+1:]
+	logger.L.Infof("in rpc.NewTransmitter index: %s\n", index)
+	//kafkaTopic:=kafkaTopicName+hostName[strings.Index(hostName,strings.LastIndex(hostName,"-"))]
 
 	for {
-		conn, err = kafka.DialLeader(context.Background(), "tcp", kafkaAddr, kafkaTopic, partition)
+		conn, err = kafka.DialLeader(context.Background(), "tcp", kafkaAddr, kafkaTopicName+"-"+index, 0)
 		if err != nil {
-			logger.L.Errorf("in rpc.GetKafkaProducer error %v", err)
+			//logger.L.Errorf("in rpc.GetKafkaProducer error %v", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
@@ -58,9 +66,8 @@ func NewTransmitter() *TransmitAdapter {
 	}
 
 	return &TransmitAdapter{
-		KC:        conn,
-		Topic:     kafkaTopic,
-		Partition: partition,
+		KC:    conn,
+		Topic: kafkaTopicName,
 	}
 }
 
@@ -88,7 +95,7 @@ func CreateTopic(conn *kafka.Conn, t string) error {
 	if err != nil {
 		logger.L.Errorf("in rpc.CreateTopic error %v\n", err)
 	}
-	//logger.L.Infof("in rpc.GetKafkaProducer kafkaTopic %q created\n", t)
+	//logger.L.Infof("in rpc.GetKafkaProducer kafkaTopicName %q created\n", t)
 	return nil
 }
 

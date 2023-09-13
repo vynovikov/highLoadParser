@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.savers.fullnameOverride }}-pv
+  namespace: {{ .Values.savers.fullnameOverride }}-ns
+spec:
+  accessModes: {{ .Values.savers.pv.accessMoodes }}
+  capacity:
+    storage: {{ .Values.savers.pv.storageCapacity }}
+  persistentVolumeReclaimPolicy:  {{ .Values.savers.pv.persistentVolumeReclaimPolicy }}
+  storageClassName: {{ .Values.savers.pv.storageClassName }}
+  nfs: {{ .Values.savers.pv.nfs }}

@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: 
+  name: {{ .Values.parsers.fullnameOverride }}-sset
+  namespace: {{ .Values.parsers.fullnameOverride }}-ns
+  labels:
+    {{- include "highload-start.labels" . | nindent 4}}
+spec:
+  replicas: {{ .Values.parsers.replicaCount }}
+  selector:
+    matchLabels:
+        {{- include "highload-start.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "highload-start.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Values.parsers.fullnameOverride }}
+          image: {{ .Values.parsers.image.repository }}:{{ .Values.parsers.image.tag }}
+          env:
+            - name: KAFKA_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.parsers.fullnameOverride }}-config
+                  key: kafka_addr            
+            - name: KAFKA_TOPIC_NAME
+              valueFrom:
+                configMapKeyRef:
+                  # CM value concatenates with hostname index inside pod app
+                  name: {{ .Values.parsers.fullnameOverride }}-config
+                  key: kafka_topic_name
+          ports:
+            - containerPort: {{ .Values.parsers.containerPort }}

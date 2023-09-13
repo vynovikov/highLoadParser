@@ -1,0 +1,51 @@
+parsers:
+  fullnameOverride: "parsers"
+  replicaCount: 1
+  containerPort: 3000
+  image:
+    repository: vynovikov/highloadparser
+    pullPolicy: IfNotPresent
+    tag: "0.40"
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3000
+  ingress:
+    enabled: true
+    className: "system-ingress"
+    annotations: {}
+    hosts:
+      - host: parsers.com
+        paths:
+          - path: /
+            pathType: Exact
+
+savers:
+  fullnameOverride: "savers"
+  replicaCount: 1
+  image:
+    repository: vynovikov/highloadsaver
+    pullPolicy: IfNotPresent    
+    tag: "0.10"
+  service:
+    type: ClusterIP
+    port: 80
+  pv:
+    accessModes: 
+      - ReadWriteMany
+    storageCapacity: 100Mi
+    persistentVolumeReclaimPolicy: Recycle
+    storageClassName: nfs
+    nfs:
+      path: /mnt/minikube
+      server: 10.0.2.15
+  pvc:
+    accessModes: 
+      - ReadWriteMany
+    storageClassName: nfs
+    resources:
+      requests:
+        storage: 100Mi  
+kafka:
+  bootstrapURL: "my-cluster-kafka-bootstrap.kafka.svc.cluster.local"
+  topicName: "data"
