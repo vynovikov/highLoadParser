@@ -7,12 +7,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/vynovikov/highLoadParser/internal/adapters/driven/rpc"
-	"github.com/vynovikov/highLoadParser/internal/adapters/driven/store"
-	"github.com/vynovikov/highLoadParser/internal/logger"
-	"github.com/vynovikov/highLoadParser/internal/repo"
-
-	"github.com/google/go-cmp/cmp"
+	"github.com/vynovikov/study/highLoadParser/internal/adapters/driven/rpc"
+	"github.com/vynovikov/study/highLoadParser/internal/adapters/driven/store"
+	"github.com/vynovikov/study/highLoadParser/internal/logger"
+	"github.com/vynovikov/study/highLoadParser/internal/repo"
 )
 
 type AppService struct {
@@ -235,13 +233,16 @@ func (a *App) Handle(d repo.DataPiece, bou repo.Boundary) {
 				adu = repo.NewAppDistributorUnit(aduh, adub)
 			}
 
-			if !cmp.Equal(adu, repo.AppDistributorUnit{}) {
-				a.toChanOut(adu)
-				if d.E() == repo.Last {
-					a.S.Reset(repo.NewAppStoreKeyGeneralFromDataPiece(d))
+			/*
+				if !cmp(adu, repo.AppDistributorUnit{}) {
+					a.toChanOut(adu)
+					if d.E() == repo.Last {
+						a.S.Reset(repo.NewAppStoreKeyGeneralFromDataPiece(d))
+					}
+					return
 				}
-				return
-			}
+			*/
+			a.toChanOut(adu)
 		}
 	}
 

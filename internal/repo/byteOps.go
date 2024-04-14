@@ -37,17 +37,6 @@ func FindBoundary(b []byte) Boundary {
 		bRoot = LineRightLimit(b, startIndex, 70)
 
 		bPrefix = []byte("--")
-		/*
-			bb := b[startIndex+1:]
-
-			secBoundaryIndex := bytes.Index(bb, bRoot) - 1
-
-			bPrefix, err = GetCurrentLineLeft(bb, secBoundaryIndex, MaxLineLimit)
-
-			if err != nil {
-				return Boundary{}
-			}
-		*/
 	}
 	return Boundary{
 		Prefix: bPrefix,

@@ -4,10 +4,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/vynovikov/highLoadParser/internal/adapters/driven/store"
-	"github.com/vynovikov/highLoadParser/internal/repo"
-
 	"github.com/stretchr/testify/suite"
+	"github.com/vynovikov/study/highLoadParser/internal/adapters/driven/store"
+	"github.com/vynovikov/study/highLoadParser/internal/repo"
 )
 
 var (

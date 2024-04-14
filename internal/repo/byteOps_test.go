@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/vynovikov/highLoadParser/internal/logger"
+	"github.com/vynovikov/study/highLoadParser/internal/logger"
 )
 
 type byteOpsSuite struct {

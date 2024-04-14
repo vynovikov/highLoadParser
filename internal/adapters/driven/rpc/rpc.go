@@ -13,11 +13,10 @@ import (
 	"time"
 
 	"github.com/segmentio/kafka-go"
-	"github.com/vynovikov/highLoadParser/internal/adapters/driven/rpc/tosaver/pb"
-	"github.com/vynovikov/highLoadParser/internal/logger"
+	"github.com/vynovikov/study/highLoadParser/internal/adapters/driven/rpc/tosaver/pb"
+	"github.com/vynovikov/study/highLoadParser/internal/logger"
+	"github.com/vynovikov/study/highLoadParser/internal/repo"
 	"google.golang.org/protobuf/proto"
-
-	"github.com/vynovikov/highLoadParser/internal/repo"
 )
 
 type Transmitter interface {

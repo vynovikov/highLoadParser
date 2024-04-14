@@ -10,7 +10,7 @@ import (
 func NewTS() string {
 	t := time.Now()
 
-	rand.Seed(t.UnixNano())
+	//rand.Seed(t.UnixNano())
 
 	randSuffixInt := rand.Intn(1000)
 

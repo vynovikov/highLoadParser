@@ -4,9 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/vynovikov/highLoadParser/internal/repo"
-
 	"github.com/stretchr/testify/suite"
+	"github.com/vynovikov/study/highLoadParser/internal/repo"
 )
 
 type storeSuite struct {

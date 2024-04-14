@@ -8,7 +8,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/vynovikov/highLoadParser/internal/repo"
+	"github.com/vynovikov/study/highLoadParser/internal/repo"
 )
 
 type StoreStruct struct {

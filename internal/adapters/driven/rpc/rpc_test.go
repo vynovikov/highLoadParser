@@ -5,7 +5,7 @@ import (
 
 	"github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/suite"
-	"github.com/vynovikov/highLoadParser/internal/repo"
+	"github.com/vynovikov/study/highLoadParser/internal/repo"
 )
 
 type rpcSuite struct {
