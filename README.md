@@ -1,5 +1,5 @@
 ## Changelog 
-- operation switched from asyncronous to synchronous way
+- operation process refactored from being asyncronous to synchronous
 - architecture switched from hexagonal to clean
 - TLS pair generation moved from static directory to Dockerfile
 
