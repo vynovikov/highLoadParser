@@ -1,7 +1,7 @@
 ## Changelog 
 - operation process refactored from being asyncronous to synchronous
 - architecture switched from hexagonal to clean
-- TLS pair generation moved from static directory to Dockerfile
+- TLS pair generation moved to Dockerfile
 
 ## Under construction
 
