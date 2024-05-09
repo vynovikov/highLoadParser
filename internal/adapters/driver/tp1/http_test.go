@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/vynovikov/study/highLoadParser/internal/adapters/application"
-	"github.com/vynovikov/study/highLoadParser/internal/repo"
+	"github.com/vynovikov/highLoadParser/internal/adapters/application"
+	"github.com/vynovikov/highLoadParser/internal/repo"
 )
 
 type tpSuite struct {

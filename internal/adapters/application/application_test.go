@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/vynovikov/study/highLoadParser/internal/adapters/driven/store"
-	"github.com/vynovikov/study/highLoadParser/internal/repo"
+	"github.com/vynovikov/highLoadParser/internal/adapters/driven/store"
+	"github.com/vynovikov/highLoadParser/internal/repo"
 )
 
 var (

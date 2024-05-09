@@ -3,7 +3,7 @@ package service
 import (
 	"fmt"
 
-	"github.com/vynovikov/study/highLoadParser/internal/repository"
+	"github.com/vynovikov/highLoadParser/internal/repository"
 )
 
 type Disposition int

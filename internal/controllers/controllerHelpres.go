@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vynovikov/study/highLoadParser/pkg/byteOps"
+	"github.com/vynovikov/highLoadParser/pkg/byteOps"
 )
 
 // AnalyzeHeader returns first 512 bytes of connection and boundary if found

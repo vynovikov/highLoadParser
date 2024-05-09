@@ -1,6 +1,6 @@
 package dataHandler
 
-import "github.com/vynovikov/study/highLoadParser/internal/logger"
+import "github.com/vynovikov/highLoadParser/internal/logger"
 
 type memoryDataHandlerStruct struct {
 	Map    map[string]Value

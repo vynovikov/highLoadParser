@@ -1,6 +1,6 @@
 package controllers
 
-import "github.com/vynovikov/study/highLoadParser/internal/service"
+import "github.com/vynovikov/highLoadParser/internal/service"
 
 const (
 	boundaryField  = "boundary="

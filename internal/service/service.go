@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/vynovikov/study/highLoadParser/internal/logger"
-	"github.com/vynovikov/study/highLoadParser/internal/repository"
+	"github.com/vynovikov/highLoadParser/internal/logger"
+	"github.com/vynovikov/highLoadParser/internal/repository"
 )
 
 type ParcerService interface {

@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"github.com/vynovikov/study/highLoadParser/internal/dataHandler"
-	"github.com/vynovikov/study/highLoadParser/internal/logger"
+	"github.com/vynovikov/highLoadParser/internal/dataHandler"
+	"github.com/vynovikov/highLoadParser/internal/logger"
 )
 
 type ParserRepository interface {

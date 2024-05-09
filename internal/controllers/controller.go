@@ -8,9 +8,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/vynovikov/study/highLoadParser/internal/logger"
-	"github.com/vynovikov/study/highLoadParser/internal/service"
-	"github.com/vynovikov/study/highLoadParser/pkg/byteOps"
+	"github.com/vynovikov/highLoadParser/internal/logger"
+	"github.com/vynovikov/highLoadParser/internal/service"
+	"github.com/vynovikov/highLoadParser/pkg/byteOps"
 )
 
 type ParserController interface {

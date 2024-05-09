@@ -5,9 +5,9 @@ import (
 	"net"
 	"sync"
 
-	"github.com/vynovikov/study/highLoadParser/internal/controllers"
-	"github.com/vynovikov/study/highLoadParser/internal/logger"
-	"github.com/vynovikov/study/highLoadParser/internal/repo"
+	"github.com/vynovikov/highLoadParser/internal/controllers"
+	"github.com/vynovikov/highLoadParser/internal/logger"
+	"github.com/vynovikov/highLoadParser/internal/repo"
 )
 
 type TpServer struct {

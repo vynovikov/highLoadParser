@@ -7,10 +7,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/vynovikov/study/highLoadParser/internal/adapters/driven/rpc"
-	"github.com/vynovikov/study/highLoadParser/internal/adapters/driven/store"
-	"github.com/vynovikov/study/highLoadParser/internal/logger"
-	"github.com/vynovikov/study/highLoadParser/internal/repo"
+	"github.com/vynovikov/highLoadParser/internal/adapters/driven/rpc"
+	"github.com/vynovikov/highLoadParser/internal/adapters/driven/store"
+	"github.com/vynovikov/highLoadParser/internal/logger"
+	"github.com/vynovikov/highLoadParser/internal/repo"
 )
 
 type AppService struct {
