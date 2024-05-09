@@ -104,6 +104,11 @@ func newParserServiceDTO(h parserControllerHeader, b parserControllerBody) servi
 
 func (s *parserServiceInitDTO) Evolve(start int) {
 
+	if s == nil {
+
+		return
+	}
+
 	b := s.body[start:]
 	boundaryCore := getBoundary(s.bou)[2:]
 	ll := make([]byte, 0, maxLineLimit)
