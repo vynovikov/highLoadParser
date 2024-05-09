@@ -125,12 +125,14 @@ func (s *parserServiceInitDTO) Evolve(start int) {
 	}
 
 	if start == 0 {
+
 		be := make([]byte, 0)
 
 		if len(b) > maxHeaderLimit {
-			be = b[len(b)-maxLineLimit:]
 
+			be = b[len(b)-maxLineLimit:]
 		} else {
+
 			be = b
 		}
 
@@ -143,7 +145,6 @@ func (s *parserServiceInitDTO) Evolve(start int) {
 			if IsLastBoundary(ll, []byte(""), s.bou) { // last boundary in last line
 
 				s.last = true
-
 			} else {
 
 				as := service.NewParserServiceSub(service.NewParserServiceSubHeader(s.ts, s.part), service.NewParserServiceSubBody(ll))
@@ -173,38 +174,38 @@ func (s *parserServiceInitDTO) Evolve(start int) {
 			(s.pssu == nil && s.last) {
 
 			if s.last && start == 0 {
+
 				psu = service.NewParserServiceUnit(service.NewParserServiceHeader(s.ts, s.part, service.True, service.False), service.NewParserServiceBody(b))
-
 			} else if s.last && start != 0 {
+
 				psu = service.NewParserServiceUnit(service.NewParserServiceHeader(s.ts, s.part, service.False, service.False), service.NewParserServiceBody(b))
-
 			} else if !s.last && start == 0 {
+
 				psu = service.NewParserServiceUnit(service.NewParserServiceHeader(s.ts, s.part, service.True, service.True), service.NewParserServiceBody(b))
-
 			} else if !s.last && start != 0 {
-				psu = service.NewParserServiceUnit(service.NewParserServiceHeader(s.ts, s.part, service.False, service.True), service.NewParserServiceBody(b))
 
+				psu = service.NewParserServiceUnit(service.NewParserServiceHeader(s.ts, s.part, service.False, service.True), service.NewParserServiceBody(b))
 			}
 
 		} else if (s.pssu == nil && len(ll) > 2 && byteOps.BeginningEqual(ll[2:], boundaryCore)) ||
 			(s.pssu == nil && len(ll) <= 2 && bytes.Contains([]byte(sep), ll)) {
 
 			if start == 0 {
+
 				psu = service.NewParserServiceUnit(service.NewParserServiceHeader(s.ts, s.part, service.True, service.False), service.NewParserServiceBody(b))
-
 			} else {
-				psu = service.NewParserServiceUnit(service.NewParserServiceHeader(s.ts, s.part, service.False, service.True), service.NewParserServiceBody(b))
 
+				psu = service.NewParserServiceUnit(service.NewParserServiceHeader(s.ts, s.part, service.False, service.True), service.NewParserServiceBody(b))
 			}
 
 		} else {
 
 			if start == 0 {
+
 				psu = service.NewParserServiceUnit(service.NewParserServiceHeader(s.ts, s.part, service.True, service.Probably), service.NewParserServiceBody(b))
-
 			} else {
-				psu = service.NewParserServiceUnit(service.NewParserServiceHeader(s.ts, s.part, service.False, service.Probably), service.NewParserServiceBody(b))
 
+				psu = service.NewParserServiceUnit(service.NewParserServiceHeader(s.ts, s.part, service.False, service.Probably), service.NewParserServiceBody(b))
 			}
 		}
 
@@ -217,9 +218,10 @@ func (s *parserServiceInitDTO) Evolve(start int) {
 		psu := service.ParserServiceUnit{}
 
 		if start == 0 {
-			psu = service.NewParserServiceUnit(service.NewParserServiceHeader(s.ts, s.part, service.True, service.False), service.NewParserServiceBody(b[:idx-start-len(sep)]))
 
+			psu = service.NewParserServiceUnit(service.NewParserServiceHeader(s.ts, s.part, service.True, service.False), service.NewParserServiceBody(b[:idx-start-len(sep)]))
 		} else {
+
 			psu = service.NewParserServiceUnit(service.NewParserServiceHeader(s.ts, s.part, service.False, service.False), service.NewParserServiceBody(b[:idx-start-len(sep)]))
 		}
 
