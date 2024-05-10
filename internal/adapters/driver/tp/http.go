@@ -1,5 +1,5 @@
 // HTTP Reciever.
-package tp
+package tp1
 
 import (
 	"io"

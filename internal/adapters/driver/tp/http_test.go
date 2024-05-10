@@ -1,4 +1,4 @@
-package tp
+package tp1
 
 import (
 	"fmt"

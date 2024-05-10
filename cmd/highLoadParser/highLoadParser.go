@@ -7,12 +7,12 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/vynovikov/highLoadParser/internal/adapters/application"
-	"github.com/vynovikov/highLoadParser/internal/adapters/driven/rpc"
-	"github.com/vynovikov/highLoadParser/internal/adapters/driven/store"
-	"github.com/vynovikov/highLoadParser/internal/adapters/driver/tp"
-	"github.com/vynovikov/highLoadParser/internal/adapters/driver/tps"
+	"github.com/vynovikov/highLoadParser/internal/controllers"
+	"github.com/vynovikov/highLoadParser/internal/dataHandler"
 	"github.com/vynovikov/highLoadParser/internal/logger"
+	"github.com/vynovikov/highLoadParser/internal/repository"
+	"github.com/vynovikov/highLoadParser/internal/routers/tp"
+	"github.com/vynovikov/highLoadParser/internal/service"
 )
 
 var (
@@ -20,38 +20,25 @@ var (
 )
 
 func main() {
-	t := rpc.NewTransmitter()
-	s := store.NewStore()
 
-	app, done := application.NewAppFull(s, t)
+	dh := dataHandler.NewMemoryDataHandler()
+	repo := repository.NewParserRepository(dh)
+	srv := service.NewParserService(repo)
+	ctr := controllers.NewController(srv)
+	router := tp.NewTpReceiver(ctr)
 
-	tpR := tp.NewTpReceiver(app)
-	tpsR := tps.NewTpsReceiver(app)
-
-	go SignalListen(tpR, tpsR, app)
-	go app.Start()
-	go tpR.Run()
-	go tpsR.Run()
-
-	<-done
-	logger.L.Errorln("postParser is interrupted")
+	go router.Run()
+	signalListen()
 }
 
-// SignalListen listens for Interrupt signal, when receiving one invokes stop function
-func SignalListen(tpR tp.TpReceiver, tpsR tps.TpsReceiver, app application.Application) {
+// signalListen listens for Interrupt signal, when receiving one invokes stop function
+func signalListen() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT)
-	<-sigChan
-	Stop(tpR, tpsR, app)
 
-}
+	logger.L.Println("signal listening")
+	sig := <-sigChan
 
-// Stop sets stopping flog and invokes stop goroutines
-func Stop(tpR tp.TpReceiver, tpsR tps.TpsReceiver, app application.Application) {
-	app.SetStopping()
-	wgMain.Add(2)
-	go tpR.Stop(&wgMain)
-	go tpsR.Stop(&wgMain)
-	wgMain.Wait()
-	app.Stop() // closes done in the end
+	logger.L.Println("signal detected", sig)
+
 }
