@@ -84,13 +84,6 @@ func (c *controllerStruct) HandleRequestLast(conn net.Conn, ts string, bou bound
 
 }
 
-func (c *controllerStruct) CleanMap(s string) {
-	if len(c.ctrlMap) > 1 {
-		delete(c.ctrlMap, s)
-	}
-	c.ctrlMap = make(map[string]struct{})
-}
-
 func newParserServiceDTO(h parserControllerHeader, b parserControllerBody) service.ParserServiceDTO {
 
 	dto := newParserServiceInitDTO(h, b)
