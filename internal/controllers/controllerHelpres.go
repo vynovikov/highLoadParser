@@ -9,11 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/vynovikov/highLoadParser/internal/entities"
 	"github.com/vynovikov/highLoadParser/pkg/byteOps"
 )
 
 // AnalyzeHeader returns first 512 bytes of connection and boundary if found
-func analyzeHeader(conn net.Conn) (boundary, []byte, error) {
+func analyzeHeader(conn net.Conn) (entities.Boundary, []byte, error) {
 	header := make([]byte, 512)
 	conn.SetReadDeadline(time.Now().Add(time.Millisecond * 15)) // tls handshake requires at least 9 ms timeout
 
@@ -21,7 +22,7 @@ func analyzeHeader(conn net.Conn) (boundary, []byte, error) {
 	if err != nil &&
 		(err != io.EOF && err != io.ErrUnexpectedEOF) ||
 		(!os.IsTimeout(err) && n == 0) {
-		return boundary{}, make([]byte, 0), err
+		return entities.Boundary{}, make([]byte, 0), err
 	}
 	//logger.L.Infof("in repo.AnalyzeHeader got from request %q\n", header)
 	if n < len(header) {
@@ -137,7 +138,7 @@ func ReadFirst(conn net.Conn, n int) ([]byte, error) {
 
 // FinsBoundary returns Boundary found in b
 // Tested in byteOps_test.go
-func findBoundary(b []byte) boundary {
+func findBoundary(b []byte) entities.Boundary {
 
 	bPrefix, bRoot, bSuffix := make([]byte, 0, 2), make([]byte, 0, 48), make([]byte, 0, 2)
 
@@ -149,78 +150,10 @@ func findBoundary(b []byte) boundary {
 
 		bPrefix = []byte("--")
 	}
-	return boundary{
-		prefix: bPrefix,
-		root:   bRoot,
-		suffix: bSuffix,
+	return entities.Boundary{
+		Prefix: bPrefix,
+		Root:   bRoot,
+		Suffix: bSuffix,
 	}
 
-}
-
-// GetLineWithCRLFLeft returns CRLF and succeeding line before given index.
-// If line ends with CR (or CRLF) and contains boundary, returns CRLF + line + CR (CRLF).
-// Tested in byteOps_test.go
-func GetLineWithCRLFLeft(b []byte, fromIndex, limit int, bou boundary) []byte {
-
-	l, lenb, c, n := make([]byte, 0), len(b), 0, 0
-
-	if lenb < 1 {
-		return l
-	}
-	if fromIndex > lenb-1 {
-		fromIndex = lenb - 1
-	}
-
-	if fromIndex < limit {
-		c = 0
-	} else {
-		c = fromIndex - limit
-	}
-	for i := fromIndex; i > c; i-- {
-		if n == 0 &&
-			(i == lenb-1 && b[i] == 13 ||
-				i == lenb-2 && b[i] == 13 && b[i+1] == 10) &&
-			(i >= 14 && ContainsBouEnding(b[i-14:i], bou)) {
-			n++
-			continue
-		} else if i == lenb-1 && b[i] == 13 ||
-			i == lenb-2 && b[i] == 13 && b[i+1] == 10 {
-
-			return b[i:]
-		}
-		if b[i] == 13 && b[i+1] == 10 {
-			return b[i:]
-		}
-	}
-	return b
-}
-
-// ContainsBouEnding returns true if b contains boundary ending.
-// Tested in byteOps_test.go
-func ContainsBouEnding(b []byte, bou boundary) bool {
-	n, boundary := 0, getBoundary(bou)
-	for i := 0; i < len(b); i++ {
-		if !bytes.Contains(boundary, b[:i]) && n > 4 {
-			return true
-		}
-		if !bytes.Contains(boundary, b[:i]) {
-			return false
-
-		}
-		n++
-	}
-	return true
-}
-
-// IsLastBoundary returns true if p + n form last boundary
-func IsLastBoundary(p, n []byte, bou boundary) bool {
-	realBoundary := getBoundary(bou)
-	combined := append(p, n...)
-	if len(combined) > len(realBoundary) &&
-		(len(combined) > len(realBoundary)+1 && !bytes.Contains(combined[len(realBoundary):len(realBoundary)+2], []byte("\r\n")) ||
-			len(combined) == len(realBoundary) && bytes.Contains(combined, realBoundary)) {
-		return true
-	}
-
-	return false
 }

@@ -1,6 +1,9 @@
 package controllers
 
-import "github.com/vynovikov/highLoadParser/internal/service"
+import (
+	"github.com/vynovikov/highLoadParser/internal/entities"
+	"github.com/vynovikov/highLoadParser/internal/service"
+)
 
 const (
 	boundaryField  = "boundary="
@@ -8,22 +11,6 @@ const (
 	maxLineLimit   = 100
 	maxHeaderLimit = 210
 )
-
-type boundary struct {
-	prefix []byte
-	root   []byte
-	suffix []byte
-}
-
-func getBoundary(bou boundary) []byte {
-
-	boundary := make([]byte, 0)
-	boundary = append(boundary, []byte("\r\n")...)
-	boundary = append(boundary, bou.prefix...)
-	boundary = append(boundary, bou.root...)
-
-	return boundary
-}
 
 type parserControllerBody struct {
 	B []byte
@@ -38,10 +25,10 @@ func newParserControllerBody(n int) parserControllerBody {
 type parserControllerHeader struct {
 	part int
 	ts   string
-	bou  boundary
+	bou  entities.Boundary
 }
 
-func newParserControllerHeader(ts string, p int, bou boundary) parserControllerHeader {
+func newParserControllerHeader(ts string, p int, bou entities.Boundary) parserControllerHeader {
 
 	return parserControllerHeader{
 		part: p,
@@ -50,22 +37,11 @@ func newParserControllerHeader(ts string, p int, bou boundary) parserControllerH
 	}
 }
 
-type parserServiceInitDTO struct {
-	part       int
-	ts         string
-	body       []byte
-	startIndex int
-	bou        boundary
-	last       bool
-	psus       []*service.ParserServiceUnit
-	pssu       *service.ParserServiceSub
-}
-
-func newParserServiceInitDTO(h parserControllerHeader, b parserControllerBody) *parserServiceInitDTO {
-	return &parserServiceInitDTO{
-		body: b.B,
-		bou:  h.bou,
-		part: h.part,
-		ts:   h.ts,
+func newParserServiceInitDTO(h parserControllerHeader, b parserControllerBody) service.ParserServiceDTO {
+	return service.ParserServiceDTO{
+		Body: b.B,
+		Bou:  h.bou,
+		Part: h.part,
+		TS:   h.ts,
 	}
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 
+	"github.com/vynovikov/highLoadParser/internal/entities"
 	"github.com/vynovikov/highLoadParser/internal/repository"
 )
 
@@ -23,10 +24,12 @@ type Boundary struct {
 	Suffix []byte
 }
 
+/*
 type ParserServiceDTO struct {
 	U []*ParserServiceUnit
 	S *ParserServiceSub
 }
+*/
 
 type ParserServiceHeader struct {
 	Part int
@@ -157,4 +160,17 @@ func (ss *ParserServiceSub) Body() []byte {
 
 func (ss *ParserServiceSub) Header() string {
 	return fmt.Sprintf("TS = %s, Part = %d, B() = %d, E() = %d\n", ss.PSSH.TS, ss.PSSH.Part, False, Probably)
+}
+
+// --------------------------------
+
+type ParserServiceDTO struct {
+	Part       int
+	TS         string
+	Body       []byte
+	startIndex int
+	Bou        entities.Boundary
+	last       bool
+	psus       []*ParserServiceUnit
+	pssu       *ParserServiceSub
 }
