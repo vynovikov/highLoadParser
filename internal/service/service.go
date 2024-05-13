@@ -41,18 +41,18 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 		sl = append(sl, sDTO.pssu)
 	}
 
-	tus, err := s.infrastructure.Save(sl)
-	if err != nil {
+	tus, errs := s.infrastructure.Save(sl)
+	if errs != nil {
 
-		logger.L.Warnf("in service.Serve error %v\n", err)
+		logger.L.Warnf("in service.Serve error %v\n", errs)
 	}
 
 	logger.L.Infof("in Serve trying to send %v", tus)
 
-	err = s.infrastructure.Send(tus)
-	if err != nil {
+	errs = s.infrastructure.Send(tus)
+	if errs != nil {
 
-		logger.L.Warnf("in service.Serve error %v\n", err)
+		logger.L.Warnf("in service.Serve errors %v\n", errs)
 	}
 }
 

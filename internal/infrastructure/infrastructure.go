@@ -1,14 +1,13 @@
 package infrastructure
 
 import (
-	"github.com/vynovikov/highLoadParser/internal/logger"
 	"github.com/vynovikov/highLoadParser/internal/repository"
 	"github.com/vynovikov/highLoadParser/internal/transmitters"
 )
 
 type Infrastructure interface {
-	Save([]DataPiece) ([]TransferUnit, error)
-	Send([]TransferUnit) error
+	Save([]DataPiece) ([]TransferUnit, []error)
+	Send([]TransferUnit) []error
 }
 
 type infrastructureStruct struct {
@@ -25,25 +24,40 @@ func NewInfraStructure(repo repository.ParserRepository, transmitter transmitter
 	}
 }
 
-func (i *infrastructureStruct) Save(datapieces []DataPiece) ([]TransferUnit, error) {
+func (i *infrastructureStruct) Save(datapieces []DataPiece) ([]TransferUnit, []error) {
 
-	res := make([]TransferUnit, len(datapieces))
-	/*
-		res, err := i.repo.Register(datapieces)
+	res := make([]TransferUnit, 0, len(datapieces))
+	errs := make([]error, 0, len(datapieces))
+
+	for _, v := range datapieces {
+		_, err := i.repo.Register(v)
+
 		if err != nil {
 
-			return res, err
+			errs = append(errs, err)
+		} else {
+
+			res = append(res, &TransferUnitStruct{})
 		}
-	*/
-	return res, nil
+
+	}
+
+	return res, errs
 }
 
-func (i *infrastructureStruct) Send(units []TransferUnit) error {
+func (i *infrastructureStruct) Send(units []TransferUnit) []error {
+
+	errs := make([]error, 0, len(units))
 
 	for _, v := range units {
 
-		logger.L.Infof("in infrastructure.Send trying to send %v\n", v)
+		err := i.transmitter.TransmitToSaver(v)
+
+		if err != nil {
+
+			errs = append(errs, err)
+		}
 	}
 
-	return nil
+	return errs
 }

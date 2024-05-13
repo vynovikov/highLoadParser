@@ -1,8 +1,8 @@
 package transmitters
 
 type ParserTransmitter interface {
-	TransmitToSaver() error
-	TransmitToLogger() error
+	TransmitToSaver(TransferUnit) error
+	TransmitToLogger(TransferUnit) error
 }
 
 type transmittersStruct struct {
@@ -13,12 +13,12 @@ func NewTransmitter() *transmittersStruct {
 	return &transmittersStruct{}
 }
 
-func (t *transmittersStruct) TransmitToLogger() error {
+func (t *transmittersStruct) TransmitToLogger(TransferUnit) error {
 
 	return nil
 }
 
-func (t *transmittersStruct) TransmitToSaver() error {
+func (t *transmittersStruct) TransmitToSaver(TransferUnit) error {
 
 	return nil
 }
