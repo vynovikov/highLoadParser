@@ -9,10 +9,12 @@ import (
 
 	"github.com/vynovikov/highLoadParser/internal/controllers"
 	"github.com/vynovikov/highLoadParser/internal/dataHandler"
+	"github.com/vynovikov/highLoadParser/internal/infrastructure"
 	"github.com/vynovikov/highLoadParser/internal/logger"
 	"github.com/vynovikov/highLoadParser/internal/repository"
 	"github.com/vynovikov/highLoadParser/internal/routers/tp"
 	"github.com/vynovikov/highLoadParser/internal/service"
+	"github.com/vynovikov/highLoadParser/internal/transmitters"
 )
 
 var (
@@ -23,7 +25,9 @@ func main() {
 
 	dh := dataHandler.NewMemoryDataHandler()
 	repo := repository.NewParserRepository(dh)
-	srv := service.NewParserService(repo)
+	trans := transmitters.NewParserTransmitters()
+	inf := infrastructure.NewInfraStructure(repo, trans)
+	srv := service.NewParserService(inf)
 	ctr := controllers.NewController(srv)
 	router := tp.NewTpReceiver(ctr)
 

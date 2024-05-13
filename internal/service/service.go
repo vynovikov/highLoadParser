@@ -4,8 +4,8 @@ import (
 	"bytes"
 
 	"github.com/vynovikov/highLoadParser/internal/entities"
+	"github.com/vynovikov/highLoadParser/internal/infrastructure"
 	"github.com/vynovikov/highLoadParser/internal/logger"
-	"github.com/vynovikov/highLoadParser/internal/repository"
 	"github.com/vynovikov/highLoadParser/pkg/byteOps"
 )
 
@@ -14,12 +14,12 @@ type ParcerService interface {
 }
 
 type parcerServiceStruct struct {
-	repo repository.ParserRepository
+	infrastructure infrastructure.Infrastructure
 }
 
-func NewParserService(r repository.ParserRepository) *parcerServiceStruct {
+func NewParserService(i infrastructure.Infrastructure) *parcerServiceStruct {
 	return &parcerServiceStruct{
-		repo: r,
+		infrastructure: i,
 	}
 }
 
@@ -48,7 +48,9 @@ func (s *ParserServiceDTO) Evolve(start int) {
 	}
 
 	b := s.Body[start:]
+
 	boundaryCore := entities.GetBoundary(s.Bou)[2:]
+
 	ll := make([]byte, 0, entities.MaxLineLimit)
 
 	if len(b) < len(boundaryCore)+2*len(entities.Sep) {
