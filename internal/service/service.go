@@ -24,14 +24,20 @@ func NewParserService(r repository.ParserRepository) *parcerServiceStruct {
 }
 
 func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
+
 	logger.L.Infoln("in Serve got some data")
-	/*
-		for _, v := range sDTO.U {
 
-			s.repo.Register(v)
+	sDTO.Evolve(0)
 
-		}
-	*/
+	for _, v := range sDTO.psus {
+
+		logger.L.Infof("psu header %s, body: %s\n", v.Header(), string(v.Body()))
+	}
+
+	if sDTO.pssu != nil {
+
+		logger.L.Infof("pssu: %v\n", string(sDTO.pssu.Body()))
+	}
 }
 
 func (s *ParserServiceDTO) Evolve(start int) {

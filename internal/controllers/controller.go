@@ -32,8 +32,11 @@ func NewController(s service.ParcerService) *controllerStruct {
 
 // Tested in http_test.go
 func (c *controllerStruct) HandleRequestFull(conn net.Conn, ts string, wg *sync.WaitGroup) {
+
 	logger.L.Infof("in controller.HandleRequestFull new request\n")
+
 	defer wg.Done()
+
 	bou, header, errFirst := analyzeHeader(conn)
 
 	if errFirst != nil {
@@ -82,18 +85,3 @@ func (c *controllerStruct) HandleRequestLast(conn net.Conn, ts string, bou entit
 	respondOK(conn)
 
 }
-
-/*
-func newParserServiceDTO(h parserControllerHeader, b parserControllerBody) service.ParserServiceDTO {
-
-	dto := newParserServiceInitDTO(h, b)
-	dto.Evolve(0)
-
-	return service.ParserServiceDTO{
-		U: dto.psus,
-		S: dto.pssu,
-	}
-}
-*/
-
-// ToDo move Evolve to usecases. psu, pssu, boundary to entities

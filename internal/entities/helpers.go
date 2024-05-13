@@ -1,6 +1,10 @@
 package entities
 
-import "bytes"
+import (
+	"bytes"
+
+	"github.com/vynovikov/highLoadParser/pkg/byteOps"
+)
 
 func GetBoundary(bou Boundary) []byte {
 
@@ -78,4 +82,26 @@ func IsLastBoundary(p, n []byte, bou Boundary) bool {
 	}
 
 	return false
+}
+
+// FindBoundary returns Boundary found in b
+// Tested in byteOps_test.go
+func FindBoundary(b []byte) Boundary {
+
+	bPrefix, bRoot, bSuffix := make([]byte, 0, 2), make([]byte, 0, 48), make([]byte, 0, 2)
+
+	if bytes.Contains(b, []byte(BoundaryField)) {
+
+		startIndex := bytes.Index(b, []byte(BoundaryField)) + len(BoundaryField)
+
+		bRoot = byteOps.LineRightLimit(b, startIndex, 70)
+
+		bPrefix = []byte("--")
+	}
+	return Boundary{
+		Prefix: bPrefix,
+		Root:   bRoot,
+		Suffix: bSuffix,
+	}
+
 }

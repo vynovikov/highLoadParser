@@ -60,7 +60,6 @@ func (r *tpReceiverStruct) Run() {
 		ts := repo.NewTS()
 		// consider serial execution -> mutex
 		r.ctrl.HandleRequestFull(conn, ts, &r.wg)
-
 	}
 
 }
