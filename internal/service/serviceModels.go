@@ -103,7 +103,7 @@ func NewParserServiceSub(pssh ParserServiceSubHeader, pssb ParserServiceSubBody)
 	}
 }
 
-type dataPiece interface {
+type DataPiece interface {
 	Part() int
 	TS() string
 	Body() []byte

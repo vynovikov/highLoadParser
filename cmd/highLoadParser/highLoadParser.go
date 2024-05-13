@@ -10,7 +10,6 @@ import (
 	"github.com/vynovikov/highLoadParser/internal/controllers"
 	"github.com/vynovikov/highLoadParser/internal/dataHandler"
 	"github.com/vynovikov/highLoadParser/internal/infrastructure"
-	"github.com/vynovikov/highLoadParser/internal/logger"
 	"github.com/vynovikov/highLoadParser/internal/repository"
 	"github.com/vynovikov/highLoadParser/internal/routers/tp"
 	"github.com/vynovikov/highLoadParser/internal/service"
@@ -39,10 +38,6 @@ func main() {
 func signalListen() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT)
-
-	logger.L.Println("signal listening")
-	sig := <-sigChan
-
-	logger.L.Println("signal detected", sig)
+	<-sigChan
 
 }

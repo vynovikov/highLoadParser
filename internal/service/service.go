@@ -29,14 +29,30 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 
 	sDTO.Evolve(0)
 
+	sl := make([]infrastructure.DataPiece, 0, len(sDTO.psus)+1)
+
 	for _, v := range sDTO.psus {
 
-		logger.L.Infof("psu header %s, body: %s\n", v.Header(), string(v.Body()))
+		sl = append(sl, v)
 	}
 
 	if sDTO.pssu != nil {
 
-		logger.L.Infof("pssu: %v\n", string(sDTO.pssu.Body()))
+		sl = append(sl, sDTO.pssu)
+	}
+
+	tus, err := s.infrastructure.Save(sl)
+	if err != nil {
+
+		logger.L.Warnf("in service.Serve error %v\n", err)
+	}
+
+	logger.L.Infof("in Serve trying to send %v", tus)
+
+	err = s.infrastructure.Send(tus)
+	if err != nil {
+
+		logger.L.Warnf("in service.Serve error %v\n", err)
 	}
 }
 
