@@ -26,28 +26,27 @@ func NewInfraStructure(repo repository.ParserRepository, transmitter transmitter
 	}
 }
 
-/*
-func (i *infrastructureStruct) Save(datapieces []DataPiece) ([]TransferUnit, []error) {
+func (i *infrastructureStruct) Save(datapieces []InfraStructureDTO) ([]TransferUnit, []error) {
 
-		res := make([]TransferUnit, 0, len(datapieces))
-		errs := make([]error, 0, len(datapieces))
+	res := make([]TransferUnit, 0, len(datapieces))
+	errs := make([]error, 0, len(datapieces))
 
-		for _, v := range datapieces {
-			_, err := i.repo.Register(v)
+	for _, v := range datapieces {
+		_, err := i.repo.Register(NewRepositoryDTOUnit(v))
 
-			if err != nil {
+		if err != nil {
 
-				errs = append(errs, err)
-			} else {
+			errs = append(errs, err)
+		} else {
 
-				res = append(res, &TransferUnitStruct{})
-			}
-
+			res = append(res, &TransferUnitStruct{})
 		}
 
-		return res, errs
 	}
-*/
+
+	return res, errs
+}
+
 func (i *infrastructureStruct) Check(dtos []InfraStructureDTO) ([]dataHandler.Presence, []error) {
 
 	res, errs := make([]dataHandler.Presence, 0, len(dtos)), make([]error, 0, len(dtos))
