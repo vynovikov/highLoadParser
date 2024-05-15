@@ -30,7 +30,7 @@ func (s *dataHandlerSuite) TestCheck() {
 				Map: map[key]map[bool]value{},
 			},
 			//d:            &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 0, B: repo.False, E: repo.True}, APB: repo.AppPieceBody{B: []byte("azaza")}},
-			dto:          &Dat{part: 0, ts: "qqq", body: []byte("azaza")},
+			dto:          &DataHandlerUnit{part: 0, ts: "qqq", body: []byte("azaza")},
 			wantPresence: Presence{},
 			wantError:    nil,
 		},
@@ -614,7 +614,7 @@ func (s *dataHandlerSuite) TestCheck() {
 
 	for _, v := range tt {
 		s.Run(v.name, func() {
-			gotPresense, gotError := v.dataHandler.Check(v.d)
+			gotPresense, gotError := v.dataHandler.Check(v.dto)
 			if v.wantError != nil {
 				s.Equal(v.wantError, gotError)
 			}
