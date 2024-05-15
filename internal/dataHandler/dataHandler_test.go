@@ -25,50 +25,33 @@ func (s *dataHandlerSuite) TestCheck() {
 		wantError    error
 	}{
 		{
-			name: "No ASKG",
+			name: "No key",
 			dataHandler: &memoryDataHandlerStruct{
 				Map: map[key]map[bool]value{},
 			},
-			//d:            &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 0, B: repo.False, E: repo.True}, APB: repo.AppPieceBody{B: []byte("azaza")}},
-			dto:          &DataHandlerUnit{part: 0, ts: "qqq", body: []byte("azaza")},
+			dto:          &DataHandlerUnit{part: 1, ts: "qqq", body: []byte("azaza"), b: True, e: False},
+			wantPresence: Presence{},
+			wantError:    nil,
+		},
+
+		{
+			name: "Wrong key",
+			dataHandler: &memoryDataHandlerStruct{
+				Map: map[key]map[bool]value{
+					{TS: "qqq", Part: 2}: {},
+				},
+			},
+			dto:          &DataHandlerUnit{ts: "qqq", part: 1, body: []byte("azaza"), b: False, e: True},
 			wantPresence: Presence{},
 			wantError:    nil,
 		},
 		/*
 			{
-				name: "ASKG met, no ASKD",
-				dataHandler: &memoryDataHandlerStruct{
-					Map: map[key]map[bool]value{
-						{TS: "qqq"}: {},
-					},
-				},
-				d: &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 1, B: repo.False, E: repo.True}, APB: repo.AppPieceBody{B: []byte("azaza")}},
-				wantPresence: Presence{
-					ASKG: true},
-				wantError: nil,
-			},
-
-			{
-				name: "ASKG met, wrong ASKD",
-				dataHandler: &memoryDataHandlerStruct{
-					Map: map[key]map[bool]value{
-						{TS: "qqq"}: {
-							{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: false}: {},
-						},
-					},
-				},
-				d: &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 1, B: repo.False, E: repo.True}, APB: repo.AppPieceBody{B: []byte("azaza")}},
-				wantPresence: Presence{
-					ASKG: true},
-				wantError: nil,
-			},
-
-			{
 				name: "AppSub, no ASKG",
 				dataHandler: &memoryDataHandlerStruct{
 					Map: map[key]map[bool]value{},
 				},
-				d:            &repo.AppSub{ASH: repo.AppSubHeader{TS: "qqq", Part: 1}, ASB: repo.AppSubBody{B: []byte("\r\n")}},
+				dto:            &repo.AppSub{ASH: repo.AppSubHeader{TS: "qqq", Part: 1}, ASB: repo.AppSubBody{B: []byte("\r\n")}},
 				wantPresence: Presence{},
 				wantError:    nil,
 			},
@@ -80,7 +63,7 @@ func (s *dataHandlerSuite) TestCheck() {
 						{TS: "qqq"}: {
 							{SK: repo.StreamKey{TS: "qqq", Part: 1}, S: false}: {
 								false: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 										FormName: "alice",
 										FileName: "short.txt",
@@ -92,7 +75,7 @@ func (s *dataHandlerSuite) TestCheck() {
 						},
 					},
 				},
-				d: &repo.AppSub{ASH: repo.AppSubHeader{TS: "qqq", Part: 1}, ASB: repo.AppSubBody{B: []byte("\r\n")}},
+				dto: &repo.AppSub{ASH: repo.AppSubHeader{TS: "qqq", Part: 1}, ASB: repo.AppSubBody{B: []byte("\r\n")}},
 				wantPresence: Presence{
 					ASKG: true,
 				},
@@ -105,7 +88,7 @@ func (s *dataHandlerSuite) TestCheck() {
 						{TS: "qqq"}: {
 							{SK: repo.StreamKey{TS: "qqq", Part: 1}, S: false}: {
 								false: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 										FormName: "alice",
 										FileName: "short.txt",
@@ -117,15 +100,15 @@ func (s *dataHandlerSuite) TestCheck() {
 						},
 					},
 				},
-				d: &repo.AppSub{ASH: repo.AppSubHeader{TS: "qqq", Part: 1}, ASB: repo.AppSubBody{B: []byte("\r\n")}},
+				dto: &repo.AppSub{ASH: repo.AppSubHeader{TS: "qqq", Part: 1}, ASB: repo.AppSubBody{B: []byte("\r\n")}},
 				wantPresence: Presence{
 					ASKG: true,
-					ASKD: true,
+					ASKDto: true,
 					OB:   true,
 					GMap: map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{
 						{SK: repo.StreamKey{TS: "qqq", Part: 1}, S: false}: {
 							false: {
-								D: repo.Disposition{
+								Dto: repo.Disposition{
 									H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 									FormName: "alice",
 									FileName: "short.txt",
@@ -144,7 +127,7 @@ func (s *dataHandlerSuite) TestCheck() {
 				dataHandler: &memoryDataHandlerStruct{
 					Map: map[key]map[bool]value{},
 				},
-				d:            &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 0, B: repo.False, E: repo.Probably}, APB: repo.AppPieceBody{B: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazaza")}},
+				dto:            &DataHandlerUnit{ts: "qqq", part: 0,body:  B: False, E: Probably}, APB: repo.AppPieceBody{B: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazaza")}},
 				wantPresence: Presence{},
 			},
 
@@ -154,7 +137,7 @@ func (s *dataHandlerSuite) TestCheck() {
 					Map: map[key]map[bool]value{
 						{TS: "qqq"}: {
 							{SK: repo.StreamKey{TS: "qqq", Part: 1}, S: false}: {false: {
-								D: repo.Disposition{
+								Dto: repo.Disposition{
 									H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 									FormName: "alice",
 									FileName: "short.txt",
@@ -165,10 +148,10 @@ func (s *dataHandlerSuite) TestCheck() {
 						},
 					},
 				},
-				d: &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 2, B: repo.False, E: repo.Probably}, APB: repo.AppPieceBody{B: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazaza")}},
+				dto: &DataHandlerUnit{ts: "qqq", part: 2,body:  B: False, E: Probably}, APB: repo.AppPieceBody{B: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazaza")}},
 				wantPresence: Presence{
 					ASKG: true,
-					ASKD: true,
+					ASKDto: true,
 				},
 				wantError: nil,
 			},
@@ -180,7 +163,7 @@ func (s *dataHandlerSuite) TestCheck() {
 						{TS: "qqq"}: {
 							{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: true}: {
 								true: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H: []byte("\r\n"),
 									},
 									B: repo.BeginningData{Part: 2},
@@ -190,15 +173,15 @@ func (s *dataHandlerSuite) TestCheck() {
 						},
 					},
 				},
-				d: &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 2, B: repo.False, E: repo.Probably}, APB: repo.AppPieceBody{B: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazaza")}},
+				dto: &DataHandlerUnit{ts: "qqq", part: 2,body:  B: False, E: Probably}, APB: repo.AppPieceBody{B: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazaza")}},
 				wantPresence: Presence{
 					ASKG: true,
-					ASKD: true,
+					ASKDto: true,
 					OB:   true,
 					GMap: map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{
 						{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: true}: {
 							true: {
-								D: repo.Disposition{
+								Dto: repo.Disposition{
 									H: []byte("\r\n"),
 								},
 								B: repo.BeginningData{Part: 2},
@@ -217,7 +200,7 @@ func (s *dataHandlerSuite) TestCheck() {
 						{TS: "qqq"}: {
 							{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: false}: {
 								false: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 										FormName: "alice",
 										FileName: "short.txt",
@@ -228,7 +211,7 @@ func (s *dataHandlerSuite) TestCheck() {
 							},
 							{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: true}: {
 								true: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H: []byte("\r\n"),
 									},
 									B: repo.BeginningData{Part: 2},
@@ -238,15 +221,15 @@ func (s *dataHandlerSuite) TestCheck() {
 						},
 					},
 				},
-				d: &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 2, B: repo.True, E: repo.Probably}, APB: repo.AppPieceBody{B: []byte("azaza")}},
+				dto: &DataHandlerUnit{ts: "qqq", part: 2,body:  B: True, E: rrobably}, APB: repo.AppPieceBody{B: []byte("azaza")}},
 				wantPresence: Presence{
 					ASKG: true,
-					ASKD: true,
+					ASKDto: true,
 					OB:   true,
 					GMap: map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{
 						{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: false}: {
 							false: {
-								D: repo.Disposition{
+								Dto: repo.Disposition{
 									H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 									FormName: "alice",
 									FileName: "short.txt",
@@ -257,7 +240,7 @@ func (s *dataHandlerSuite) TestCheck() {
 						},
 						{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: true}: {
 							true: {
-								D: repo.Disposition{
+								Dto: repo.Disposition{
 									H: []byte("\r\n"),
 								},
 								B: repo.BeginningData{Part: 2},
@@ -276,7 +259,7 @@ func (s *dataHandlerSuite) TestCheck() {
 						{TS: "qqq"}: {
 							{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: false}: {
 								false: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 										FormName: "alice",
 										FileName: "short.txt",
@@ -287,7 +270,7 @@ func (s *dataHandlerSuite) TestCheck() {
 							},
 							{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: true}: {
 								true: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H: []byte("\r\n"),
 									},
 									B: repo.BeginningData{Part: 2},
@@ -297,15 +280,15 @@ func (s *dataHandlerSuite) TestCheck() {
 						},
 					},
 				},
-				d: &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 2, B: repo.True, E: repo.False}, APB: repo.AppPieceBody{B: []byte("azaza")}},
+				dto: &DataHandlerUnit{ts: "qqq", part: 2,body:  B: True, E: ralse}, APB: repo.AppPieceBody{B: []byte("azaza")}},
 				wantPresence: Presence{
 					ASKG: true,
-					ASKD: true,
+					ASKDto: true,
 					OB:   false,
 					GMap: map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{
 						{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: false}: {
 							false: {
-								D: repo.Disposition{
+								Dto: repo.Disposition{
 									H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 									FormName: "alice",
 									FileName: "short.txt",
@@ -326,7 +309,7 @@ func (s *dataHandlerSuite) TestCheck() {
 						{TS: "qqq"}: {
 							{SK: repo.StreamKey{TS: "qqq", Part: 1}, S: false}: {
 								false: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 										FormName: "alice",
 										FileName: "short.txt",
@@ -337,7 +320,7 @@ func (s *dataHandlerSuite) TestCheck() {
 							},
 							{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: false}: {
 								false: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 										FormName: "alice",
 										FileName: "short.txt",
@@ -348,7 +331,7 @@ func (s *dataHandlerSuite) TestCheck() {
 							},
 							{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: true}: {
 								true: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H: []byte("\r\n"),
 									},
 									B: repo.BeginningData{Part: 2},
@@ -358,15 +341,15 @@ func (s *dataHandlerSuite) TestCheck() {
 						},
 					},
 				},
-				d: &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 2, B: repo.True, E: repo.Probably}, APB: repo.AppPieceBody{B: []byte("azaza")}},
+				dto: &DataHandlerUnit{ts: "qqq", part: 2,body:  B: True, E: rrobably}, APB: repo.AppPieceBody{B: []byte("azaza")}},
 				wantPresence: Presence{
 					ASKG: true,
-					ASKD: true,
+					ASKDto: true,
 					OB:   true,
 					GMap: map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{
 						{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: false}: {
 							false: {
-								D: repo.Disposition{
+								Dto: repo.Disposition{
 									H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 									FormName: "alice",
 									FileName: "short.txt",
@@ -377,7 +360,7 @@ func (s *dataHandlerSuite) TestCheck() {
 						},
 						{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: true}: {
 							true: {
-								D: repo.Disposition{
+								Dto: repo.Disposition{
 									H: []byte("\r\n"),
 								},
 								B: repo.BeginningData{Part: 2},
@@ -396,7 +379,7 @@ func (s *dataHandlerSuite) TestCheck() {
 						{TS: "qqq"}: {
 							{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: false}: {
 								false: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 										FormName: "alice",
 										FileName: "short.txt",
@@ -408,10 +391,10 @@ func (s *dataHandlerSuite) TestCheck() {
 						},
 					},
 					C: map[repo.AppStoreKeyGeneral]repo.Counter{
-						{TS: "qqq"}: {Max: 3, Cur: 1, Blocked: true},
+						{TS: "qqq"}: {Max: 3, Cur: 1, Blockedto: true},
 					},
 				},
-				d:            &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 2, B: repo.True, E: repo.True}, APB: repo.AppPieceBody{B: []byte("azaza")}},
+				dto:            &DataHandlerUnit{ts: "qqq", part: 2,body:  B: True, E: rrue}, APB: repo.AppPieceBody{B: []byte("azaza")}},
 				wantPresence: Presence{},
 				wantError:    errors.New("in store.Presense matched but Cur == 1 && Blocked"),
 			},
@@ -423,7 +406,7 @@ func (s *dataHandlerSuite) TestCheck() {
 						{TS: "qqq"}: {
 							{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: false}: {
 								false: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 										FormName: "alice",
 										FileName: "short.txt",
@@ -435,17 +418,17 @@ func (s *dataHandlerSuite) TestCheck() {
 						},
 					},
 					C: map[repo.AppStoreKeyGeneral]repo.Counter{
-						{TS: "qqq"}: {Max: 3, Cur: 1, Blocked: false},
+						{TS: "qqq"}: {Max: 3, Cur: 1, Blockedto: false},
 					},
 				},
-				d: &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 2, B: repo.True, E: repo.False}, APB: repo.AppPieceBody{B: []byte("azaza")}},
+				dto: &DataHandlerUnit{ts: "qqq", part: 2,body:  B: True, E: ralse}, APB: repo.AppPieceBody{B: []byte("azaza")}},
 				wantPresence: Presence{
 					ASKG: true,
-					ASKD: true,
+					ASKDto: true,
 					GMap: map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{
 						{SK: repo.StreamKey{TS: "qqq", Part: 2}, S: false}: {
 							false: {
-								D: repo.Disposition{
+								Dto: repo.Disposition{
 									H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 									FormName: "alice",
 									FileName: "short.txt",
@@ -467,7 +450,7 @@ func (s *dataHandlerSuite) TestCheck() {
 						{TS: "qqq"}: {
 							{SK: repo.StreamKey{TS: "qqq", Part: 3}, S: false}: {
 								false: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 										FormName: "alice",
 										FileName: "short.txt",
@@ -476,7 +459,7 @@ func (s *dataHandlerSuite) TestCheck() {
 									E: repo.Probably,
 								},
 								true: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H: []byte("\r\n"),
 									},
 									B: repo.BeginningData{Part: 2},
@@ -485,7 +468,7 @@ func (s *dataHandlerSuite) TestCheck() {
 							},
 							{SK: repo.StreamKey{TS: "qqq", Part: 4}, S: false}: {
 								false: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H:        []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 										FormName: "bob",
 										FileName: "long.txt",
@@ -497,15 +480,15 @@ func (s *dataHandlerSuite) TestCheck() {
 						},
 					},
 				},
-				d: &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 3, B: repo.True, E: repo.True}, APB: repo.AppPieceBody{B: []byte("azaza")}},
+				dto: &DataHandlerUnit{ts: "qqq", part: 3,body:  B: True, E: rrue}, APB: repo.AppPieceBody{B: []byte("azaza")}},
 				wantPresence: Presence{
 					ASKG: true,
-					ASKD: true,
+					ASKDto: true,
 					OB:   false,
 					GMap: map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{
 						{SK: repo.StreamKey{TS: "qqq", Part: 3}, S: false}: {
 							false: {
-								D: repo.Disposition{
+								Dto: repo.Disposition{
 									H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 									FormName: "alice",
 									FileName: "short.txt",
@@ -514,7 +497,7 @@ func (s *dataHandlerSuite) TestCheck() {
 								E: repo.Probably,
 							},
 							true: {
-								D: repo.Disposition{
+								Dto: repo.Disposition{
 									H: []byte("\r\n"),
 								},
 								B: repo.BeginningData{Part: 2},
@@ -533,7 +516,7 @@ func (s *dataHandlerSuite) TestCheck() {
 						{TS: "qqq"}: {
 							{SK: repo.StreamKey{TS: "qqq", Part: 3}, S: false}: {
 								false: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 										FormName: "alice",
 										FileName: "short.txt",
@@ -542,7 +525,7 @@ func (s *dataHandlerSuite) TestCheck() {
 									E: repo.Probably,
 								},
 								true: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H: []byte("\r\n"),
 									},
 									B: repo.BeginningData{Part: 2},
@@ -551,7 +534,7 @@ func (s *dataHandlerSuite) TestCheck() {
 							},
 							{SK: repo.StreamKey{TS: "qqq", Part: 3}, S: true}: {
 								true: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H: []byte("\r\n"),
 									},
 									B: repo.BeginningData{Part: 3},
@@ -560,7 +543,7 @@ func (s *dataHandlerSuite) TestCheck() {
 							},
 							{SK: repo.StreamKey{TS: "qqq", Part: 6}, S: false}: {
 								false: {
-									D: repo.Disposition{
+									Dto: repo.Disposition{
 										H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 										FormName: "bob",
 										FileName: "long.txt",
@@ -572,15 +555,15 @@ func (s *dataHandlerSuite) TestCheck() {
 						},
 					},
 				},
-				d: &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 3, B: repo.True, E: repo.Probably}, APB: repo.AppPieceBody{B: []byte("azaza")}},
+				dto: &DataHandlerUnit{ts: "qqq", part: 3,body:  B: True, E: rrobably}, APB: repo.AppPieceBody{B: []byte("azaza")}},
 				wantPresence: Presence{
 					ASKG: true,
-					ASKD: true,
+					ASKDto: true,
 					OB:   true,
 					GMap: map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue{
 						{SK: repo.StreamKey{TS: "qqq", Part: 3}, S: false}: {
 							false: {
-								D: repo.Disposition{
+								Dto: repo.Disposition{
 									H:        []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 									FormName: "alice",
 									FileName: "short.txt",
@@ -589,7 +572,7 @@ func (s *dataHandlerSuite) TestCheck() {
 								E: repo.Probably,
 							},
 							true: {
-								D: repo.Disposition{
+								Dto: repo.Disposition{
 									H: []byte("\r\n"),
 								},
 								B: repo.BeginningData{Part: 2},
@@ -598,7 +581,7 @@ func (s *dataHandlerSuite) TestCheck() {
 						},
 						{SK: repo.StreamKey{TS: "qqq", Part: 3}, S: true}: {
 							true: {
-								D: repo.Disposition{
+								Dto: repo.Disposition{
 									H: []byte("\r\n"),
 								},
 								B: repo.BeginningData{Part: 3},

@@ -1,8 +1,5 @@
 package dataHandler
 
-type Presence struct {
-}
-
 /*
 func NewValue() value {
 
@@ -94,4 +91,8 @@ type headerData struct {
 
 type BeginningData struct {
 	Part int
+}
+
+type Presence struct {
+	value map[bool]value
 }
