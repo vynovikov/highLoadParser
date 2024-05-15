@@ -33,12 +33,16 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 
 	for _, v := range sDTO.psus {
 
-		sl = append(sl, v)
+		infrastructureUnit := infrastructure.NewInfrastructureUnit(v)
+
+		sl = append(sl, infrastructureUnit)
 	}
 
 	if sDTO.pssu != nil {
 
-		sl = append(sl, sDTO.pssu)
+		infrastructureUnit := infrastructure.NewInfrastructureUnit(sDTO.pssu)
+
+		sl = append(sl, infrastructureUnit)
 	}
 
 	presence, errs := s.infrastructure.Check(sl)

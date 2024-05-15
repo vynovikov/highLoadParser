@@ -22,7 +22,7 @@ func NewParserRepository(dh dataHandler.DataHandler) *repositoryStruct {
 
 func (r *repositoryStruct) Register(d DataPiece) (TransferUnit, error) {
 
-	logger.L.Infof("in repository.Register header: %s, body: %s\n", d.Header(), d.Body())
+	logger.L.Infof("in repository.Register body: %s\n", d.Body())
 
 	return TransferUnit{}, nil
 }

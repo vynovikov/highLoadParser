@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/vynovikov/highLoadParser/internal/repo"
 )
 
 type dataHandlerSuite struct {
@@ -30,7 +29,8 @@ func (s *dataHandlerSuite) TestCheck() {
 			dataHandler: &memoryDataHandlerStruct{
 				Map: map[key]map[bool]value{},
 			},
-			d:            &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 0, B: repo.False, E: repo.True}, APB: repo.AppPieceBody{B: []byte("azaza")}},
+			//d:            &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 0, B: repo.False, E: repo.True}, APB: repo.AppPieceBody{B: []byte("azaza")}},
+			d:            &DataHandlerUnit{part: 0, ts: "qqq", body: []byte("azaza")},
 			wantPresence: Presence{},
 			wantError:    nil,
 		},

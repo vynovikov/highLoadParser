@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	"github.com/vynovikov/highLoadParser/internal/entities"
-	"github.com/vynovikov/highLoadParser/internal/repository"
+	"github.com/vynovikov/highLoadParser/internal/infrastructure"
 )
 
-type Disposition int
+type disposition int
 
 const (
-	False Disposition = iota
+	False disposition = iota
 	True
 	Probably
 	Sep            = "\r\n"
@@ -34,11 +34,11 @@ type ParserServiceDTO struct {
 type ParserServiceHeader struct {
 	Part int
 	TS   string
-	B    Disposition
-	E    Disposition
+	B    disposition
+	E    disposition
 }
 
-func NewParserServiceHeader(ts string, p int, b, e Disposition) ParserServiceHeader {
+func NewParserServiceHeader(ts string, p int, b, e disposition) ParserServiceHeader {
 	return ParserServiceHeader{
 		Part: p,
 		TS:   ts,
@@ -107,7 +107,8 @@ type DataPiece interface {
 	Part() int
 	TS() string
 	Body() []byte
-	Header() string
+	B() infrastructure.Disposition
+	E() infrastructure.Disposition
 }
 
 // ParserServiceUnit -> dataPiece
@@ -120,22 +121,23 @@ func (su *ParserServiceUnit) TS() string {
 	return su.PSH.TS
 }
 
-func (su *ParserServiceUnit) B() repository.Disposition {
-	return repository.Disposition(su.PSH.B)
+func (su *ParserServiceUnit) B() infrastructure.Disposition {
+	return infrastructure.Disposition(su.PSH.B)
 }
 
-func (su *ParserServiceUnit) E() repository.Disposition {
-	return repository.Disposition(su.PSH.E)
+func (su *ParserServiceUnit) E() infrastructure.Disposition {
+	return infrastructure.Disposition(su.PSH.E)
 }
 
 func (su *ParserServiceUnit) Body() []byte {
 	return su.PSB.B
 }
 
+/*
 func (su *ParserServiceUnit) Header() string {
 	return fmt.Sprintf("TS = %s, Part = %d, B() = %d, E() = %d\n", su.PSH.TS, su.PSH.Part, su.PSH.B, su.PSH.E)
 }
-
+*/
 // ParserServiceSub -> dataPiece
 
 func (ss *ParserServiceSub) Part() int {
@@ -146,12 +148,12 @@ func (ss *ParserServiceSub) TS() string {
 	return ss.PSSH.TS
 }
 
-func (ss *ParserServiceSub) B() repository.Disposition {
-	return repository.Disposition(False)
+func (ss *ParserServiceSub) B() infrastructure.Disposition {
+	return infrastructure.Disposition(False)
 }
 
-func (ss *ParserServiceSub) E() repository.Disposition {
-	return repository.Disposition(Probably)
+func (ss *ParserServiceSub) E() infrastructure.Disposition {
+	return infrastructure.Disposition(Probably)
 }
 
 func (ss *ParserServiceSub) Body() []byte {

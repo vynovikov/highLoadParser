@@ -30,7 +30,9 @@ func (m *memoryDataHandlerStruct) Delete(DataPiece) error {
 
 func (m *memoryDataHandlerStruct) Check(d DataPiece) (Presence, error) {
 
-	mapKey, mapVal := key{}, value{}
+	//mapKey, mapVal := key{}, value{}
+
+	logger.L.Infof("in dataHandler.Check d: %#v", d)
 
 	return Presence{}, nil
 }
