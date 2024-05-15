@@ -3,8 +3,8 @@ package service
 import (
 	"fmt"
 
+	"github.com/vynovikov/highLoadParser/internal/dataHandler"
 	"github.com/vynovikov/highLoadParser/internal/entities"
-	"github.com/vynovikov/highLoadParser/internal/infrastructure"
 )
 
 type disposition int
@@ -103,12 +103,12 @@ func NewParserServiceSub(pssh ParserServiceSubHeader, pssb ParserServiceSubBody)
 	}
 }
 
-type InfraStructureDTO interface {
+type DataHandlerDTO interface {
 	Part() int
 	TS() string
 	Body() []byte
-	B() infrastructure.Disposition
-	E() infrastructure.Disposition
+	B() dataHandler.Disposition
+	E() dataHandler.Disposition
 }
 
 // ParserServiceUnit -> dataPiece
@@ -121,23 +121,18 @@ func (su *ParserServiceUnit) TS() string {
 	return su.PSH.TS
 }
 
-func (su *ParserServiceUnit) B() infrastructure.Disposition {
-	return infrastructure.Disposition(su.PSH.B)
+func (su *ParserServiceUnit) B() dataHandler.Disposition {
+	return dataHandler.Disposition(su.PSH.B)
 }
 
-func (su *ParserServiceUnit) E() infrastructure.Disposition {
-	return infrastructure.Disposition(su.PSH.E)
+func (su *ParserServiceUnit) E() dataHandler.Disposition {
+	return dataHandler.Disposition(su.PSH.E)
 }
 
 func (su *ParserServiceUnit) Body() []byte {
 	return su.PSB.B
 }
 
-/*
-func (su *ParserServiceUnit) Header() string {
-	return fmt.Sprintf("TS = %s, Part = %d, B() = %d, E() = %d\n", su.PSH.TS, su.PSH.Part, su.PSH.B, su.PSH.E)
-}
-*/
 // ParserServiceSub -> dataPiece
 
 func (ss *ParserServiceSub) Part() int {
@@ -148,12 +143,12 @@ func (ss *ParserServiceSub) TS() string {
 	return ss.PSSH.TS
 }
 
-func (ss *ParserServiceSub) B() infrastructure.Disposition {
-	return infrastructure.Disposition(False)
+func (ss *ParserServiceSub) B() dataHandler.Disposition {
+	return dataHandler.Disposition(False)
 }
 
-func (ss *ParserServiceSub) E() infrastructure.Disposition {
-	return infrastructure.Disposition(Probably)
+func (ss *ParserServiceSub) E() dataHandler.Disposition {
+	return dataHandler.Disposition(Probably)
 }
 
 func (ss *ParserServiceSub) Body() []byte {

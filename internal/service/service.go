@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 
+	"github.com/vynovikov/highLoadParser/internal/dataHandler"
 	"github.com/vynovikov/highLoadParser/internal/entities"
 	"github.com/vynovikov/highLoadParser/internal/infrastructure"
 	"github.com/vynovikov/highLoadParser/internal/logger"
@@ -29,7 +30,7 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 
 	sDTO.Evolve(0)
 
-	sl := make([]infrastructure.InfraStructureDTO, 0, len(sDTO.psus)+1)
+	sl := make([]dataHandler.DataHandlerDTO, 0, len(sDTO.psus)+1)
 
 	for _, v := range sDTO.psus {
 

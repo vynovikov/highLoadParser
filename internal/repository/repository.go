@@ -2,12 +2,10 @@ package repository
 
 import (
 	"github.com/vynovikov/highLoadParser/internal/dataHandler"
-	"github.com/vynovikov/highLoadParser/internal/logger"
 )
 
 type ParserRepository interface {
-	Register(RepositoryDTO) (TransferUnit, error)
-	Check(RepositoryDTO) (dataHandler.Presence, error)
+	Check(dataHandler.DataHandlerDTO) (dataHandler.Presence, error)
 }
 
 type repositoryStruct struct {
@@ -20,14 +18,7 @@ func NewParserRepository(dh dataHandler.DataHandler) *repositoryStruct {
 	}
 }
 
-func (r *repositoryStruct) Register(d RepositoryDTO) (TransferUnit, error) {
+func (r *repositoryStruct) Check(d dataHandler.DataHandlerDTO) (dataHandler.Presence, error) {
 
-	logger.L.Infof("in repository.Register body: %s\n", d.Body())
-
-	return TransferUnit{}, nil
-}
-
-func (r *repositoryStruct) Check(d RepositoryDTO) (dataHandler.Presence, error) {
-
-	return r.dataHandler.Check(NewRepositoryDTOUnit(d))
+	return r.dataHandler.Check(d)
 }
