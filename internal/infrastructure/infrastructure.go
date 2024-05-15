@@ -7,6 +7,7 @@ import (
 
 type Infrastructure interface {
 	Save([]DataPiece) ([]TransferUnit, []error)
+	Check([]DataPiece) ([]Presence, []error)
 	Send([]TransferUnit) []error
 }
 
@@ -45,6 +46,26 @@ func (i *infrastructureStruct) Save(datapieces []DataPiece) ([]TransferUnit, []e
 	return res, errs
 }
 
+func (i *infrastructureStruct) Check(datapieces []DataPiece) ([]Presence, []error) {
+
+	res, errs := make([]Presence, 0, len(datapieces)), make([]error, 0, len(datapieces))
+
+	for _, v := range datapieces {
+
+		presenceOne, err := i.checkOne(v)
+
+		if err != nil {
+
+			errs = append(errs, err)
+		} else {
+
+			res = append(res, presenceOne)
+		}
+	}
+
+	return res, errs
+}
+
 func (i *infrastructureStruct) Send(units []TransferUnit) []error {
 
 	errs := make([]error, 0, len(units))
@@ -60,4 +81,21 @@ func (i *infrastructureStruct) Send(units []TransferUnit) []error {
 	}
 
 	return errs
+}
+
+func (i *infrastructureStruct) checkOne(d DataPiece) (Presence, error) {
+
+	presense, err := i.repo.Check(d)
+	if err != nil {
+
+		return Presence{}, err
+	}
+	infPresence := newPresence(presense)
+
+	return infPresence, nil
+
+}
+
+func newPresence(p repository.Presence) Presence {
+	return Presence{}
 }

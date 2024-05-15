@@ -27,3 +27,6 @@ func (t *TransferUnitStruct) Tx() error {
 
 	return nil
 }
+
+type Presence struct {
+}

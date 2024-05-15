@@ -17,3 +17,6 @@ type DataPiece interface {
 
 type TransferUnit struct {
 }
+
+type Presence struct {
+}

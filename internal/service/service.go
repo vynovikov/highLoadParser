@@ -41,19 +41,33 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 		sl = append(sl, sDTO.pssu)
 	}
 
-	tus, errs := s.infrastructure.Save(sl)
+	presence, errs := s.infrastructure.Check(sl)
 	if errs != nil {
 
 		logger.L.Warnf("in service.Serve error %v\n", errs)
 	}
 
-	logger.L.Infof("in Serve trying to send %v", tus)
+	logger.L.Infof("in services.Serve presence:")
 
-	errs = s.infrastructure.Send(tus)
-	if errs != nil {
+	for i, v := range presence {
 
-		logger.L.Warnf("in service.Serve errors %v\n", errs)
+		logger.L.Infof("in service.Serve serviceUnit header: %s has presence %v\n", sl[i], v)
 	}
+	/*
+		tus, errs := s.infrastructure.Save(sl)
+		if errs != nil {
+
+			logger.L.Warnf("in service.Serve error %v\n", errs)
+		}
+
+		logger.L.Infof("in Serve trying to send %v", tus)
+
+		errs = s.infrastructure.Send(tus)
+		if errs != nil {
+
+			logger.L.Warnf("in service.Serve errors %v\n", errs)
+		}
+	*/
 }
 
 func (s *ParserServiceDTO) Evolve(start int) {
