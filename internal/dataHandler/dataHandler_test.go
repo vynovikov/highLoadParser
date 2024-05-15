@@ -20,7 +20,7 @@ func (s *dataHandlerSuite) TestCheck() {
 	tt := []struct {
 		name         string
 		dataHandler  DataHandler
-		d            DataPiece
+		dto          DataHandlerDTO
 		wantPresence Presence
 		wantError    error
 	}{
@@ -30,7 +30,7 @@ func (s *dataHandlerSuite) TestCheck() {
 				Map: map[key]map[bool]value{},
 			},
 			//d:            &repo.AppPieceUnit{APH: repo.AppPieceHeader{TS: "qqq", Part: 0, B: repo.False, E: repo.True}, APB: repo.AppPieceBody{B: []byte("azaza")}},
-			d:            &DataHandlerUnit{part: 0, ts: "qqq", body: []byte("azaza")},
+			dto:          &Dat{part: 0, ts: "qqq", body: []byte("azaza")},
 			wantPresence: Presence{},
 			wantError:    nil,
 		},

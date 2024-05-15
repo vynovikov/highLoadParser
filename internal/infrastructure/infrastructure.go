@@ -7,8 +7,8 @@ import (
 )
 
 type Infrastructure interface {
-	Save([]DataPiece) ([]TransferUnit, []error)
-	Check([]DataPiece) ([]dataHandler.Presence, []error)
+	Save([]InfraStructureDTO) ([]TransferUnit, []error)
+	Check([]InfraStructureDTO) ([]dataHandler.Presence, []error)
 	Send([]TransferUnit) []error
 }
 
@@ -48,11 +48,11 @@ func (i *infrastructureStruct) Save(datapieces []DataPiece) ([]TransferUnit, []e
 		return res, errs
 	}
 */
-func (i *infrastructureStruct) Check(datapieces []DataPiece) ([]dataHandler.Presence, []error) {
+func (i *infrastructureStruct) Check(dtos []InfraStructureDTO) ([]dataHandler.Presence, []error) {
 
-	res, errs := make([]dataHandler.Presence, 0, len(datapieces)), make([]error, 0, len(datapieces))
+	res, errs := make([]dataHandler.Presence, 0, len(dtos)), make([]error, 0, len(dtos))
 
-	for _, v := range datapieces {
+	for _, v := range dtos {
 
 		presenceOne, err := i.checkOne(v)
 
@@ -85,11 +85,9 @@ func (i *infrastructureStruct) Send(units []TransferUnit) []error {
 	return errs
 }
 
-func (i *infrastructureStruct) checkOne(d DataPiece) (dataHandler.Presence, error) {
+func (i *infrastructureStruct) checkOne(d InfraStructureDTO) (dataHandler.Presence, error) {
 
-	iu := NewInfrastructureUnit(d)
-
-	ru := repository.NewRepositoryUnit(iu)
+	ru := NewRepositoryDTOUnit(d)
 
 	return i.repo.Check(ru)
 }

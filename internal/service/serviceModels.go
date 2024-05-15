@@ -103,7 +103,7 @@ func NewParserServiceSub(pssh ParserServiceSubHeader, pssb ParserServiceSubBody)
 	}
 }
 
-type DataPiece interface {
+type InfraStructureDTO interface {
 	Part() int
 	TS() string
 	Body() []byte

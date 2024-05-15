@@ -10,7 +10,7 @@ const (
 	Probably
 )
 
-type DataPiece interface {
+type InfraStructureDTO interface {
 	Part() int
 	TS() string
 	Body() []byte
@@ -18,7 +18,7 @@ type DataPiece interface {
 	E() Disposition
 }
 
-type DataPiece1 interface {
+type RepositoryDTO interface {
 	Part() int
 	TS() string
 	Body() []byte
@@ -26,39 +26,39 @@ type DataPiece1 interface {
 	E() repository.Disposition
 }
 
-type InfrastructureUnit struct {
+type RepositoryDTOUnit struct {
 	part int
 	ts   string
 	body []byte
-	b    Disposition
-	e    Disposition
+	b    repository.Disposition
+	e    repository.Disposition
 }
 
-func NewInfrastructureUnit(d DataPiece) *InfrastructureUnit {
-	return &InfrastructureUnit{
+func NewRepositoryDTOUnit(d InfraStructureDTO) *RepositoryDTOUnit {
+	return &RepositoryDTOUnit{
 		part: d.Part(),
 		ts:   d.TS(),
 		body: d.Body(),
-		b:    Disposition(d.B()),
-		e:    Disposition(d.E()),
+		b:    repository.Disposition(d.B()),
+		e:    repository.Disposition(d.E()),
 	}
 }
 
-func (i *InfrastructureUnit) Part() int {
+func (i *RepositoryDTOUnit) Part() int {
 	return i.part
 }
 
-func (i *InfrastructureUnit) TS() string {
+func (i *RepositoryDTOUnit) TS() string {
 	return i.ts
 }
-func (i *InfrastructureUnit) Body() []byte {
+func (i *RepositoryDTOUnit) Body() []byte {
 	return i.body
 }
-func (i *InfrastructureUnit) B() repository.Disposition {
-	return repository.Disposition(i.b)
+func (i *RepositoryDTOUnit) B() repository.Disposition {
+	return i.b
 }
-func (i *InfrastructureUnit) E() repository.Disposition {
-	return repository.Disposition(i.e)
+func (i *RepositoryDTOUnit) E() repository.Disposition {
+	return i.e
 }
 
 type TransferUnitStruct struct {

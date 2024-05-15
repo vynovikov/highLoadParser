@@ -17,7 +17,7 @@ const (
 	Probably
 )
 
-type DataPiece interface {
+type DataHandlerDTO interface {
 	Part() int
 	TS() string
 	Body() []byte
@@ -33,31 +33,34 @@ type DataHandlerUnit struct {
 	e    Disposition
 }
 
-func NewDataHandlerUnit(d DataPiece) *DataHandlerUnit {
+func NewDataHandlerUnit(d DataHandlerDTO) *DataHandlerUnit {
 	return &DataHandlerUnit{
 		part: d.Part(),
 		ts:   d.TS(),
 		body: d.Body(),
-		b:    Disposition(d.B()),
-		e:    Disposition(d.E()),
+		b:    d.B(),
+		e:    d.E(),
 	}
 }
 
-func (i *DataHandlerUnit) Part() int {
-	return i.part
+func (d *DataHandlerUnit) Part() int {
+	return d.part
 }
 
-func (i *DataHandlerUnit) TS() string {
-	return i.ts
+func (d *DataHandlerUnit) TS() string {
+	return d.ts
 }
-func (i *DataHandlerUnit) Body() []byte {
-	return i.body
+
+func (d *DataHandlerUnit) Body() []byte {
+	return d.body
 }
-func (i *DataHandlerUnit) B() Disposition {
-	return i.b
+
+func (d *DataHandlerUnit) B() Disposition {
+	return d.b
 }
-func (i *DataHandlerUnit) E() Disposition {
-	return i.e
+
+func (d *DataHandlerUnit) E() Disposition {
+	return d.e
 }
 
 type key struct {
@@ -65,12 +68,15 @@ type key struct {
 	Part int
 }
 
-func newKey(d DataPiece) key {
+func newKey(d DataHandlerDTO) key {
 
 	return key{
 		TS:   d.TS(),
 		Part: d.Part(),
 	}
+}
+
+type value struct {
 }
 
 /*

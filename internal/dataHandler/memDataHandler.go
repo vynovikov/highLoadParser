@@ -4,31 +4,31 @@ import "github.com/vynovikov/highLoadParser/internal/logger"
 
 type memoryDataHandlerStruct struct {
 	Map    map[key]map[bool]value
-	Buffer []DataPiece
+	Buffer []DataHandlerDTO
 }
 
 func NewMemoryDataHandler() *memoryDataHandlerStruct {
 	return &memoryDataHandlerStruct{}
 }
 
-func (m *memoryDataHandlerStruct) Create(d DataPiece) error {
-	logger.L.Printf("in dataHandler creating dataPiece = %v\n", d)
+func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO) error {
+	logger.L.Printf("in dataHandler creating DataHandlerDTO = %v\n", d)
 	return nil
 }
 
-func (m *memoryDataHandlerStruct) Read(DataPiece) (value, error) {
+func (m *memoryDataHandlerStruct) Read(DataHandlerDTO) (value, error) {
 	return value{}, nil
 }
 
-func (m *memoryDataHandlerStruct) Updade(DataPiece) error {
+func (m *memoryDataHandlerStruct) Updade(DataHandlerDTO) error {
 	return nil
 }
 
-func (m *memoryDataHandlerStruct) Delete(DataPiece) error {
+func (m *memoryDataHandlerStruct) Delete(DataHandlerDTO) error {
 	return nil
 }
 
-func (m *memoryDataHandlerStruct) Check(d DataPiece) (Presence, error) {
+func (m *memoryDataHandlerStruct) Check(d DataHandlerDTO) (Presence, error) {
 
 	//mapKey, mapVal := key{}, value{}
 
@@ -38,8 +38,8 @@ func (m *memoryDataHandlerStruct) Check(d DataPiece) (Presence, error) {
 }
 
 /*
-func (s *StoreStruct) Presence(d repo.DataPiece) (repo.Presense, error) {
-	askg, askd, vv := repo.NewAppStoreKeyGeneralFromDataPiece(d), repo.NewAppStoreKeyDetailed(d), make(map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue)
+func (s *StoreStruct) Presence(d repo.DataHandlerDTO) (repo.Presense, error) {
+	askg, askd, vv := repo.NewAppStoreKeyGeneralFromDataHandlerDTO(d), repo.NewAppStoreKeyDetailed(d), make(map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue)
 	if m1, ok := s.R[askg]; ok {
 		if m2, ok := m1[askd]; ok && d.B() == repo.True {
 			if s.C[askg].Cur == 1 && s.C[askg].Blocked {

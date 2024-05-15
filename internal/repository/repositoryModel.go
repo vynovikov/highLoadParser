@@ -1,5 +1,7 @@
 package repository
 
+import "github.com/vynovikov/highLoadParser/internal/dataHandler"
+
 type Disposition int
 
 const (
@@ -8,7 +10,7 @@ const (
 	Probably
 )
 
-type DataPiece interface {
+type RepositoryDTO interface {
 	Part() int
 	TS() string
 	Body() []byte
@@ -16,39 +18,50 @@ type DataPiece interface {
 	E() Disposition
 }
 
-type RepositoryUnit struct {
+type DataHandlerDTO interface {
+	Part() int
+	TS() string
+	Body() []byte
+	B() dataHandler.Disposition
+	E() dataHandler.Disposition
+}
+
+type RepositoryDTOUnit struct {
 	part int
 	ts   string
 	body []byte
-	b    Disposition
-	e    Disposition
+	b    dataHandler.Disposition
+	e    dataHandler.Disposition
 }
 
-func NewRepositoryUnit(d DataPiece) *RepositoryUnit {
-	return &RepositoryUnit{
+func NewRepositoryDTOUnit(d RepositoryDTO) *RepositoryDTOUnit {
+	return &RepositoryDTOUnit{
 		part: d.Part(),
 		ts:   d.TS(),
 		body: d.Body(),
-		b:    Disposition(d.B()),
-		e:    Disposition(d.E()),
+		b:    dataHandler.Disposition(d.B()),
+		e:    dataHandler.Disposition(d.E()),
 	}
 }
 
-func (i *RepositoryUnit) Part() int {
-	return i.part
+func (d *RepositoryDTOUnit) Part() int {
+	return d.part
 }
 
-func (i *RepositoryUnit) TS() string {
-	return i.ts
+func (d *RepositoryDTOUnit) TS() string {
+	return d.ts
 }
-func (i *RepositoryUnit) Body() []byte {
-	return i.body
+
+func (d *RepositoryDTOUnit) Body() []byte {
+	return d.body
 }
-func (i *RepositoryUnit) B() Disposition {
-	return i.b
+
+func (d *RepositoryDTOUnit) B() dataHandler.Disposition {
+	return d.b
 }
-func (i *RepositoryUnit) E() Disposition {
-	return i.e
+
+func (d *RepositoryDTOUnit) E() dataHandler.Disposition {
+	return d.e
 }
 
 type TransferUnit struct {

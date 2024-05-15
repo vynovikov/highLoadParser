@@ -6,8 +6,8 @@ import (
 )
 
 type ParserRepository interface {
-	Register(DataPiece) (TransferUnit, error)
-	Check(DataPiece) (dataHandler.Presence, error)
+	Register(RepositoryDTO) (TransferUnit, error)
+	Check(RepositoryDTO) (dataHandler.Presence, error)
 }
 
 type repositoryStruct struct {
@@ -20,14 +20,14 @@ func NewParserRepository(dh dataHandler.DataHandler) *repositoryStruct {
 	}
 }
 
-func (r *repositoryStruct) Register(d DataPiece) (TransferUnit, error) {
+func (r *repositoryStruct) Register(d RepositoryDTO) (TransferUnit, error) {
 
 	logger.L.Infof("in repository.Register body: %s\n", d.Body())
 
 	return TransferUnit{}, nil
 }
 
-func (r *repositoryStruct) Check(d DataPiece) (dataHandler.Presence, error) {
+func (r *repositoryStruct) Check(d RepositoryDTO) (dataHandler.Presence, error) {
 
-	return r.dataHandler.Check(d)
+	return r.dataHandler.Check(NewRepositoryDTOUnit(d))
 }
