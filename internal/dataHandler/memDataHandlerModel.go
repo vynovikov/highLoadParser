@@ -20,14 +20,18 @@ type DataHandlerDTO interface {
 	Body() []byte
 	B() Disposition
 	E() Disposition
+	Last() bool
+	IsSub() bool
 }
 
 type DataHandlerUnit struct {
-	part int
-	ts   string
-	body []byte
-	b    Disposition
-	e    Disposition
+	part  int
+	ts    string
+	body  []byte
+	b     Disposition
+	e     Disposition
+	last  bool
+	isSub bool
 }
 
 func NewDataHandlerUnit(d DataHandlerDTO) *DataHandlerUnit {
@@ -37,6 +41,7 @@ func NewDataHandlerUnit(d DataHandlerDTO) *DataHandlerUnit {
 		body: d.Body(),
 		b:    d.B(),
 		e:    d.E(),
+		last: d.Last(),
 	}
 }
 
@@ -60,6 +65,14 @@ func (d *DataHandlerUnit) E() Disposition {
 	return d.e
 }
 
+func (d *DataHandlerUnit) Last() bool {
+	return d.last
+}
+
+func (d *DataHandlerUnit) IsSub() bool {
+	return d.isSub
+}
+
 type key struct {
 	TS   string
 	Part int
@@ -74,6 +87,11 @@ func newKey(d DataHandlerDTO) key {
 }
 
 type value struct {
+}
+
+func newValue(d DataHandlerDTO) value {
+
+	return value{}
 }
 
 /*

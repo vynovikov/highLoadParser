@@ -1,8 +1,6 @@
 package service
 
 import (
-	"fmt"
-
 	"github.com/vynovikov/highLoadParser/internal/dataHandler"
 	"github.com/vynovikov/highLoadParser/internal/entities"
 )
@@ -36,6 +34,7 @@ type ParserServiceHeader struct {
 	TS   string
 	B    disposition
 	E    disposition
+	last bool
 }
 
 func NewParserServiceHeader(ts string, p int, b, e disposition) ParserServiceHeader {
@@ -109,6 +108,8 @@ type DataHandlerDTO interface {
 	Body() []byte
 	B() dataHandler.Disposition
 	E() dataHandler.Disposition
+	Last() bool
+	IsSub() bool
 }
 
 // ParserServiceUnit -> dataPiece
@@ -133,6 +134,14 @@ func (su *ParserServiceUnit) Body() []byte {
 	return su.PSB.B
 }
 
+func (su *ParserServiceUnit) Last() bool {
+	return su.PSH.last
+}
+
+func (su *ParserServiceUnit) IsSub() bool {
+	return false
+}
+
 // ParserServiceSub -> dataPiece
 
 func (ss *ParserServiceSub) Part() int {
@@ -155,8 +164,12 @@ func (ss *ParserServiceSub) Body() []byte {
 	return ss.PSSB.B
 }
 
-func (ss *ParserServiceSub) Header() string {
-	return fmt.Sprintf("TS = %s, Part = %d, B() = %d, E() = %d\n", ss.PSSH.TS, ss.PSSH.Part, False, Probably)
+func (ss *ParserServiceSub) Last() bool {
+	return false
+}
+
+func (ss *ParserServiceSub) IsSub() bool {
+	return true
 }
 
 // --------------------------------

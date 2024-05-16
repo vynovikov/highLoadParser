@@ -1,18 +1,37 @@
 package dataHandler
 
-import "github.com/vynovikov/highLoadParser/internal/logger"
-
 type memoryDataHandlerStruct struct {
 	Map    map[key]map[bool]value
 	Buffer []DataHandlerDTO
 }
 
 func NewMemoryDataHandler() *memoryDataHandlerStruct {
-	return &memoryDataHandlerStruct{}
+	return &memoryDataHandlerStruct{
+		Map:    make(map[key]map[bool]value),
+		Buffer: make([]DataHandlerDTO, 0),
+	}
 }
 
 func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO) error {
-	logger.L.Printf("in dataHandler creating DataHandlerDTO = %v\n", d)
+
+	key := newKey(d)
+	val := newValue(d)
+
+	switch len(m.Map[key]) {
+
+	case 0: // Only possible if !d.IsSub
+
+		key.Part++
+
+		valMap := make(map[bool]value)
+
+		valMap[false] = val
+
+		m.Map[key] = valMap
+
+	default:
+	}
+
 	return nil
 }
 
@@ -24,7 +43,7 @@ func (m *memoryDataHandlerStruct) Updade(DataHandlerDTO) error {
 	return nil
 }
 
-func (m *memoryDataHandlerStruct) Delete(DataHandlerDTO) error {
+func (m *memoryDataHandlerStruct) Delete(string) error {
 	return nil
 }
 

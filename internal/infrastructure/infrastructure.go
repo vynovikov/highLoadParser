@@ -7,7 +7,7 @@ import (
 )
 
 type Infrastructure interface {
-	Check([]dataHandler.DataHandlerDTO) ([]dataHandler.Presence, []error)
+	Register([]dataHandler.DataHandlerDTO) error
 	Send([]TransferUnit) []error
 }
 
@@ -43,6 +43,11 @@ func (i *infrastructureStruct) Check(dtos []dataHandler.DataHandlerDTO) ([]dataH
 	}
 
 	return res, errs
+}
+
+func (i *infrastructureStruct) Register(dtos []dataHandler.DataHandlerDTO) error {
+
+	return i.repo.Register(dtos)
 }
 
 func (i *infrastructureStruct) Send(units []TransferUnit) []error {
