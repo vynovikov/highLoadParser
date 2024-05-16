@@ -6,7 +6,7 @@ import (
 )
 
 type ParserRepository interface {
-	Check(dataHandler.DataHandlerDTO) (dataHandler.Presence, error)
+	//Check(dataHandler.DataHandlerDTO) (dataHandler.Presence, error)
 	Register([]dataHandler.DataHandlerDTO) error
 }
 
@@ -20,11 +20,12 @@ func NewParserRepository(dh dataHandler.DataHandler) *repositoryStruct {
 	}
 }
 
+/*
 func (r *repositoryStruct) Check(d dataHandler.DataHandlerDTO) (dataHandler.Presence, error) {
 
-	return r.dataHandler.Check(d)
-}
-
+		return r.dataHandler.Check(d)
+	}
+*/
 func (r *repositoryStruct) Register(dtos []dataHandler.DataHandlerDTO) error {
 
 	for _, d := range dtos {

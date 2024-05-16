@@ -1,35 +1,62 @@
 package dataHandler
 
+import "fmt"
+
 type memoryDataHandlerStruct struct {
-	Map    map[key]map[bool]value
+	Map    map[keyGeneral]map[keyDetailed]map[bool]value // two keys are for easy search
 	Buffer []DataHandlerDTO
 }
 
 func NewMemoryDataHandler() *memoryDataHandlerStruct {
 	return &memoryDataHandlerStruct{
-		Map:    make(map[key]map[bool]value),
+		Map:    make(map[keyGeneral]map[keyDetailed]map[bool]value),
 		Buffer: make([]DataHandlerDTO, 0),
 	}
 }
 
 func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO) error {
 
-	key := newKey(d)
+	kgen, kdet := newKeyGeneral(d), newKeyDetailed(d)
 	val := newValue(d)
 
-	switch len(m.Map[key]) {
+	switch len(m.Map[kgen]) {
 
 	case 0: // Only possible if !d.IsSub
 
-		key.Part++
+		kdet.part++
 
-		valMap := make(map[bool]value)
+		l1, l2 := make(map[keyDetailed]map[bool]value), make(map[bool]value)
 
-		valMap[false] = val
+		l2[false] = val
 
-		m.Map[key] = valMap
+		l1[kdet] = l2
+
+		m.Map[kgen] = l1
 
 	default:
+
+		kdet.part++
+
+		if l1, ok := m.Map[kgen]; ok {
+
+			if l2, ok := l1[kdet]; ok {
+
+				return fmt.Errorf("%v", l2)
+			}
+
+			// keyDetailed not found
+
+			l1 = make(map[keyDetailed]map[bool]value)
+
+			l2 := make(map[bool]value)
+
+			l2[false] = newValue(d)
+
+			l1[kdet] = l2
+
+			m.Map[kgen] = l1
+		}
+
 	}
 
 	return nil
@@ -47,6 +74,7 @@ func (m *memoryDataHandlerStruct) Delete(string) error {
 	return nil
 }
 
+/*
 func (m *memoryDataHandlerStruct) Check(d DataHandlerDTO) (Presence, error) {
 
 	key := newKey(d)
@@ -57,7 +85,7 @@ func (m *memoryDataHandlerStruct) Check(d DataHandlerDTO) (Presence, error) {
 
 	return Presence{}, nil
 }
-
+*/
 /*
 func (s *StoreStruct) Presence(d repo.DataHandlerDTO) (repo.Presense, error) {
 	askg, askd, vv := repo.NewAppStoreKeyGeneralFromDataHandlerDTO(d), repo.NewAppStoreKeyDetailed(d), make(map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue)

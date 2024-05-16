@@ -78,6 +78,30 @@ type key struct {
 	Part int
 }
 
+type keyGeneral struct {
+	ts string
+}
+
+func newKeyGeneral(d DataHandlerDTO) keyGeneral {
+
+	return keyGeneral{
+		ts: d.TS(),
+	}
+}
+
+type keyDetailed struct {
+	ts   string
+	part int
+}
+
+func newKeyDetailed(d DataHandlerDTO) keyDetailed {
+
+	return keyDetailed{
+		ts:   d.TS(),
+		part: d.Part(),
+	}
+}
+
 func newKey(d DataHandlerDTO) key {
 
 	return key{

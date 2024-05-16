@@ -25,26 +25,27 @@ func NewInfraStructure(repo repository.ParserRepository, transmitter transmitter
 	}
 }
 
+/*
 func (i *infrastructureStruct) Check(dtos []dataHandler.DataHandlerDTO) ([]dataHandler.Presence, []error) {
 
-	res, errs := make([]dataHandler.Presence, 0, len(dtos)), make([]error, 0, len(dtos))
+		res, errs := make([]dataHandler.Presence, 0, len(dtos)), make([]error, 0, len(dtos))
 
-	for _, v := range dtos {
+		for _, v := range dtos {
 
-		presenceOne, err := i.checkOne(v)
+			presenceOne, err := i.checkOne(v)
 
-		if err != nil {
+			if err != nil {
 
-			errs = append(errs, err)
-		} else {
+				errs = append(errs, err)
+			} else {
 
-			res = append(res, presenceOne)
+				res = append(res, presenceOne)
+			}
 		}
+
+		return res, errs
 	}
-
-	return res, errs
-}
-
+*/
 func (i *infrastructureStruct) Register(dtos []dataHandler.DataHandlerDTO) error {
 
 	return i.repo.Register(dtos)
@@ -67,7 +68,9 @@ func (i *infrastructureStruct) Send(units []TransferUnit) []error {
 	return errs
 }
 
+/*
 func (i *infrastructureStruct) checkOne(d dataHandler.DataHandlerDTO) (dataHandler.Presence, error) {
 
 	return i.repo.Check(d)
 }
+*/
