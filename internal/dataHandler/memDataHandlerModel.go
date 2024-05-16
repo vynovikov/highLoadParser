@@ -111,11 +111,14 @@ func newKey(d DataHandlerDTO) key {
 }
 
 type value struct {
+	e Disposition
 }
 
 func newValue(d DataHandlerDTO) value {
 
-	return value{}
+	return value{
+		e: d.E(),
+	}
 }
 
 /*

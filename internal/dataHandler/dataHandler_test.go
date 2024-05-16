@@ -25,100 +25,168 @@ func (s *dataHandlerSuite) TestCreate() {
 	}{
 
 		{
-			name: "1. Empty Map, dto.B() == False, !isSub",
+			name: "1. Empty Map, !isSub",
 			initDataHandler: &memoryDataHandlerStruct{
 				Map:    map[keyGeneral]map[keyDetailed]map[bool]value{},
 				Buffer: []DataHandlerDTO{},
 			},
-			dto: &DataHandlerUnit{ts: "qqq", part: 0, body: []byte("azazaza"), isSub: false, last: false},
+			dto: &DataHandlerUnit{ts: "qqq", part: 0, body: []byte("azazaza"), b: False, e: True, isSub: false, last: false},
 			wantedDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-					{ts: "qqq"}: {{ts: "qqq", part: 1}: {false: {}}},
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {false: {e: True}}},
 				},
 				Buffer: []DataHandlerDTO{},
 			},
 		},
 
 		{
-			name: "2. Empty Map, dto.B() == False, isSub",
+			name: "2. Empty Map, isSub",
 			initDataHandler: &memoryDataHandlerStruct{
 				Map:    map[keyGeneral]map[keyDetailed]map[bool]value{},
 				Buffer: []DataHandlerDTO{},
 			},
-			dto: &DataHandlerUnit{ts: "qqq", part: 0, body: []byte("azazaza"), isSub: true, last: false},
+			dto: &DataHandlerUnit{ts: "qqq", part: 0, body: []byte("azazaza"), b: False, e: Probably, isSub: true, last: false},
 			wantedDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-					{ts: "qqq"}: {{ts: "qqq", part: 0}: {true: {}}},
+					{ts: "qqq"}: {{ts: "qqq", part: 0}: {true: {e: Probably}}},
 				},
 				Buffer: []DataHandlerDTO{},
 			},
 		},
 
 		{
-			name: "3. Map has other TS, dto.B() == False, !isSub",
+			name: "3. Map has other TS, !isSub",
 			initDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-					{ts: "www"}: {{ts: "www", part: 4}: {false: {}}},
+					{ts: "www"}: {{ts: "www", part: 4}: {false: {e: True}}},
 				},
 				Buffer: []DataHandlerDTO{},
 			},
-			dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("azazaza"), isSub: false, last: false},
+			dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("azazaza"), b: False, e: True, isSub: false, last: false},
 			wantedDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-					{ts: "www"}: {{ts: "www", part: 4}: {false: {}}},
-					{ts: "qqq"}: {{ts: "qqq", part: 5}: {false: {}}},
+					{ts: "www"}: {{ts: "www", part: 4}: {false: {e: True}}},
+					{ts: "qqq"}: {{ts: "qqq", part: 5}: {false: {e: True}}},
 				},
 				Buffer: []DataHandlerDTO{},
 			},
 		},
 
 		{
-			name: "4. Map has other TS, dto.B() == False, isSub",
+			name: "4. Map has other TS, isSub",
 			initDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-					{ts: "www"}: {{ts: "www", part: 4}: {false: {}}},
+					{ts: "www"}: {{ts: "www", part: 4}: {false: {e: Probably}}},
 				},
 				Buffer: []DataHandlerDTO{},
 			},
-			dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("azazaza"), isSub: true, last: false},
+			dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("azazaza"), b: False, e: Probably, isSub: true, last: false},
 			wantedDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-					{ts: "www"}: {{ts: "www", part: 4}: {false: {}}},
-					{ts: "qqq"}: {{ts: "qqq", part: 4}: {true: {}}},
+					{ts: "www"}: {{ts: "www", part: 4}: {false: {e: Probably}}},
+					{ts: "qqq"}: {{ts: "qqq", part: 4}: {true: {e: Probably}}},
 				},
 				Buffer: []DataHandlerDTO{},
 			},
 		},
 
 		{
-			name: "5. Map has same key and different part, dto.B() == False",
+			name: "5. Map has same key and different part, !isSub",
 			initDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-					{ts: "qqq"}: {{ts: "qqq", part: 3}: {false: {}}},
+					{ts: "qqq"}: {{ts: "qqq", part: 3}: {false: {e: True}}},
 				},
 				Buffer: []DataHandlerDTO{},
 			},
-			dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("azazaza"), isSub: false, last: false},
+			dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("azazaza"), b: False, e: True, isSub: false, last: false},
 			wantedDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-					{ts: "qqq"}: {{ts: "qqq", part: 5}: {false: {}}},
+					{ts: "qqq"}: {{ts: "qqq", part: 5}: {false: {e: True}}},
 				},
 				Buffer: []DataHandlerDTO{},
 			},
 		},
 
 		{
-			name: "6. Map has same key and same part, dto.B() == False",
+			name: "6. Map has same key and different part, isSub",
 			initDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-					{ts: "qqq"}: {{ts: "qqq", part: 4}: {false: {}}},
+					{ts: "qqq"}: {{ts: "qqq", part: 3}: {false: {e: True}}},
 				},
 				Buffer: []DataHandlerDTO{},
 			},
-			dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("azazaza"), isSub: false, last: false},
+			dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("azazaza"), b: False, e: Probably, isSub: true, last: false},
 			wantedDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-					{ts: "qqq"}: {{ts: "qqq", part: 5}: {false: {}}},
+					{ts: "qqq"}: {{ts: "qqq", part: 4}: {true: {e: Probably}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
+		{
+			name: "7. Map has same key and same part, !isSub",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 4}: {false: {e: True}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("azazaza"), b: False, e: True, isSub: false, last: false},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 5}: {false: {e: True}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
+		{
+			name: "8. Map has same key and same part, isSub",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 4}: {false: {e: True}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("azazaza"), b: False, e: Probably, isSub: true, last: false},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 4}: {false: {e: Probably}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
+		{
+			name: "9. Map has same key and same part, value.e = True, !d.IsSub, d.E() == Probably",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 4}: {false: {e: True}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("azazaza"), b: False, e: Probably, isSub: false, last: false},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 4}: {false: {e: Probably}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
+		{
+			name: "9. Map has same key and same part, value.e == Probably, d.IsSub, d.E() == Probably",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 4}: {false: {e: Probably}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("azazaza"), b: False, e: Probably, isSub: true, last: false},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 5}: {false: {e: Probably}, true: {e: Probably}}},
 				},
 				Buffer: []DataHandlerDTO{},
 			},

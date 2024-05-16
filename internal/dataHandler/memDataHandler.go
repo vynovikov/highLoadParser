@@ -1,7 +1,5 @@
 package dataHandler
 
-import "fmt"
-
 type memoryDataHandlerStruct struct {
 	Map    map[keyGeneral]map[keyDetailed]map[bool]value // two keys are for easy search
 	Buffer []DataHandlerDTO
@@ -54,13 +52,26 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO) error {
 
 				delete(l1, kdet)
 
-				kdet.part++
+				if l3, ok := l2[false]; ok {
+
+					if (l3.e == Probably && d.E() == Probably) ||
+						l3.e == True && d.E() == True {
+
+						kdet.part++
+
+					} else {
+
+						delete(l2, false)
+
+						l2[false] = val
+					}
+				}
 
 				l1[kdet] = l2
 
 				m.Map[kgen] = l1
 
-				return fmt.Errorf("%v", l2)
+				return nil
 			}
 
 			kdet.part++
@@ -77,6 +88,48 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO) error {
 		}
 
 	default:
+
+		l2Key = true
+
+		if l1, ok := m.Map[kgen]; ok {
+
+			if l2, ok := l1[kdet]; ok {
+
+				delete(l1, kdet)
+
+				if l3, ok := l2[false]; ok {
+
+					if l3.e == Probably {
+
+						kdet.part++
+
+						l2[true] = val
+
+					} else {
+
+						delete(l2, false)
+
+						l2[false] = val
+					}
+				}
+
+				l1[kdet] = l2
+
+				m.Map[kgen] = l1
+
+				return nil
+			}
+
+			l1, l2 := make(map[keyDetailed]map[bool]value), make(map[bool]value)
+
+			l2[l2Key] = val
+
+			l1[kdet] = l2
+
+			m.Map[kgen] = l1
+
+			return nil
+		}
 	}
 
 	return nil
