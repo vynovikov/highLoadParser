@@ -18,45 +18,65 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO) error {
 
 	kgen, kdet := newKeyGeneral(d), newKeyDetailed(d)
 	val := newValue(d)
+	var l2Key bool
 
-	switch len(m.Map[kgen]) {
-
-	case 0: // Only possible if !d.IsSub
-
-		kdet.part++
+	if len(m.Map[kgen]) == 0 {
 
 		l1, l2 := make(map[keyDetailed]map[bool]value), make(map[bool]value)
 
-		l2[false] = val
+		if !d.IsSub() {
+
+			kdet.part++
+
+		} else {
+
+			l2Key = true
+		}
+
+		l2[l2Key] = val
 
 		l1[kdet] = l2
 
 		m.Map[kgen] = l1
 
-	default:
+		return nil
+	}
 
-		kdet.part++
+	// Not empty m.Map
+
+	switch d.IsSub() {
+
+	case false:
 
 		if l1, ok := m.Map[kgen]; ok {
 
 			if l2, ok := l1[kdet]; ok {
 
+				delete(l1, kdet)
+
+				kdet.part++
+
+				l1[kdet] = l2
+
+				m.Map[kgen] = l1
+
 				return fmt.Errorf("%v", l2)
 			}
 
-			// keyDetailed not found
+			kdet.part++
 
-			l1 = make(map[keyDetailed]map[bool]value)
+			l1, l2 := make(map[keyDetailed]map[bool]value), make(map[bool]value)
 
-			l2 := make(map[bool]value)
-
-			l2[false] = newValue(d)
+			l2[l2Key] = val
 
 			l1[kdet] = l2
 
 			m.Map[kgen] = l1
+
+			return nil
 		}
 
+	default:
 	}
 
 	return nil
