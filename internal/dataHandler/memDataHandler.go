@@ -14,9 +14,9 @@ func NewMemoryDataHandler() *memoryDataHandlerStruct {
 
 func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO) error {
 
-	kgen, kdet := newKeyGeneral(d), newKeyDetailed(d)
-	val := newValue(d)
 	var l2Key bool
+
+	kgen, kdet, val := newKeyGeneral(d), newKeyDetailed(d), newValue(d)
 
 	if len(m.Map[kgen]) == 0 {
 
@@ -54,8 +54,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO) error {
 
 				if l3, ok := l2[false]; ok {
 
-					if (l3.e == Probably && d.E() == Probably) ||
-						l3.e == True && d.E() == True {
+					if l3.e == True && d.E() == True {
 
 						kdet.part++
 
@@ -65,6 +64,14 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO) error {
 
 						l2[false] = val
 					}
+
+				}
+				if _, ok := l2[true]; ok && d.E() == Probably {
+
+					kdet.part++
+
+					l2[false] = val
+
 				}
 
 				l1[kdet] = l2

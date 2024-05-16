@@ -176,7 +176,24 @@ func (s *dataHandlerSuite) TestCreate() {
 		},
 
 		{
-			name: "9. Map has same key and same part, value.e == Probably, d.IsSub, d.E() == Probably",
+			name: "10. Map has same key and same part, value.e = Probably, !d.IsSub, d.E() == Probably",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 4}: {true: {e: Probably}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("azazaza"), b: False, e: Probably, isSub: false, last: false},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 5}: {true: {e: Probably}, false: {e: Probably}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
+		{
+			name: "11. Map has same key and same part, value.e == Probably, d.IsSub, d.E() == Probably",
 			initDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 4}: {false: {e: Probably}}},
