@@ -328,9 +328,24 @@ func (s *dataHandlerSuite) TestNewValue() {
 		wantedValue value
 		wantedError error
 	}{
+
 		{
-			name: "1. Full header",
+			name: "1. Full header, name only",
+			dto:  &DataHandlerUnit{ts: "qqq", part: 0, body: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\nazazaza"), b: False, e: True, isSub: false, last: false},
+			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedValue: value{
+				e: True,
+				h: headerData{
+					formName:    "alice",
+					fileName:    "",
+					headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+				}},
+		},
+
+		{
+			name: "2. Full header, name + filename",
 			dto:  &DataHandlerUnit{ts: "qqq", part: 0, body: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza"), b: False, e: True, isSub: false, last: false},
+			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedValue: value{
 				e: True,
 				h: headerData{
@@ -338,6 +353,20 @@ func (s *dataHandlerSuite) TestNewValue() {
 					fileName:    "short.txt",
 					headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 				}},
+		},
+
+		{
+			name: "3. Partial header",
+			dto:  &DataHandlerUnit{ts: "qqq", part: 0, body: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r"), b: False, e: True, isSub: false, last: false},
+			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedValue: value{
+				e: True,
+				h: headerData{
+					formName:    "",
+					fileName:    "",
+					headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r"),
+				}},
+			wantedError: errors.New("in dataHandler.getHeaderLines header \"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\" is not full"),
 		},
 	}
 
