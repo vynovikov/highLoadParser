@@ -16,19 +16,6 @@ const (
 	MaxHeaderLimit = 210
 )
 
-type Boundary struct {
-	Prefix []byte
-	Root   []byte
-	Suffix []byte
-}
-
-/*
-type ParserServiceDTO struct {
-	U []*ParserServiceUnit
-	S *ParserServiceSub
-}
-*/
-
 type ParserServiceHeader struct {
 	Part int
 	TS   string

@@ -7,7 +7,7 @@ import (
 
 type ParserRepository interface {
 	//Check(dataHandler.DataHandlerDTO) (dataHandler.Presence, error)
-	Register([]dataHandler.DataHandlerDTO) error
+	Register([]dataHandler.DataHandlerDTO, dataHandler.Boundary) error
 }
 
 type repositoryStruct struct {
@@ -26,7 +26,7 @@ func (r *repositoryStruct) Check(d dataHandler.DataHandlerDTO) (dataHandler.Pres
 		return r.dataHandler.Check(d)
 	}
 */
-func (r *repositoryStruct) Register(dtos []dataHandler.DataHandlerDTO) error {
+func (r *repositoryStruct) Register(dtos []dataHandler.DataHandlerDTO, bou dataHandler.Boundary) error {
 
 	for _, d := range dtos {
 
@@ -36,7 +36,7 @@ func (r *repositoryStruct) Register(dtos []dataHandler.DataHandlerDTO) error {
 
 		case d.B() == dataHandler.False:
 
-			err := r.dataHandler.Create(d)
+			err := r.dataHandler.Create(d, bou)
 			if err != nil {
 
 				logger.L.Infof("in repository.Register unable to create %s %d: %v\n", d.TS(), d.Part(), err)

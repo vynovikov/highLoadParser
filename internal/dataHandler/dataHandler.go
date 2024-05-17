@@ -1,7 +1,7 @@
 package dataHandler
 
 type DataHandler interface {
-	Create(DataHandlerDTO) error
+	Create(DataHandlerDTO, Boundary) error
 	Read(DataHandlerDTO) (value, error)
 	Updade(DataHandlerDTO) error
 	Delete(string) error

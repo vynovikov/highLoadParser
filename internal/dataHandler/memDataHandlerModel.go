@@ -1,17 +1,20 @@
 package dataHandler
 
-/*
-func NewValue() value {
-
-		return value{}
-	}
-*/
-type Disposition int
+type (
+	Disposition int
+	sufficiency int
+)
 
 const (
 	False Disposition = iota
 	True
 	Probably
+	incomplete sufficiency = iota
+	sufficient
+	insufficient
+	sep            = "\r\n"
+	maxLineLimit   = 100
+	maxHeaderLimit = 210
 )
 
 type DataHandlerDTO interface {
@@ -111,14 +114,8 @@ func newKey(d DataHandlerDTO) key {
 }
 
 type value struct {
+	h headerData
 	e Disposition
-}
-
-func newValue(d DataHandlerDTO) value {
-
-	return value{
-		e: d.E(),
-	}
 }
 
 /*
@@ -129,9 +126,9 @@ func newValue(d DataHandlerDTO) value {
 	}
 */
 type headerData struct {
-	FormName string
-	FileName string
-	H        []byte
+	formName    string
+	fileName    string
+	headerBytes []byte
 }
 
 type BeginningData struct {
@@ -140,4 +137,10 @@ type BeginningData struct {
 
 type Presence struct {
 	value map[bool]value
+}
+
+type Boundary struct {
+	Prefix []byte
+	Root   []byte
+	Suffix []byte
 }

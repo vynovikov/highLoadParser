@@ -42,7 +42,18 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 		sl = append(sl, sDTO.pssu)
 	}
 
-	s.infrastructure.Register(sl)
+	bou := newDataHandlerBoundary(sDTO.Bou)
+
+	s.infrastructure.Register(sl, bou)
+}
+
+func newDataHandlerBoundary(boundary entities.Boundary) dataHandler.Boundary {
+
+	return dataHandler.Boundary{
+		Prefix: boundary.Prefix,
+		Root:   boundary.Root,
+		Suffix: boundary.Suffix,
+	}
 }
 
 func (s *ParserServiceDTO) Evolve(start int) {
