@@ -79,80 +79,81 @@ func (s *dataHandlerSuite) TestCreate() {
 		wantedDataHandler DataHandler
 		wantedError       error
 	}{
-		/*
-			{
-				name: "1. Empty Map, !isSub, full header, name only",
-				initDataHandler: &memoryDataHandlerStruct{
-					Map:    map[keyGeneral]map[keyDetailed]map[bool]value{},
-					Buffer: []DataHandlerDTO{},
-				},
-				dto: &DataHandlerUnit{ts: "qqq", part: 0, body: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\nazazaza"), b: False, e: True, isSub: false, last: false},
-				wantedDataHandler: &memoryDataHandlerStruct{
-					Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-						{ts: "qqq"}: {{ts: "qqq", part: 1}: {
-							false: value{
-								e: True,
-								h: headerData{
-									formName:    "alice",
-									fileName:    "",
-									headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
-								}}}},
-					},
-					Buffer: []DataHandlerDTO{},
-				},
-			},
 
-			{
-				name: "2. Empty Map, !isSub, full header, name + filename",
-				initDataHandler: &memoryDataHandlerStruct{
-					Map:    map[keyGeneral]map[keyDetailed]map[bool]value{},
-					Buffer: []DataHandlerDTO{},
-				},
-				dto: &DataHandlerUnit{ts: "qqq", part: 0, body: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza"), b: False, e: True, isSub: false, last: false},
-				wantedDataHandler: &memoryDataHandlerStruct{
-					Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-						{ts: "qqq"}: {{ts: "qqq", part: 1}: {
-							false: value{
-								e: True,
-								h: headerData{
-									formName:    "alice",
-									fileName:    "short.txt",
-									headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
-								}}}},
-					},
-					Buffer: []DataHandlerDTO{},
-				},
+		{
+			name: "1. Empty Map, !isSub, full header, name only",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map:    map[keyGeneral]map[keyDetailed]map[bool]value{},
+				Buffer: []DataHandlerDTO{},
 			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 0, body: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\nazazaza"), b: False, e: True, isSub: false, last: false},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
 
-			{
-				name: "3. Empty Map, !isSub, not full header",
-				initDataHandler: &memoryDataHandlerStruct{
-					Map:    map[keyGeneral]map[keyDetailed]map[bool]value{},
-					Buffer: []DataHandlerDTO{},
-				},
-				dto: &DataHandlerUnit{ts: "qqq", part: 0, body: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n"), b: False, e: True, isSub: false, last: false},
-				wantedDataHandler: &memoryDataHandlerStruct{
-					Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-						{ts: "qqq"}: {{ts: "qqq", part: 1}: {
-							false: value{
-								e: True,
-								h: headerData{
-									formName:    "",
-									fileName:    "",
-									headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n"),
-								}}}},
-					},
-					Buffer: []DataHandlerDTO{},
-				},
+		{
+			name: "2. Empty Map, !isSub, full header, name + filename",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map:    map[keyGeneral]map[keyDetailed]map[bool]value{},
+				Buffer: []DataHandlerDTO{},
 			},
-		*/
+			dto: &DataHandlerUnit{ts: "qqq", part: 0, body: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza"), b: False, e: True, isSub: false, last: false},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
+		{
+			name: "3. Empty Map, !isSub, not full header",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map:    map[keyGeneral]map[keyDetailed]map[bool]value{},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 0, body: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n"), b: False, e: True, isSub: false, last: false},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
 		{
 			name: "4. Empty Map, isSub",
 			initDataHandler: &memoryDataHandlerStruct{
 				Map:    map[keyGeneral]map[keyDetailed]map[bool]value{},
 				Buffer: []DataHandlerDTO{},
 			},
-			dto: &DataHandlerUnit{ts: "qqq", part: 0, body: []byte("\r\n----"), b: False, e: Probably, isSub: true, last: false},
+			dto: &DataHandlerUnit{ts: "qqq", part: 0, body: []byte("azazazazaza\r\n----"), b: False, e: Probably, isSub: true, last: false},
+			bou: Boundary{Prefix: []byte("---------------"), Root: []byte("bRoot")},
 			wantedDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 0}: {true: {
