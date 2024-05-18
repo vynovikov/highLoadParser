@@ -29,7 +29,9 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) error {
 	kgen, kdet := newKeyGeneral(d), newKeyDetailed(d)
 
 	val, err := newValue(d, bou)
-	if err != nil {
+	if err != nil &&
+		(!strings.Contains(err.Error(), "is not full") &&
+			!strings.Contains(err.Error(), "is ending part")) {
 
 		return err
 	}
@@ -199,6 +201,16 @@ func newValue(d DataHandlerDTO, bou Boundary) (value, error) {
 			}, err
 		}
 
+		if strings.Contains(err.Error(), "is ending part") {
+
+			return value{
+				e: d.E(),
+				h: headerData{
+					headerBytes: exactHeaderBytes,
+				},
+			}, err
+		}
+
 		return value{}, err
 	}
 
@@ -217,7 +229,11 @@ func newValue(d DataHandlerDTO, bou Boundary) (value, error) {
 // GetHeaderLines returns header lines found in b
 // Tested in dataHandler_test.go
 func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
+
 	resL := make([]byte, 0)
+
+	boundaryCore := genBoundary(bou)[2:]
+
 	if len(b) == 0 {
 
 		return resL, fmt.Errorf("in dataHandler.getHeaderLines zero len byte slice passed")
@@ -357,7 +373,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 
 		return nil, fmt.Errorf("in dataHandler.getHeaderLines no header found")
 
-	case 1: // CD full + CRLF || CD full + CRLF + CT -> || CRLF || <-LastBoundary + CRLF
+	case 1: // CD full + CRLF || CD full + CRLF + CT -> || CRLF || <-LastBoundary + CRLF || CRLF + Boundary-> || <-Boundary + CRLF
 
 		l0 := b[:bytes.Index(b, []byte("\r\n"))]
 		l1 := b[bytes.Index(b, []byte("\r\n"))+2:]
@@ -382,6 +398,14 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 		if len(b) == bytes.Index(b, []byte("\r\n"))+2 { //last Boundary
 			resL = append(resL, b...)
 			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is the last", resL)
+		}
+
+		if len(l1) > 0 && byteOps.BeginningEqual(boundaryCore, l1) {
+
+			resL = append(resL, []byte("\r\n")...)
+			resL = append(resL, l1...)
+
+			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is not full", resL)
 		}
 
 		return nil, fmt.Errorf("in dataHandler.getHeaderLines no header found")
