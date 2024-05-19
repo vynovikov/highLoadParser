@@ -5,5 +5,4 @@ type DataHandler interface {
 	Read(DataHandlerDTO) (value, error)
 	Updade(DataHandlerDTO) error
 	Delete(string) error
-	//	Check(DataHandlerDTO) (Presence, error)
 }

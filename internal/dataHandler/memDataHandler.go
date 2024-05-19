@@ -202,7 +202,6 @@ func newValue(d DataHandlerDTO, bou Boundary) (value, error) {
 			}, err
 		}
 
-		//if strings.Contains(err.Error(), "is ending part") {
 		if errors.Is(err, errHeaderEnding) {
 
 			return value{
@@ -297,8 +296,11 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 		switch bytes.Count(b, []byte("\r\n")) {
 
 		case 0: //  CD full + CR
+
 			if sufficientType(b[:len(b)-1]) != incomplete {
+
 				resL = append(resL, b...)
+
 				return resL, fmt.Errorf("\"%s\" %w", resL, errHeaderNotFull)
 			}
 
@@ -307,7 +309,9 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 			l0 := b[:bytes.Index(b, []byte("\r\n"))]
 
 			if sufficientType(l0) == sufficient {
+
 				resL = append(resL, b...)
+
 				return resL, fmt.Errorf("\"%s\" %w", resL, errHeaderNotFull)
 			}
 
@@ -345,13 +349,19 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 			}
 
 		default: // CDinsuf + CRLF + CT + 2*CRLF + rand + CR
+
 			l0 := b[:bytes.Index(b, []byte("\r\n"))]
 			l1 := b[bytes.Index(b, []byte("\r\n"))+2 : byteOps.RepeatedIntex(b, []byte("\r\n"), 2)]
+
 			if sufficientType(l0) == insufficient {
+
 				resL = append(l0, []byte("\r\n")...)
+
 				if regexpops.IsCTFull(l1) {
+
 					resL = append(resL, l1...)
 					resL = append(resL, []byte("\r\n\r\n")...)
+
 					return resL, nil
 				}
 			}
@@ -362,6 +372,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 	// no precending LF no succeding CR
 
 	switch bytes.Count(b, []byte("\r\n")) {
+
 	case 0: // CD ->
 
 		if regexpops.IsCDRight(b) {
@@ -381,24 +392,34 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 		l1 := b[bytes.Index(b, []byte("\r\n"))+2:]
 
 		if len(l0) == 0 {
+
 			resL = append(l0, []byte("\r\n")...)
+
 			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 		}
+
 		if sufficientType(l0) == sufficient {
+
 			resL = append(l0, []byte("\r\n")...)
+
 			return resL, fmt.Errorf("\"%s\" %w", resL, errHeaderNotFull)
 		}
 		if sufficientType(l0) == insufficient {
+
 			resL = append(l0, []byte("\r\n")...)
 
 			if regexpops.IsCTRight(l1) {
+
 				resL = append(resL, l1...)
+
 				return resL, fmt.Errorf("\"%s\" %w", resL, errHeaderNotFull)
 			}
 
 		}
 		if len(b) == bytes.Index(b, []byte("\r\n"))+2 { //last Boundary
+
 			resL = append(resL, b...)
+
 			return resL, fmt.Errorf("\"%s\" is the last", resL)
 		}
 
@@ -418,16 +439,22 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 		l1 := b[bytes.Index(b, []byte("\r\n"))+2 : byteOps.RepeatedIntex(b, []byte("\r\n"), 2)]
 
 		if len(l0) == 0 { // on ending part is impossible, on beginning part: 2 * CRLF + rand || CRLF + rand + CRLF + rand
+
 			resL = append(resL, []byte("\r\n")...)
+
 			if len(l1) == 0 {
+
 				resL = append(resL, []byte("\r\n")...)
+
 				return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 			}
 			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 		}
 
 		if sufficientType(l0) == sufficient { // on ending part CDSuf + 2 * CRLF || CDSuf + 2 * CRLF + rand, on beginning part CDSuf + 2 * CRLF + rand
+
 			resL = append(l0, []byte("\r\n\r\n")...)
+
 			return resL, nil
 		}
 
@@ -495,42 +522,57 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 			return resL, nil
 		}
 		if len(l0) == 0 { // on ending part is impossible, on beginning part: CRLF + CDsuf + 2*CRLF + rand || CRLF + CDinsuf + CRLF + CT + 2*CRLF + rand || CRLF + CT + 2*CRLF + rand || CRLF + rand // 2*CRLF + rand
+
 			resL = append(l0, []byte("\r\n")...)
 
 			if len(l1) == 0 {
+
 				resL = append(resL, []byte("\r\n")...)
+
 				return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 			}
 
 			if sufficientType(l1) == sufficient {
+
 				resL = append(resL, l1...)
 				resL = append(resL, []byte("\r\n\r\n")...)
+
 				return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 			}
 			if sufficientType(l1) == insufficient {
+
 				resL = append(resL, l1...)
 				resL = append(resL, []byte("\r\n")...)
+
 				if regexpops.IsCTFull(l2) {
+
 					resL = append(resL, l2...)
 					resL = append(resL, []byte("\r\n\r\n")...)
+
 					return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 				}
 			}
 			if regexpops.IsCTFull(l1) {
+
 				resL = append(resL, l1...)
 				resL = append(resL, []byte("\r\n\r\n")...)
+
 				return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 			}
 			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 		}
 		if len(l1) == 0 { // on ending part CDsuf + 2*CRLF + rand, on beginning part <-CDsuf + 2*CRLF + rand || <-CT + 2 * CRLF + rand
+
 			resL = append(l0, []byte("\r\n\r\n")...)
+
 			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 		}
 		if len(l2) == 0 { // on ending part CDinsuf + CRLF + CT + 2*CRLF + rand, on beginning part CRLF + CDsuf + 2*CRLF = rand || <-Bound + CRLF + CDsuf + 2*CRLF = rand || <-CDinsuf + CRLF + CT + 2*CRLF
+
 			resL = append(l0, []byte("\r\n")...)
 			resL = append(resL, l1...)
 			resL = append(resL, []byte("\r\n\r\n")...)
+
 			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 		}
 		return nil, errHeaderNotFound
@@ -538,61 +580,10 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 	}
 }
 
-/*
-func (m *memoryDataHandlerStruct) Check(d DataHandlerDTO) (Presence, error) {
-
-	key := newKey(d)
-
-	if v, ok := m.Map[key]; ok {
-		return Presence{value: v}, nil
-	}
-
-	return Presence{}, nil
-}
-*/
-/*
-func (s *StoreStruct) Presence(d repo.DataHandlerDTO) (repo.Presense, error) {
-	askg, askd, vv := repo.NewAppStoreKeyGeneralFromDataHandlerDTO(d), repo.NewAppStoreKeyDetailed(d), make(map[repo.AppStoreKeyDetailed]map[bool]repo.AppStoreValue)
-	if m1, ok := s.R[askg]; ok {
-		if m2, ok := m1[askd]; ok && d.B() == repo.True {
-			if s.C[askg].Cur == 1 && s.C[askg].Blocked {
-				return repo.Presense{}, fmt.Errorf("in store.Presense matched but Cur == 1 && Blocked")
-			}
-			vv[askd.F()] = m2
-			if m2t, ok := m1[askd.T()]; ok && d.E() == repo.Probably {
-				vv[askd.T()] = m2t
-				return repo.NewPresense(true, true, true, vv), nil
-			}
-			return repo.NewPresense(true, true, false, vv), nil
-		}
-		if d.IsSub() {
-			if m2f, ok := s.R[askg][askd.F()]; ok && m2f[false].E == repo.Probably {
-				vv[askd.F()] = m2f
-				return repo.NewPresense(true, true, true, vv), nil
-			}
-			return repo.NewPresense(true, false, false, nil), nil
-		}
-		if d.B() == repo.False && d.E() == repo.Probably {
-			if m2t, ok := s.R[askg][askd.T()]; ok && m2t[true].E == repo.Probably {
-				vv[askd.T()] = m2t
-				return repo.NewPresense(true, true, true, vv), nil
-			}
-			return repo.NewPresense(true, true, false, nil), nil
-		}
-		return repo.NewPresense(true, false, false, nil), nil
-	}
-	if d.B() == repo.False && d.E() == repo.Probably {
-
-	}
-	return repo.Presense{}, nil
-}
-*/
-
 // sufficiency determines whether b is header for string data or for file data
 func sufficientType(b []byte) sufficiency {
 
 	r0 := regexp.MustCompile(`^Content-Disposition: form-data; name="[a-zA-zа-яА-Я0-9_.-:@#%^&\$\+\!\*\(\[\{\)\]\}]+"$`)
-
 	r1 := regexp.MustCompile(`^Content-Disposition: form-data; name="[a-zA-zа-яА-Я0-9_.-:@#%^&\$\+\!\*\(\[\{\)\]\}]+"; filename="[a-zA-zа-яА-Я0-9_.-:@#%^&\$\+\!\*\(\[\{\)\]\}]+"$`)
 
 	if r0.Match(b) {
