@@ -1,8 +1,16 @@
 package dataHandler
 
+import "errors"
+
 type (
 	Disposition int
 	sufficiency int
+)
+
+var (
+	errHeaderNotFull  error = errors.New("header is not full")
+	errHeaderEnding   error = errors.New("ending of header")
+	errHeaderNotFound error = errors.New("header is not found")
 )
 
 const (

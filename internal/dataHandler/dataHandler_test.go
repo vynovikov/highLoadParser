@@ -2,6 +2,7 @@ package dataHandler
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -388,7 +389,7 @@ func (s *dataHandlerSuite) TestNewValue() {
 					fileName:    "",
 					headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r"),
 				}},
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\" is not full"),
+			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\" header is not full"),
 		},
 	}
 
@@ -423,7 +424,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"al"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("Content-Disposition: form-data; name=\"al"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"Content-Disposition: form-data; name=\"al\" is not full"),
+			wantedError: errors.New("\"Content-Disposition: form-data; name=\"al\" header is not full"),
 		},
 
 		{
@@ -431,7 +432,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("azazazazazaza"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("in dataHandler.getHeaderLines no header found"),
+			wantedError: errors.New("no header found"),
 		},
 
 		{
@@ -439,7 +440,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"Content-Disposition: form-data; name=\"alice\"\r\n\" is not full"),
+			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"\r\n\" header is not full"),
 		},
 
 		{
@@ -447,14 +448,14 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short\"\r\nCon"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short\"\r\nCon"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"Content-Disposition: form-data; name=\"alice\"; filename=\"short\"\r\nCon\" is not full"),
+			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"; filename=\"short\"\r\nCon\" header is not full"),
 		},
 		{
 			name:        "1 CRLF just CRLF, random line",
 			bs:          []byte("\r\nr23hjrb23hrbj23hbrh23"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\r\n\" is ending part"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\r\n")), errHeaderEnding),
 		},
 
 		{
@@ -462,7 +463,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("azzsdfgsdhfdsfhsjdfhs\r\n"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("azzsdfgsdhfdsfhsjdfhs\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"azzsdfgsdhfdsfhsjdfhs\r\n\" is the last"),
+			wantedError: errors.New("\"azzsdfgsdhfdsfhsjdfhs\r\n\" is the last"),
 		},
 
 		{
@@ -470,7 +471,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("azzsdfgsdhfdsfhsjdfhs\r\nfskjfghsjfhgfjkhgjdfhgfd"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("in dataHandler.getHeaderLines no header found"),
+			wantedError: errors.New("no header found"),
 		},
 
 		{
@@ -493,15 +494,16 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			name:        "2 CRLF 1 line CD insufficient + CRLF + CT + CTLF",
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n"),
 			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\" is not full"),
+			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\" header is not full"),
 		},
 
 		{
-			name:        "2 CRLF 1 line CD sufficient + random line",
-			bs:          []byte("position: form-data; name=\"alice\"\r\n\r\nhdsghdsvhsdvgshdgvsdv"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("position: form-data; name=\"alice\"\r\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"position: form-data; name=\"alice\"\r\n\r\n\" is ending part"),
+			name:    "2 CRLF 1 line CD sufficient + random line",
+			bs:      []byte("position: form-data; name=\"alice\"\r\n\r\nhdsghdsvhsdvgshdgvsdv"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("position: form-data; name=\"alice\"\r\n\r\n"),
+			//wantedError: errors.New("\"position: form-data; name=\"alice\"\r\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("position: form-data; name=\"alice\"\r\n\r\n")), errHeaderEnding),
 		},
 
 		{
@@ -509,7 +511,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nsajkfdga\r\ndsfguigdfa"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("in dataHandler.getHeaderLines no header found"),
+			wantedError: errors.New("no header found"),
 		},
 
 		{
@@ -517,23 +519,25 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("we6fwfef6gewfgewfg7efge\r\nsajkfdga\r\ndsfguigdfa"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("in dataHandler.getHeaderLines no header found"),
+			wantedError: errors.New("no header found"),
 		},
 
 		{
-			name:        "2 CRLF CRLF, random line, CRLF, random line",
-			bs:          []byte("\r\n2f3hg4f32ghf423gf324\r\nr23hjrb23hrbj23hbrh23"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\r\n\" is ending part"),
+			name:    "2 CRLF CRLF, random line, CRLF, random line",
+			bs:      []byte("\r\n2f3hg4f32ghf423gf324\r\nr23hjrb23hrbj23hbrh23"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("\r\n"),
+			//wantedError: errors.New("\"\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\r\n")), errHeaderEnding),
 		},
 
 		{
-			name:        "2 CRLF just 2 * CRLF, random line",
-			bs:          []byte("\r\n\r\nr23hjrb23hrbj23hbrh23"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\r\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\r\n\r\n\" is ending part"),
+			name:    "2 CRLF just 2 * CRLF, random line",
+			bs:      []byte("\r\n\r\nr23hjrb23hrbj23hbrh23"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("\r\n\r\n"),
+			//wantedError: errors.New("\"\r\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\r\n\r\n")), errHeaderEnding),
 		},
 
 		{
@@ -545,27 +549,30 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 		},
 
 		{
-			name:        "3 CRLF 1 header line (CD sufficient), 2 random lines",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\ndsfguigdfa6fhgf55\r\nggf8723g723gf823"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"Content-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending part"),
+			name:    "3 CRLF 1 header line (CD sufficient), 2 random lines",
+			bs:      []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\ndsfguigdfa6fhgf55\r\nggf8723g723gf823"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+			//wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n")), errHeaderEnding),
 		},
 
 		{
-			name:        "3 CRLF: CRLF + CDsuf + 2*CRLF + rand",
-			bs:          []byte("\r\nContent-Disposition: form-data; name=\"alice\"\r\n\r\ndsfguigdfa"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\r\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\r\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending part"),
+			name:    "3 CRLF: CRLF + CDsuf + 2*CRLF + rand",
+			bs:      []byte("\r\nContent-Disposition: form-data; name=\"alice\"\r\n\r\ndsfguigdfa"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("\r\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+			//wantedError: errors.New("\"\r\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\r\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n")), errHeaderEnding),
 		},
 
 		{
-			name:        "3 CRLF: CRLF + CT + 2*CRLF + rand",
-			bs:          []byte("\r\nContent-Type: text/plain\r\n\r\ndsfguigdfa"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\r\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
+			name:    "3 CRLF: CRLF + CT + 2*CRLF + rand",
+			bs:      []byte("\r\nContent-Type: text/plain\r\n\r\ndsfguigdfa"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("\r\nContent-Type: text/plain\r\n\r\n"),
+			//wantedError: errors.New("\"\r\nContent-Type: text/plain\r\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\r\nContent-Type: text/plain\r\n\r\n")), errHeaderEnding),
 		},
 
 		{
@@ -573,7 +580,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nCshdgfhsdgfhsdjf\r\ndsfguigdfa"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("in dataHandler.getHeaderLines no header found"),
+			wantedError: errors.New("no header found"),
 		},
 
 		{
@@ -581,31 +588,34 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("azazzazazzazazaz\r\nCzbbzbzbbzbzbbzbzbzbzbz\r\ndsfguigdfa\r\nf2r7fr27fr2f7r2"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("in dataHandler.getHeaderLines no header found"),
+			wantedError: errors.New("no header found"),
 		},
 
 		{
-			name:        "3 CRLF: CRLF, next random lines",
-			bs:          []byte("\r\nr23hjrb23hrbj23hbrh23\r\nsgdhgsdwef6fr6632\r\n438ry34grg438rg438gr43"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\r\n\" is ending part"),
+			name:    "3 CRLF: CRLF, next random lines",
+			bs:      []byte("\r\nr23hjrb23hrbj23hbrh23\r\nsgdhgsdwef6fr6632\r\n438ry34grg438rg438gr43"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("\r\n"),
+			//wantedError: errors.New("\"\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\r\n")), errHeaderEnding),
 		},
 
 		{
-			name:        "3 CRLF just  2 * CRLF, next random lines",
-			bs:          []byte("\r\n\r\nr23hjrb23hrbj23hbrh23\r\nsgdhgsdwef6fr6632"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\r\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\r\n\r\n\" is ending part"),
+			name:    "3 CRLF just  2 * CRLF, next random lines",
+			bs:      []byte("\r\n\r\nr23hjrb23hrbj23hbrh23\r\nsgdhgsdwef6fr6632"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("\r\n\r\n"),
+			//wantedError: errors.New("\"\r\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\r\n\r\n")), errHeaderEnding),
 		},
 
 		{
-			name:        "4 CRLF 1 line CD sufficient + 3 random lines",
-			bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\nhdsghdsvhsdvgshdgvsdv\r\nhjgvfjhdgvjhfdkgftv87dfvdfv\r\nsoiehfwoefhwefdgvjhsdv"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"Content-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending part"),
+			name:    "4 CRLF 1 line CD sufficient + 3 random lines",
+			bs:      []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\nhdsghdsvhsdvgshdgvsdv\r\nhjgvfjhdgvjhfdkgftv87dfvdfv\r\nsoiehfwoefhwefdgvjhsdv"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+			//wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n")), errHeaderEnding),
 		},
 
 		{
@@ -617,27 +627,30 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 		},
 
 		{
-			name:        "4 CRLF: CRLF + CDinsuf + CRLF + CT + 2*CRLF + rand",
-			bs:          []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\ndsfguigdfa"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
+			name:    "4 CRLF: CRLF + CDinsuf + CRLF + CT + 2*CRLF + rand",
+			bs:      []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\ndsfguigdfa"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+			//wantedError: errors.New("\"\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n")), errHeaderEnding),
 		},
 
 		{
-			name:        "4 CRLF 1 Boundary ending 2 header lines, 1 random line",
-			bs:          []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\ndsfguigdfa"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
+			name:    "4 CRLF 1 Boundary ending 2 header lines, 1 random line",
+			bs:      []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\ndsfguigdfa"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+			//wantedError: errors.New("\"fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n")), errHeaderEnding),
 		},
 
 		{
-			name:        "5 CRLF 1 Boundary ending 2 header lines, 1 random line",
-			bs:          []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\naaaaaaaaaaaaaaaaaaaaaaaaa\r\nbbbbbbbbbbbbbbbb\r\ndsfguigdfa"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
+			name:    "5 CRLF 1 Boundary ending 2 header lines, 1 random line",
+			bs:      []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\naaaaaaaaaaaaaaaaaaaaaaaaa\r\nbbbbbbbbbbbbbbbb\r\ndsfguigdfa"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+			//wantedError: errors.New("\"fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n")), errHeaderEnding),
 		},
 
 		{
@@ -645,7 +658,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\ndsfguigdfa\r\nf2r7fr27fr2f7r2"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("in dataHandler.getHeaderLines no header found"),
+			wantedError: errors.New("no header found"),
 		},
 
 		{
@@ -653,71 +666,79 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("fixbRoot\r\nCzbbzbzbbzbzbbzbzbzbzbz\r\ndsfguigdfa\r\nf2r7fr27fr2f7r2"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("in dataHandler.getHeaderLines no header found"),
+			wantedError: errors.New("no header found"),
 		},
 
 		{
-			name:        "4 CRLF just  2 * CRLF, next random lines",
-			bs:          []byte("\r\n\r\nr23hjrb23hrbj23hbrh23\r\nsgdhgsdwef6fr6632\r\n3fd72fd73fd3727df23"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\r\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\r\n\r\n\" is ending part"),
+			name:    "4 CRLF just  2 * CRLF, next random lines",
+			bs:      []byte("\r\n\r\nr23hjrb23hrbj23hbrh23\r\nsgdhgsdwef6fr6632\r\n3fd72fd73fd3727df23"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("\r\n\r\n"),
+			//wantedError: errors.New("\"\r\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\r\n\r\n")), errHeaderEnding),
 		},
 
 		{
-			name:        "5 CRLF 1 CRLF 2 header lines, 1 random line",
-			bs:          []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\naaaaaaaaaaaaaaaaaaaaaaaaa\r\nbbbbbbbbbbbbbbbb\r\ndsfguigdfa"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
+			name:    "5 CRLF 1 CRLF 2 header lines, 1 random line",
+			bs:      []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\naaaaaaaaaaaaaaaaaaaaaaaaa\r\nbbbbbbbbbbbbbbbb\r\ndsfguigdfa"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+			//wantedError: errors.New("\"\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n")), errHeaderEnding),
 		},
 
 		{
-			name:        "Precending LF, 0 CRLF. LF + rand",
-			bs:          []byte("\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\n\" is ending part"),
+			name:    "Precending LF, 0 CRLF. LF + rand",
+			bs:      []byte("\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("\n"),
+			//wantedError: errors.New("\"\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\n")), errHeaderEnding),
 		},
 
 		{
-			name:        "Precending LF, 3 CRLF. LF + rand",
-			bs:          []byte("\nsdjkchdjhcskdhcdsjhckjsdhcjdsk\r\nsdjhfjdshjfsd\r\ngruihgeruhguerhguerg\r\n121312j412jk4g1jk4gjkg"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\n\" is ending part"),
+			name:    "Precending LF, 3 CRLF. LF + rand",
+			bs:      []byte("\nsdjkchdjhcskdhcdsjhckjsdhcjdsk\r\nsdjhfjdshjfsd\r\ngruihgeruhguerhguerg\r\n121312j412jk4g1jk4gjkg"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("\n"),
+			//wantedError: errors.New("\"\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\n")), errHeaderEnding),
 		},
 
 		{
-			name:        "Precending LF, 1 CRLF. CRLF + LF + rand",
-			bs:          []byte("\n\r\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\n\r\n\" is ending part"),
+			name:    "Precending LF, 1 CRLF. CRLF + LF + rand",
+			bs:      []byte("\n\r\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("\n\r\n"),
+			//wantedError: errors.New("\"\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\n\r\n")), errHeaderEnding),
 		},
 
 		{
-			name:        "Precending LF, 2 CRLF. LF + CT + 2*CRLF + rand",
-			bs:          []byte("\nContent-Type: text/plain\r\n\r\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\nContent-Type: text/plain\r\n\r\n\" is ending part"),
+			name:    "Precending LF, 2 CRLF. LF + CT + 2*CRLF + rand",
+			bs:      []byte("\nContent-Type: text/plain\r\n\r\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("\nContent-Type: text/plain\r\n\r\n"),
+			//wantedError: errors.New("\"\nContent-Type: text/plain\r\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\nContent-Type: text/plain\r\n\r\n")), errHeaderEnding),
 		},
 
 		{
-			name:        "Precending LF, 2 CRLF. LF + CDSuff + 2*CRLF + rand",
-			bs:          []byte("\nContent-Disposition: form-data; name=\"alice\"\r\n\r\nsdjkch2323232djhcskdhcdsjhckjsdhcjdsk"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending part"),
+			name:    "Precending LF, 2 CRLF. LF + CDSuff + 2*CRLF + rand",
+			bs:      []byte("\nContent-Disposition: form-data; name=\"alice\"\r\n\r\nsdjkch2323232djhcskdhcdsjhckjsdhcjdsk"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+			//wantedError: errors.New("\"\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\nContent-Disposition: form-data; name=\"alice\"\r\n\r\n")), errHeaderEnding),
 		},
 
 		{
-			name:        "Precending LF, 3 CRLF. LF + CDinsuf + CRLF + CT + 2*CRLF + rand",
-			bs:          []byte("\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
-			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			wantedL:     []byte("\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending part"),
+			name:    "Precending LF, 3 CRLF. LF + CDinsuf + CRLF + CT + 2*CRLF + rand",
+			bs:      []byte("\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nsdjkchdjhcskdhcdsjhckjsdhcjdsk"),
+			bou:     Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			wantedL: []byte("\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+			//wantedError: errors.New("\"\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n\" is ending of header"),
+			wantedError: fmt.Errorf("\"%s\" is %w", string([]byte("\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n")), errHeaderEnding),
 		},
 
 		{
@@ -725,7 +746,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"Content-Disposition: form-data; name=\"alice\"\r\" is not full"),
+			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"\r\" header is not full"),
 		},
 
 		{
@@ -733,7 +754,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"Content-Disposition: form-data; name=\"alice\"\r\n\r\" is not full"),
+			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"\r\n\r\" header is not full"),
 		},
 
 		{
@@ -741,7 +762,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\" is not full"),
+			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\" header is not full"),
 		},
 
 		{
@@ -749,7 +770,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\" is not full"),
+			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\" header is not full"),
 		},
 
 		{
@@ -757,7 +778,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("sdjkchdjhcskdhcdsjhckjsdhcjdsk\r\nsdjhfjdshjfsd\r\ngruihgeruhguerhguerg\r\n121312j412jk4g1jk4gjkg\r"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("in dataHandler.getHeaderLines no header found"),
+			wantedError: errors.New("no header found"),
 		},
 
 		{
@@ -765,7 +786,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("hkjhjkhjkhkh\r\n----------"),
 			bou:         Boundary{Prefix: []byte("-------------------"), Root: []byte("bRoot")},
 			wantedL:     []byte("\r\n----------"),
-			wantedError: errors.New("in dataHandler.getHeaderLines header \"\r\n----------\" is not full"),
+			wantedError: errors.New("\"\r\n----------\" header is not full"),
 		},
 	}
 

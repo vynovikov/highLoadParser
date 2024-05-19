@@ -30,7 +30,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) error {
 
 	val, err := newValue(d, bou)
 	if err != nil &&
-		(!strings.Contains(err.Error(), "is not full") &&
+		(!strings.Contains(err.Error(), "header is not full") &&
 			!strings.Contains(err.Error(), "is ending part")) {
 
 		return err
@@ -191,7 +191,7 @@ func newValue(d DataHandlerDTO, bou Boundary) (value, error) {
 
 	exactHeaderBytes, err := getHeaderLines(headerB, bou)
 	if err != nil {
-		if strings.Contains(err.Error(), "is not full") {
+		if strings.Contains(err.Error(), "header is not full") {
 
 			return value{
 				e: d.E(),
@@ -236,7 +236,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 
 	if len(b) == 0 {
 
-		return resL, fmt.Errorf("in dataHandler.getHeaderLines zero len byte slice passed")
+		return resL, fmt.Errorf("zero len byte slice passed")
 	}
 
 	if b[0] == 10 { // preceding LF
@@ -247,14 +247,14 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 
 			resL = append(resL, b[0])
 
-			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 
 		case 1: // LF + CRLF + rand
 
 			resL = append(resL, b[0])
 			resL = append(resL, []byte("\r\n")...)
 
-			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 
 		case 2: // LF + CT + 2*CRLF + rand || LF + CDSuff + 2*CRLF + rand
 
@@ -263,7 +263,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 			resL = append(resL, l0...)
 			resL = append(resL, []byte("\r\n\r\n")...)
 
-			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 
 		default: //  LF + CDinsuf + CRLF + CT + 2*CRLF + rand
 
@@ -280,13 +280,13 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 					resL = append(resL, l1...)
 					resL = append(resL, []byte("\r\n\r\n")...)
 
-					return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+					return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 				}
 			}
 
 			resL = append(resL, b[0])
 
-			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 		}
 
 	}
@@ -297,7 +297,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 		case 0: //  CD full + CR
 			if sufficientType(b[:len(b)-1]) != incomplete {
 				resL = append(resL, b...)
-				return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is not full", resL)
+				return resL, fmt.Errorf("\"%s\" header is not full", resL)
 			}
 
 		case 1: // CDsuf + CRLF + CR || CDinsuf + CRLF + CT + CR
@@ -306,7 +306,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 
 			if sufficientType(l0) == sufficient {
 				resL = append(resL, b...)
-				return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is not full", resL)
+				return resL, fmt.Errorf("\"%s\" header is not full", resL)
 			}
 
 			if sufficientType(l0) == insufficient {
@@ -320,7 +320,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 					resL = append(resL, l1...)
 					resL = append(resL, []byte("\r")...)
 
-					return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is not full", resL)
+					return resL, fmt.Errorf("\"%s\" header is not full", resL)
 				}
 			}
 
@@ -338,7 +338,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 					resL = append(resL, l1...)
 					resL = append(resL, []byte("\r\n\r")...)
 
-					return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is not full", resL)
+					return resL, fmt.Errorf("\"%s\" header is not full", resL)
 				}
 			}
 
@@ -354,7 +354,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 				}
 			}
 
-			return nil, fmt.Errorf("in dataHandler.getHeaderLines no header found")
+			return nil, fmt.Errorf("no header found")
 		}
 	}
 	// no precending LF no succeding CR
@@ -364,14 +364,14 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 
 		if regexpops.IsCDRight(b) {
 
-			return b, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is not full", b)
+			return b, fmt.Errorf("\"%s\" header is not full", b)
 		}
 		if isLastBoundaryPart(b, bou) {
 
 			return b, nil
 		}
 
-		return nil, fmt.Errorf("in dataHandler.getHeaderLines no header found")
+		return nil, fmt.Errorf("no header found")
 
 	case 1: // CD full + CRLF || CD full + CRLF + CT -> || CRLF || <-LastBoundary + CRLF || CRLF + Boundary-> || <-Boundary + CRLF
 
@@ -380,24 +380,24 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 
 		if len(l0) == 0 {
 			resL = append(l0, []byte("\r\n")...)
-			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 		}
 		if sufficientType(l0) == sufficient {
 			resL = append(l0, []byte("\r\n")...)
-			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is not full", resL)
+			return resL, fmt.Errorf("\"%s\" header is not full", resL)
 		}
 		if sufficientType(l0) == insufficient {
 			resL = append(l0, []byte("\r\n")...)
 
 			if regexpops.IsCTRight(l1) {
 				resL = append(resL, l1...)
-				return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is not full", resL)
+				return resL, fmt.Errorf("\"%s\" header is not full", resL)
 			}
 
 		}
 		if len(b) == bytes.Index(b, []byte("\r\n"))+2 { //last Boundary
 			resL = append(resL, b...)
-			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is the last", resL)
+			return resL, fmt.Errorf("\"%s\" is the last", resL)
 		}
 
 		if len(l1) > 0 && byteOps.BeginningEqual(boundaryCore, l1) {
@@ -405,10 +405,10 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 			resL = append(resL, []byte("\r\n")...)
 			resL = append(resL, l1...)
 
-			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is not full", resL)
+			return resL, fmt.Errorf("\"%s\" header is not full", resL)
 		}
 
-		return nil, fmt.Errorf("in dataHandler.getHeaderLines no header found")
+		return nil, fmt.Errorf("no header found")
 
 	case 2: // CD full insufficient + CRLF + CT full + CRLF || CD full sufficient + 2 CRLF + rand || CT full + 2 CRLF + rand || <-CT + 2CRLF + rand || 2 CRLF + rand
 
@@ -419,9 +419,9 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 			resL = append(resL, []byte("\r\n")...)
 			if len(l1) == 0 {
 				resL = append(resL, []byte("\r\n")...)
-				return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+				return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 			}
-			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 		}
 
 		if sufficientType(l0) == sufficient { // on ending part CDSuf + 2 * CRLF || CDSuf + 2 * CRLF + rand, on beginning part CDSuf + 2 * CRLF + rand
@@ -438,24 +438,24 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 				resL = append(resL, l1...)
 				resL = append(resL, []byte("\r\n")...)
 
-				return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is not full", resL)
+				return resL, fmt.Errorf("\"%s\" header is not full", resL)
 			}
 		}
 		if regexpops.IsCDLeft(l0) && len(l1) == 0 { // on ending part is impossible, on beginning part <-CDsufficient + 2 * CRLF + rand
 
 			resL = append(l0, []byte("\r\n\r\n")...)
 
-			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 		}
 
 		if regexpops.IsCTLeft(l0) && len(l1) == 0 { // on ending part is impossible, on beginning part <-CT + 2 * CRLF + rand
 
 			resL = append(l0, []byte("\r\n\r\n")...)
 
-			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 		}
 
-		return nil, fmt.Errorf("in dataHandler.getHeaderLines no header found")
+		return nil, fmt.Errorf("no header found")
 
 	default: // CD full insufficient + CRLF + CT full + 2*CRLF || CD full sufficient + 2*CRLF + rand + CRLF
 
@@ -477,7 +477,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 					resL = append(resL, l2...)
 					resL = append(resL, []byte("\r\n\r\n")...)
 
-					return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+					return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 				}
 			}
 
@@ -497,13 +497,13 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 
 			if len(l1) == 0 {
 				resL = append(resL, []byte("\r\n")...)
-				return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+				return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 			}
 
 			if sufficientType(l1) == sufficient {
 				resL = append(resL, l1...)
 				resL = append(resL, []byte("\r\n\r\n")...)
-				return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+				return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 			}
 			if sufficientType(l1) == insufficient {
 				resL = append(resL, l1...)
@@ -511,27 +511,27 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 				if regexpops.IsCTFull(l2) {
 					resL = append(resL, l2...)
 					resL = append(resL, []byte("\r\n\r\n")...)
-					return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+					return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 				}
 			}
 			if regexpops.IsCTFull(l1) {
 				resL = append(resL, l1...)
 				resL = append(resL, []byte("\r\n\r\n")...)
-				return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+				return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 			}
-			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 		}
 		if len(l1) == 0 { // on ending part CDsuf + 2*CRLF + rand, on beginning part <-CDsuf + 2*CRLF + rand || <-CT + 2 * CRLF + rand
 			resL = append(l0, []byte("\r\n\r\n")...)
-			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 		}
 		if len(l2) == 0 { // on ending part CDinsuf + CRLF + CT + 2*CRLF + rand, on beginning part CRLF + CDsuf + 2*CRLF = rand || <-Bound + CRLF + CDsuf + 2*CRLF = rand || <-CDinsuf + CRLF + CT + 2*CRLF
 			resL = append(l0, []byte("\r\n")...)
 			resL = append(resL, l1...)
 			resL = append(resL, []byte("\r\n\r\n")...)
-			return resL, fmt.Errorf("in dataHandler.getHeaderLines header \"%s\" is ending part", resL)
+			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 		}
-		return nil, fmt.Errorf("in dataHandler.getHeaderLines no header found")
+		return nil, fmt.Errorf("no header found")
 
 	}
 }
