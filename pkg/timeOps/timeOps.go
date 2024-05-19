@@ -8,9 +8,8 @@ import (
 
 // NewTS generates pseudo-random string based on current time
 func NewTS() string {
-	t := time.Now()
 
-	rand.Seed(t.UnixNano())
+	t := time.Now()
 
 	randSuffixInt := rand.Intn(1000)
 
