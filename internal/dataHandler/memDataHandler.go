@@ -76,12 +76,13 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) error {
 
 						kdet.part++
 
-					} else {
-
 						delete(l2, false)
 
-						l2[false] = val
 					}
+
+					delete(l2, false)
+
+					l2[false] = val
 
 				}
 				if _, ok := l2[true]; ok && d.E() == Probably {
@@ -120,11 +121,11 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) error {
 
 			if l2, ok := l1[kdet]; ok {
 
-				delete(l1, kdet)
-
 				if l3, ok := l2[false]; ok {
 
 					if l3.e == Probably {
+
+						delete(l1, kdet)
 
 						kdet.part++
 
@@ -132,9 +133,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) error {
 
 					} else {
 
-						delete(l2, false)
-
-						l2[false] = val
+						l2[true] = val
 					}
 				}
 
@@ -192,17 +191,8 @@ func newValue(d DataHandlerDTO, bou Boundary) (value, error) {
 	exactHeaderBytes, err := getHeaderLines(headerB, bou)
 	if err != nil {
 
-		if errors.Is(err, errHeaderNotFull) {
-
-			return value{
-				e: d.E(),
-				h: headerData{
-					headerBytes: exactHeaderBytes,
-				},
-			}, err
-		}
-
-		if errors.Is(err, errHeaderEnding) {
+		if errors.Is(err, errHeaderNotFull) ||
+			errors.Is(err, errHeaderEnding) {
 
 			return value{
 				e: d.E(),
@@ -227,7 +217,7 @@ func newValue(d DataHandlerDTO, bou Boundary) (value, error) {
 	}, nil
 }
 
-// GetHeaderLines returns header lines found in b
+// getHeaderLines returns header lines found in b
 // Tested in dataHandler_test.go
 func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 
@@ -391,6 +381,14 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 		l0 := b[:bytes.Index(b, []byte("\r\n"))]
 		l1 := b[bytes.Index(b, []byte("\r\n"))+2:]
 
+		if len(l0) == 0 && len(l1) > 0 && byteOps.BeginningEqual(boundaryCore, l1) {
+
+			resL = append(resL, []byte("\r\n")...)
+			resL = append(resL, l1...)
+
+			return resL, fmt.Errorf("\"%s\" %w", resL, errHeaderNotFull)
+		}
+
 		if len(l0) == 0 {
 
 			resL = append(l0, []byte("\r\n")...)
@@ -421,14 +419,6 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 			resL = append(resL, b...)
 
 			return resL, fmt.Errorf("\"%s\" is the last", resL)
-		}
-
-		if len(l1) > 0 && byteOps.BeginningEqual(boundaryCore, l1) {
-
-			resL = append(resL, []byte("\r\n")...)
-			resL = append(resL, l1...)
-
-			return resL, fmt.Errorf("\"%s\" %w", resL, errHeaderNotFull)
 		}
 
 		return nil, errHeaderNotFound
