@@ -2,9 +2,9 @@ package dataHandler
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"regexp"
-	"strings"
 
 	"github.com/vynovikov/highLoadParser/pkg/byteOps"
 	regexpops "github.com/vynovikov/highLoadParser/pkg/regexpOps"
@@ -30,8 +30,8 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) error {
 
 	val, err := newValue(d, bou)
 	if err != nil &&
-		(!strings.Contains(err.Error(), "header is not full") &&
-			!strings.Contains(err.Error(), "is ending part")) {
+		!errors.Is(err, errHeaderNotFull) &&
+		!errors.Is(err, errHeaderEnding) {
 
 		return err
 	}
@@ -191,7 +191,8 @@ func newValue(d DataHandlerDTO, bou Boundary) (value, error) {
 
 	exactHeaderBytes, err := getHeaderLines(headerB, bou)
 	if err != nil {
-		if strings.Contains(err.Error(), "header is not full") {
+
+		if errors.Is(err, errHeaderNotFull) {
 
 			return value{
 				e: d.E(),
@@ -201,7 +202,8 @@ func newValue(d DataHandlerDTO, bou Boundary) (value, error) {
 			}, err
 		}
 
-		if strings.Contains(err.Error(), "is ending part") {
+		//if strings.Contains(err.Error(), "is ending part") {
+		if errors.Is(err, errHeaderEnding) {
 
 			return value{
 				e: d.E(),
