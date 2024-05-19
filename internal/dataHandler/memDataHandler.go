@@ -297,7 +297,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 		case 0: //  CD full + CR
 			if sufficientType(b[:len(b)-1]) != incomplete {
 				resL = append(resL, b...)
-				return resL, fmt.Errorf("\"%s\" header is not full", resL)
+				return resL, fmt.Errorf("\"%s\" %w", resL, errHeaderNotFull)
 			}
 
 		case 1: // CDsuf + CRLF + CR || CDinsuf + CRLF + CT + CR
@@ -306,7 +306,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 
 			if sufficientType(l0) == sufficient {
 				resL = append(resL, b...)
-				return resL, fmt.Errorf("\"%s\" header is not full", resL)
+				return resL, fmt.Errorf("\"%s\" %w", resL, errHeaderNotFull)
 			}
 
 			if sufficientType(l0) == insufficient {
@@ -320,7 +320,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 					resL = append(resL, l1...)
 					resL = append(resL, []byte("\r")...)
 
-					return resL, fmt.Errorf("\"%s\" header is not full", resL)
+					return resL, fmt.Errorf("\"%s\" %w", resL, errHeaderNotFull)
 				}
 			}
 
@@ -338,7 +338,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 					resL = append(resL, l1...)
 					resL = append(resL, []byte("\r\n\r")...)
 
-					return resL, fmt.Errorf("\"%s\" header is not full", resL)
+					return resL, fmt.Errorf("\"%s\" %w", resL, errHeaderNotFull)
 				}
 			}
 
@@ -364,7 +364,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 
 		if regexpops.IsCDRight(b) {
 
-			return b, fmt.Errorf("\"%s\" header is not full", b)
+			return b, fmt.Errorf("\"%s\" %w", b, errHeaderNotFull)
 		}
 		if isLastBoundaryPart(b, bou) {
 
@@ -384,14 +384,14 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 		}
 		if sufficientType(l0) == sufficient {
 			resL = append(l0, []byte("\r\n")...)
-			return resL, fmt.Errorf("\"%s\" header is not full", resL)
+			return resL, fmt.Errorf("\"%s\" %w", resL, errHeaderNotFull)
 		}
 		if sufficientType(l0) == insufficient {
 			resL = append(l0, []byte("\r\n")...)
 
 			if regexpops.IsCTRight(l1) {
 				resL = append(resL, l1...)
-				return resL, fmt.Errorf("\"%s\" header is not full", resL)
+				return resL, fmt.Errorf("\"%s\" %w", resL, errHeaderNotFull)
 			}
 
 		}
@@ -405,7 +405,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 			resL = append(resL, []byte("\r\n")...)
 			resL = append(resL, l1...)
 
-			return resL, fmt.Errorf("\"%s\" header is not full", resL)
+			return resL, fmt.Errorf("\"%s\" %w", resL, errHeaderNotFull)
 		}
 
 		return nil, fmt.Errorf("no header found")
@@ -438,7 +438,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 				resL = append(resL, l1...)
 				resL = append(resL, []byte("\r\n")...)
 
-				return resL, fmt.Errorf("\"%s\" header is not full", resL)
+				return resL, fmt.Errorf("\"%s\" %w", resL, errHeaderNotFull)
 			}
 		}
 		if regexpops.IsCDLeft(l0) && len(l1) == 0 { // on ending part is impossible, on beginning part <-CDsufficient + 2 * CRLF + rand

@@ -389,7 +389,6 @@ func (s *dataHandlerSuite) TestNewValue() {
 					fileName:    "",
 					headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r"),
 				}},
-			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\" header is not full"),
 		},
 	}
 
@@ -424,7 +423,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"al"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("Content-Disposition: form-data; name=\"al"),
-			wantedError: errors.New("\"Content-Disposition: form-data; name=\"al\" header is not full"),
+			wantedError: fmt.Errorf("\"%s\" %w", string([]byte("Content-Disposition: form-data; name=\"al")), errHeaderNotFull),
 		},
 
 		{
@@ -440,7 +439,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n"),
-			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"\r\n\" header is not full"),
+			wantedError: fmt.Errorf("\"%s\" %w", string([]byte("Content-Disposition: form-data; name=\"alice\"\r\n")), errHeaderNotFull),
 		},
 
 		{
@@ -448,7 +447,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short\"\r\nCon"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short\"\r\nCon"),
-			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"; filename=\"short\"\r\nCon\" header is not full"),
+			wantedError: fmt.Errorf("\"%s\" %w", string([]byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short\"\r\nCon")), errHeaderNotFull),
 		},
 		{
 			name:        "1 CRLF just CRLF, random line",
@@ -494,7 +493,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			name:        "2 CRLF 1 line CD insufficient + CRLF + CT + CTLF",
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n"),
 			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n"),
-			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\" header is not full"),
+			wantedError: fmt.Errorf("\"%s\" %w", string([]byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n")), errHeaderNotFull),
 		},
 
 		{
@@ -726,7 +725,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r"),
-			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"\r\" header is not full"),
+			wantedError: fmt.Errorf("\"%s\" %w", string([]byte("Content-Disposition: form-data; name=\"alice\"\r")), errHeaderNotFull),
 		},
 
 		{
@@ -734,7 +733,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r"),
-			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"\r\n\r\" header is not full"),
+			wantedError: fmt.Errorf("\"%s\" %w", string([]byte("Content-Disposition: form-data; name=\"alice\"\r\n\r")), errHeaderNotFull),
 		},
 
 		{
@@ -742,7 +741,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r"),
-			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\" header is not full"),
+			wantedError: fmt.Errorf("\"%s\" %w", string([]byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r")), errHeaderNotFull),
 		},
 
 		{
@@ -750,7 +749,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r"),
-			wantedError: errors.New("\"Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\" header is not full"),
+			wantedError: fmt.Errorf("\"%s\" %w", string([]byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r")), errHeaderNotFull),
 		},
 
 		{
@@ -766,7 +765,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("hkjhjkhjkhkh\r\n----------"),
 			bou:         Boundary{Prefix: []byte("-------------------"), Root: []byte("bRoot")},
 			wantedL:     []byte("\r\n----------"),
-			wantedError: errors.New("\"\r\n----------\" header is not full"),
+			wantedError: fmt.Errorf("\"%s\" %w", string([]byte("\r\n----------")), errHeaderNotFull),
 		},
 	}
 
