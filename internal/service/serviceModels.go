@@ -159,15 +159,12 @@ func (ss *ParserServiceSub) IsSub() bool {
 	return true
 }
 
-// --------------------------------
-
 type ParserServiceDTO struct {
-	Part       int
-	TS         string
-	Body       []byte
-	startIndex int
-	Bou        entities.Boundary
-	last       bool
-	psus       []*ParserServiceUnit
-	pssu       *ParserServiceSub
+	Part int
+	TS   string
+	Body []byte
+	Bou  entities.Boundary
+	last bool
+	psus []*ParserServiceUnit
+	pssu *ParserServiceSub
 }

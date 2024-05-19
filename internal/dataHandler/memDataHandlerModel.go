@@ -126,13 +126,6 @@ type value struct {
 	e Disposition
 }
 
-/*
-	type value struct {
-		D headerData
-		B BeginningData
-		E probability
-	}
-*/
 type headerData struct {
 	formName    string
 	fileName    string
