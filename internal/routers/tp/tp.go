@@ -7,7 +7,7 @@ import (
 
 	"github.com/vynovikov/highLoadParser/internal/controllers"
 	"github.com/vynovikov/highLoadParser/internal/logger"
-	"github.com/vynovikov/highLoadParser/internal/repo"
+	timeops "github.com/vynovikov/highLoadParser/pkg/timeOps"
 )
 
 type TpServer struct {
@@ -57,7 +57,7 @@ func (r *tpReceiverStruct) Run() {
 		}
 
 		r.wg.Add(1)
-		ts := repo.NewTS()
+		ts := timeops.NewTS()
 		// consider serial execution -> mutex
 		r.ctrl.HandleRequestFull(conn, ts, &r.wg)
 	}
