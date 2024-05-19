@@ -409,41 +409,85 @@ func (s *dataHandlerSuite) TestCreate() {
 				Buffer: []DataHandlerDTO{},
 			},
 		},
-		/*
-			{
-				name: "10. Map has same key and same part, value.e = Probably, !d.IsSub, d.E() == Probably",
-				initDataHandler: &memoryDataHandlerStruct{
-					Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-						{ts: "qqq"}: {{ts: "qqq", part: 4}: {true: {e: Probably}}},
-					},
-					Buffer: []DataHandlerDTO{},
-				},
-				dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("azazaza"), b: False, e: Probably, isSub: false, last: false},
-				wantedDataHandler: &memoryDataHandlerStruct{
-					Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-						{ts: "qqq"}: {{ts: "qqq", part: 5}: {true: {e: Probably}, false: {e: Probably}}},
-					},
-					Buffer: []DataHandlerDTO{},
-				},
-			},
 
-			{
-				name: "11. Map has same key and same part, value.e == Probably, d.IsSub, d.E() == Probably",
-				initDataHandler: &memoryDataHandlerStruct{
-					Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-						{ts: "qqq"}: {{ts: "qqq", part: 4}: {false: {e: Probably}}},
-					},
-					Buffer: []DataHandlerDTO{},
+		{
+			name: "12. Map has same key and same part, value.e = Probably, !d.IsSub, d.E() == Probably",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 4}: {
+						true: {
+							e: Probably,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("\r\n-----"),
+							}}}},
 				},
-				dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("azazaza"), b: False, e: Probably, isSub: true, last: false},
-				wantedDataHandler: &memoryDataHandlerStruct{
-					Map: map[keyGeneral]map[keyDetailed]map[bool]value{
-						{ts: "qqq"}: {{ts: "qqq", part: 5}: {false: {e: Probably}, true: {e: Probably}}},
-					},
-					Buffer: []DataHandlerDTO{},
-				},
+				Buffer: []DataHandlerDTO{},
 			},
-		*/
+			dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\nbzbzbzbzbz"), b: False, e: Probably, isSub: false, last: false},
+			bou: Boundary{Prefix: []byte("---------------"), Root: []byte("bRoot")},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 5}: {
+						true: {
+							e: Probably,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("\r\n-----"),
+							}},
+						false: {
+							e: Probably,
+							h: headerData{
+								formName:    "bob",
+								fileName:    "long.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							},
+						}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
+		{
+			name: "13. Map has same key and same part, value.e == Probably, d.IsSub, d.E() == Probably",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 4}: {
+						false: {
+							e: Probably,
+							h: headerData{
+								formName:    "bob",
+								fileName:    "long.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							},
+						}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 4, body: []byte("\r\n-----"), b: False, e: Probably, isSub: true, last: false},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 5}: {
+						false: {
+							e: Probably,
+							h: headerData{
+								formName:    "bob",
+								fileName:    "long.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							},
+						},
+						true: {
+							e: Probably,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("\r\n-----"),
+							}}}}},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
 	}
 
 	for _, v := range tt {
