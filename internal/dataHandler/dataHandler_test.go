@@ -431,7 +431,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("azazazazazaza"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("no header found"),
+			wantedError: errors.New("header is not found"),
 		},
 
 		{
@@ -470,7 +470,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("azzsdfgsdhfdsfhsjdfhs\r\nfskjfghsjfhgfjkhgjdfhgfd"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("no header found"),
+			wantedError: errors.New("header is not found"),
 		},
 
 		{
@@ -509,7 +509,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nsajkfdga\r\ndsfguigdfa"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("no header found"),
+			wantedError: errors.New("header is not found"),
 		},
 
 		{
@@ -517,7 +517,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("we6fwfef6gewfgewfg7efge\r\nsajkfdga\r\ndsfguigdfa"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("no header found"),
+			wantedError: errors.New("header is not found"),
 		},
 
 		{
@@ -573,7 +573,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nCshdgfhsdgfhsdjf\r\ndsfguigdfa"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("no header found"),
+			wantedError: errors.New("header is not found"),
 		},
 
 		{
@@ -581,7 +581,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("azazzazazzazazaz\r\nCzbbzbzbbzbzbbzbzbzbzbz\r\ndsfguigdfa\r\nf2r7fr27fr2f7r2"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("no header found"),
+			wantedError: errors.New("header is not found"),
 		},
 
 		{
@@ -645,7 +645,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("fixbRoot\r\nContent-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\ndsfguigdfa\r\nf2r7fr27fr2f7r2"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("no header found"),
+			wantedError: errors.New("header is not found"),
 		},
 
 		{
@@ -653,7 +653,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("fixbRoot\r\nCzbbzbzbbzbzbbzbzbzbzbz\r\ndsfguigdfa\r\nf2r7fr27fr2f7r2"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("no header found"),
+			wantedError: errors.New("header is not found"),
 		},
 
 		{
@@ -757,7 +757,7 @@ func (s *dataHandlerSuite) TestGetHeaderLines() {
 			bs:          []byte("sdjkchdjhcskdhcdsjhckjsdhcjdsk\r\nsdjhfjdshjfsd\r\ngruihgeruhguerhguerg\r\n121312j412jk4g1jk4gjkg\r"),
 			bou:         Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedL:     nil,
-			wantedError: errors.New("no header found"),
+			wantedError: errors.New("header is not found"),
 		},
 
 		{

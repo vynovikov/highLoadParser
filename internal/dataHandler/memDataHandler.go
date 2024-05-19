@@ -354,7 +354,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 				}
 			}
 
-			return nil, fmt.Errorf("no header found")
+			return nil, errHeaderNotFound
 		}
 	}
 	// no precending LF no succeding CR
@@ -371,7 +371,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 			return b, nil
 		}
 
-		return nil, fmt.Errorf("no header found")
+		return nil, errHeaderNotFound
 
 	case 1: // CD full + CRLF || CD full + CRLF + CT -> || CRLF || <-LastBoundary + CRLF || CRLF + Boundary-> || <-Boundary + CRLF
 
@@ -408,7 +408,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 			return resL, fmt.Errorf("\"%s\" %w", resL, errHeaderNotFull)
 		}
 
-		return nil, fmt.Errorf("no header found")
+		return nil, errHeaderNotFound
 
 	case 2: // CD full insufficient + CRLF + CT full + CRLF || CD full sufficient + 2 CRLF + rand || CT full + 2 CRLF + rand || <-CT + 2CRLF + rand || 2 CRLF + rand
 
@@ -455,7 +455,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 		}
 
-		return nil, fmt.Errorf("no header found")
+		return nil, errHeaderNotFound
 
 	default: // CD full insufficient + CRLF + CT full + 2*CRLF || CD full sufficient + 2*CRLF + rand + CRLF
 
@@ -531,7 +531,7 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 			resL = append(resL, []byte("\r\n\r\n")...)
 			return resL, fmt.Errorf("\"%s\" is %w", resL, errHeaderEnding)
 		}
-		return nil, fmt.Errorf("no header found")
+		return nil, errHeaderNotFound
 
 	}
 }

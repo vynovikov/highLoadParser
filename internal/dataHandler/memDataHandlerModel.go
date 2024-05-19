@@ -8,8 +8,8 @@ type (
 )
 
 var (
-	errHeaderNotFull  error = errors.New("header is not full")
 	errHeaderEnding   error = errors.New("ending of header")
+	errHeaderNotFull  error = errors.New("header is not full")
 	errHeaderNotFound error = errors.New("header is not found")
 )
 
