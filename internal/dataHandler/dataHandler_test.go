@@ -515,6 +515,7 @@ func (s *dataHandlerSuite) TestUpdate() {
 		wantedDataHandler DataHandler
 		wantedError       error
 	}{
+
 		{
 			name: "1. Part matched, header is full",
 			initDataHandler: &memoryDataHandlerStruct{
@@ -637,11 +638,172 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Buffer: []DataHandlerDTO{},
 			},
 		},
+
+		{
+			name: "5. dto.E() == Probably, header is not full, value.e = True",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("Content-Dispos"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 1, body: []byte("ition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza"), b: True, e: Probably, isSub: false, last: false},
+			bou: Boundary{Prefix: []byte("---------------"), Root: []byte("bRoot")},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: Probably,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
+		{
+			name: "5. dto.E() == Probably, header is full, value.e = True",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 1, body: []byte("azazaza"), b: True, e: Probably, isSub: false, last: false},
+			bou: Boundary{Prefix: []byte("---------------"), Root: []byte("bRoot")},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: Probably,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
+		{
+			name: "6. dto.E() == Probably, header is not full, len(value) > 1",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("Content-Dispos"),
+							}},
+						true: value{
+							e: Probably,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("\r\n-----"),
+							}},
+					}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 1, body: []byte("ition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza"), b: True, e: Probably, isSub: false, last: false},
+			bou: Boundary{Prefix: []byte("---------------"), Root: []byte("bRoot")},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
+						false: value{
+							e: Probably,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}},
+						true: value{
+							e: Probably,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("\r\n-----"),
+							}},
+					}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
+		{
+			name: "7. dto.E() == Probably, header is full, len(value) > 1",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}},
+						true: value{
+							e: Probably,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("\r\n-----"),
+							}},
+					}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 1, body: []byte("ition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza"), b: True, e: Probably, isSub: false, last: false},
+			bou: Boundary{Prefix: []byte("---------------"), Root: []byte("bRoot")},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
+						false: value{
+							e: Probably,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}},
+						true: value{
+							e: Probably,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("\r\n-----"),
+							}},
+					}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
 		// TODO:
-		// Probably 2 cases
 		// DataUnit after isSub 2 cases
 
 	}
+
 	for _, v := range tt {
 
 		s.Run(v.name, func() {
