@@ -516,7 +516,7 @@ func (s *dataHandlerSuite) TestUpdate() {
 		wantedError       error
 	}{
 		{
-			name: "1. Part matched, header is fullfulled",
+			name: "1. Part matched, header is full",
 			initDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
@@ -531,6 +531,7 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Buffer: []DataHandlerDTO{},
 			},
 			dto: &DataHandlerUnit{ts: "qqq", part: 1, body: []byte("azazaza"), b: True, e: True, isSub: false, last: false},
+			bou: Boundary{Prefix: []byte("---------------"), Root: []byte("bRoot")},
 			wantedDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
@@ -545,12 +546,105 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Buffer: []DataHandlerDTO{},
 			},
 		},
+
+		{
+			name: "2. Part matched, header is not full",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("Content-Dispos"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 1, body: []byte("ition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza"), b: True, e: True, isSub: false, last: false},
+			bou: Boundary{Prefix: []byte("---------------"), Root: []byte("bRoot")},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
+		{
+			name: "3. Part is not matched",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("Content-Dispos"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 2, body: []byte("ition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza"), b: True, e: True, isSub: false, last: false},
+			bou: Boundary{Prefix: []byte("---------------"), Root: []byte("bRoot")},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("Content-Dispos"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{
+					&DataHandlerUnit{ts: "qqq", part: 2, body: []byte("ition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza"), b: True, e: True, isSub: false, last: false},
+				},
+			},
+		},
+
+		{
+			name: "4. dto.E() == False",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("Content-Dispos"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 1, body: []byte("ition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza"), b: True, e: False, isSub: false, last: false},
+			bou: Boundary{Prefix: []byte("---------------"), Root: []byte("bRoot")},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map:    map[keyGeneral]map[keyDetailed]map[bool]value{},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+		// TODO:
+		// Probably 2 cases
+		// DataUnit after isSub 2 cases
+
 	}
 	for _, v := range tt {
 
 		s.Run(v.name, func() {
 
-			err := v.initDataHandler.Updade(v.dto)
+			err := v.initDataHandler.Updade(v.dto, v.bou)
 
 			if v.wantedError != nil {
 

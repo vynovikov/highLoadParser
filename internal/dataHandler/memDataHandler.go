@@ -164,13 +164,68 @@ func (m *memoryDataHandlerStruct) Read(DataHandlerDTO) (value, error) {
 	return value{}, nil
 }
 
-func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO) error {
+func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
 	kgen, kdet := newKeyGeneral(d), newKeyDetailed(d)
+
+	body := d.Body()
+
+	length := len(body)
 
 	if l1, ok := m.Map[kgen]; ok {
 
 		if l2, ok := l1[kdet]; ok {
+
+			if ok && d.E() == False {
+
+				delete(m.Map, kgen)
+
+				if len(m.Map) == 0 {
+
+					m.Map = make(map[keyGeneral]map[keyDetailed]map[bool]value)
+				}
+
+				return nil
+			}
+
+			l3, ok := l2[false]
+
+			if ok && len(l3.h.formName) == 0 {
+
+				headerEndingBS := make([]byte, 0, maxHeaderLimit)
+
+				if length > maxHeaderLimit {
+
+					headerEndingBS = append(headerEndingBS, body[:maxHeaderLimit]...)
+
+				} else {
+
+					headerEndingBS = append(headerEndingBS, body...)
+				}
+
+				headerEnding, err := getHeaderLines(headerEndingBS, bou)
+
+				if len(headerEndingBS) > 0 && errors.Is(err, errHeaderEnding) {
+
+					l3.h.headerBytes = append(l3.h.headerBytes, headerEnding...)
+
+					l3.h.formName, l3.h.fileName = getFoFi(l3.h.headerBytes)
+
+					l1New := make(map[keyDetailed]map[bool]value)
+
+					delete(l2, false)
+
+					l2[false] = l3
+
+					kdet.part++
+
+					l1New[kdet] = l2
+
+					m.Map[kgen] = l1New
+
+					return nil
+				}
+			}
 
 			l1New := make(map[keyDetailed]map[bool]value)
 
@@ -182,8 +237,11 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO) error {
 
 			m.Map[kgen] = l1New
 
+			return nil
 		}
 	}
+
+	m.Buffer = append(m.Buffer, d)
 
 	return nil
 }
