@@ -506,6 +506,62 @@ func (s *dataHandlerSuite) TestCreate() {
 	}
 }
 
+func (s *dataHandlerSuite) TestUpdate() {
+	tt := []struct {
+		name              string
+		initDataHandler   DataHandler
+		dto               DataHandlerDTO
+		bou               Boundary
+		wantedDataHandler DataHandler
+		wantedError       error
+	}{
+		{
+			name: "1. Part matched, header is fullfulled",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 1, body: []byte("azazaza"), b: True, e: True, isSub: false, last: false},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+	}
+	for _, v := range tt {
+
+		s.Run(v.name, func() {
+
+			err := v.initDataHandler.Updade(v.dto)
+
+			if v.wantedError != nil {
+
+				s.Equal(v.wantedError, err)
+			}
+
+			s.Equal(v.wantedDataHandler, v.initDataHandler)
+		})
+	}
+}
+
 func (s *dataHandlerSuite) TestNewValue() {
 
 	tt := []struct {

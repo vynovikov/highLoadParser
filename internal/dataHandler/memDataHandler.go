@@ -160,10 +160,31 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) error {
 }
 
 func (m *memoryDataHandlerStruct) Read(DataHandlerDTO) (value, error) {
+
 	return value{}, nil
 }
 
-func (m *memoryDataHandlerStruct) Updade(DataHandlerDTO) error {
+func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO) error {
+
+	kgen, kdet := newKeyGeneral(d), newKeyDetailed(d)
+
+	if l1, ok := m.Map[kgen]; ok {
+
+		if l2, ok := l1[kdet]; ok {
+
+			l1New := make(map[keyDetailed]map[bool]value)
+
+			delete(m.Map[kgen], kdet)
+
+			kdet.part++
+
+			l1New[kdet] = l2
+
+			m.Map[kgen] = l1New
+
+		}
+	}
+
 	return nil
 }
 
