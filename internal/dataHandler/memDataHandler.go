@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/vynovikov/highLoadParser/internal/logger"
 	"github.com/vynovikov/highLoadParser/pkg/byteOps"
 	regexpops "github.com/vynovikov/highLoadParser/pkg/regexpOps"
 )
@@ -176,6 +177,52 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
 		if l2, ok := l1[kdet]; ok {
 
+			l1New, l2New := make(map[keyDetailed]map[bool]value), make(map[bool]value)
+
+			if len(l2) > 1 {
+
+				oldHeader := l2[true].h.headerBytes
+
+				dispositionIndex := bytes.Index(body, []byte("Content-Disposition"))
+
+				if dispositionIndex > 0 && byteOps.SameByteSlices(append(oldHeader, body[:dispositionIndex-2]...), genBoundary(bou)) {
+
+					d.SetBody(body[dispositionIndex:])
+
+					val, err := newValue(d, bou)
+					if err != nil {
+
+						logger.L.Infoln(err)
+					}
+
+					l2New[false] = val
+
+					delete(m.Map[kgen], kdet)
+
+					kdet.part++
+
+					l1New[kdet] = l2New
+
+					m.Map[kgen] = l1New
+
+					return nil
+
+				} else {
+
+					delete(l2, true)
+
+					delete(m.Map[kgen], kdet)
+
+					kdet.part++
+
+					l1New[kdet] = l2
+
+					m.Map[kgen] = l1New
+
+					return nil
+				}
+			}
+
 			if ok && d.E() == False {
 
 				delete(m.Map[kgen], kdet)
@@ -186,8 +233,6 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 			l3, ok := l2[false]
 
 			l3.e = d.E()
-
-			l1New := make(map[keyDetailed]map[bool]value)
 
 			if ok && len(l3.h.formName) == 0 {
 
@@ -724,3 +769,43 @@ func getFoFi(b []byte) (string, string) {
 
 	return fo, fi
 }
+
+// completeValue completes given value based on dataPiece and boundary parameters.
+// Tested in models_test.go
+/*
+func CompleteAppStoreValue(asv AppStoreValue, d DataPiece, bou Boundary) (AppStoreValue, error) {
+	ci := 0
+	header, err := d.H(bou)
+	if err != nil {
+		if !strings.Contains(err.Error(), "is not full") &&
+			!strings.Contains(err.Error(), "is ending part") &&
+			!strings.Contains(err.Error(), "no header found") {
+			return asv, err
+		}
+		if strings.Contains(err.Error(), "no header found") {
+			return AppStoreValue{}, err
+		}
+	}
+	ci = bytes.Index(header, []byte("Content-Disposition"))
+
+	if ci > 0 {
+
+		if IsBoundary(asv.D.H, header, bou) {
+
+			raw := append(asv.D.H, header...)
+
+			asv.D.H = raw[bytes.Index(raw, []byte("Content-Disposition")):]
+			asv.D.FormName, asv.D.FileName = GetFoFi(asv.D.H)
+			asv.E = d.E()
+
+			return asv, nil
+		}
+
+		return asv, err
+	}
+	asv.D.H = append(asv.D.H, header...)
+	asv.D.FormName, asv.D.FileName = GetFoFi(asv.D.H)
+
+	return asv, err
+}
+*/

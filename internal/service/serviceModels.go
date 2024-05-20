@@ -93,6 +93,7 @@ type DataHandlerDTO interface {
 	Part() int
 	TS() string
 	Body() []byte
+	SetBody([]byte)
 	B() dataHandler.Disposition
 	E() dataHandler.Disposition
 	Last() bool
@@ -119,6 +120,10 @@ func (su *ParserServiceUnit) E() dataHandler.Disposition {
 
 func (su *ParserServiceUnit) Body() []byte {
 	return su.PSB.B
+}
+
+func (su *ParserServiceUnit) SetBody(b []byte) {
+	su.PSB.B = b
 }
 
 func (su *ParserServiceUnit) Last() bool {
@@ -149,6 +154,10 @@ func (ss *ParserServiceSub) E() dataHandler.Disposition {
 
 func (ss *ParserServiceSub) Body() []byte {
 	return ss.PSSB.B
+}
+
+func (ss *ParserServiceSub) SetBody(b []byte) {
+	ss.PSSB.B = b
 }
 
 func (ss *ParserServiceSub) Last() bool {

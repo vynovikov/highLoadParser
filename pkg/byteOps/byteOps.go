@@ -61,20 +61,31 @@ func RepeatedIntex(b, occ []byte, i int) int {
 // EndingOf returns true if first slice contains second and second slice is the ending of the first.
 // Tested in byteOps_test.go
 func EndingOf(long, short []byte) bool {
+
 	longtLE, shortLE, lenLong, lenShort := byte(0), byte(0), len(long), len(short)
+
 	if lenShort < 1 {
+
 		return true
 	}
+
 	if lenLong < 1 {
+
 		return false
 	}
+
 	shortLE = short[lenShort-1]
+
 	longtLE = long[lenLong-1]
+
 	if longtLE != shortLE {
+
 		return false
 	}
+
 	for i := lenShort - 1; i > -1; i-- {
 		if short[i] != long[lenLong-lenShort+i] {
+
 			return false
 		}
 	}
@@ -86,4 +97,21 @@ func EndingOf(long, short []byte) bool {
 func FindNext(b, occ []byte, fromIndex int) int {
 
 	return bytes.Index(b[fromIndex:], occ) + fromIndex
+}
+
+func SameByteSlices(a, b []byte) bool {
+
+	if len(a) != len(b) {
+
+		return false
+	}
+
+	for i, v := range a {
+
+		if b[i] != v {
+
+			return false
+		}
+	}
+	return true
 }

@@ -29,6 +29,7 @@ type DataHandlerDTO interface {
 	Part() int
 	TS() string
 	Body() []byte
+	SetBody([]byte)
 	B() Disposition
 	E() Disposition
 	Last() bool
@@ -66,6 +67,10 @@ func (d *DataHandlerUnit) TS() string {
 
 func (d *DataHandlerUnit) Body() []byte {
 	return d.body
+}
+
+func (d *DataHandlerUnit) SetBody(b []byte) {
+	d.body = b
 }
 
 func (d *DataHandlerUnit) B() Disposition {

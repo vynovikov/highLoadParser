@@ -704,7 +704,7 @@ func (s *dataHandlerSuite) TestUpdate() {
 		},
 
 		{
-			name: "6. dto.E() == Probably, header is not full, len(value) > 1",
+			name: "7. dto.E() == Probably, header is not full, len(value) > 1",
 			initDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
@@ -752,7 +752,7 @@ func (s *dataHandlerSuite) TestUpdate() {
 		},
 
 		{
-			name: "7. dto.E() == Probably, header is full, len(value) > 1",
+			name: "8. dto.E() == Probably, header is full, len(value) > 1",
 			initDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
@@ -792,6 +792,129 @@ func (s *dataHandlerSuite) TestUpdate() {
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("\r\n-----"),
+							}},
+					}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
+		{
+			name: "9. DataUnit next to fork, new value, d.E() == True, new boundary",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}},
+						true: value{
+							e: Probably,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("\r\n-----"),
+							}},
+					}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 1, body: []byte("----------bRoot\r\nContent-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\nbzbzbzbzbz"), b: True, e: True, isSub: false, last: false},
+			bou: Boundary{Prefix: []byte("---------------"), Root: []byte("bRoot")},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "bob",
+								fileName:    "long.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}},
+					}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
+		{
+			name: "10. DataUnit next to fork, d.E() == Probably, new boundary => new map value",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}},
+						true: value{
+							e: Probably,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("\r\n-----"),
+							}},
+					}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 1, body: []byte("----------bRoot\r\nContent-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\nbzbzbzbzbz"), b: True, e: Probably, isSub: false, last: false},
+			bou: Boundary{Prefix: []byte("---------------"), Root: []byte("bRoot")},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
+						false: value{
+							e: Probably,
+							h: headerData{
+								formName:    "bob",
+								fileName:    "long.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}},
+					}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
+		{
+			name: "11. DataUnit next to fork,  d.E() == True, boundary-like bytes => old map value remains",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}},
+						true: value{
+							e: Probably,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("\r\n-----"),
+							}},
+					}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{ts: "qqq", part: 1, body: []byte("------\r\nbzbzbzbzbz"), b: True, e: True, isSub: false, last: false},
+			bou: Boundary{Prefix: []byte("---------------"), Root: []byte("bRoot")},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
+						false: value{
+							e: True,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 							}},
 					}},
 				},
