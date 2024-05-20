@@ -178,19 +178,12 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
 			if ok && d.E() == False {
 
-				delete(m.Map, kgen)
-
-				if len(m.Map) == 0 {
-
-					m.Map = make(map[keyGeneral]map[keyDetailed]map[bool]value)
-				}
+				delete(m.Map[kgen], kdet)
 
 				return nil
 			}
 
-			l3, ok := l2[false]
-
-			if ok && len(l3.h.formName) == 0 {
+			if l3, ok := l2[false]; ok && len(l3.h.formName) == 0 {
 
 				headerEndingBS := make([]byte, 0, maxHeaderLimit)
 

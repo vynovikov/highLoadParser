@@ -631,7 +631,9 @@ func (s *dataHandlerSuite) TestUpdate() {
 			dto: &DataHandlerUnit{ts: "qqq", part: 1, body: []byte("ition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza"), b: True, e: False, isSub: false, last: false},
 			bou: Boundary{Prefix: []byte("---------------"), Root: []byte("bRoot")},
 			wantedDataHandler: &memoryDataHandlerStruct{
-				Map:    map[keyGeneral]map[keyDetailed]map[bool]value{},
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {},
+				},
 				Buffer: []DataHandlerDTO{},
 			},
 		},
