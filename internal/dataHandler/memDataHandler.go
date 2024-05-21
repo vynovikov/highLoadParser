@@ -167,11 +167,13 @@ func (m *memoryDataHandlerStruct) Read(DataHandlerDTO) (value, error) {
 
 func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
-	kgen, kdet := newKeyGeneral(d), newKeyDetailed(d)
+	var err error
+
+	kgen, kdet, oldValueFalseUpated := newKeyGeneral(d), newKeyDetailed(d), value{}
 
 	body := d.Body()
 
-	length := len(body)
+	//length := len(body)
 
 	if l1, ok := m.Map[kgen]; ok {
 
@@ -179,11 +181,26 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
 			l1New, l2New := make(map[keyDetailed]map[bool]value), make(map[bool]value)
 
+			oldValueFalse := l2[false]
+
+			if len(oldValueFalse.h.formName) == 0 {
+
+				oldValueFalseUpated, err = fullFill(oldValueFalse, d, bou)
+				if err != nil {
+
+					logger.L.Warn(err)
+				}
+
+			} else {
+
+				oldValueFalseUpated = oldValueFalse
+
+				oldValueFalseUpated.e = d.E()
+			}
+
 			if len(l2) > 1 {
 
 				oldValueTrue := l2[true]
-
-				oldValueFalse := l2[false]
 
 				oldHeader := oldValueTrue.h.headerBytes
 
@@ -213,33 +230,6 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
 				} else if oldValueFalse.e != Probably {
 
-					l3, ok := l2[false]
-
-					l3.e = d.E()
-
-					if ok && len(l3.h.formName) == 0 {
-
-						headerEndingBS := make([]byte, 0, maxHeaderLimit)
-
-						if length > maxHeaderLimit {
-
-							headerEndingBS = append(headerEndingBS, body[:maxHeaderLimit]...)
-
-						} else {
-
-							headerEndingBS = append(headerEndingBS, body...)
-						}
-
-						headerEnding, err := getHeaderLines(headerEndingBS, bou)
-
-						if len(headerEndingBS) > 0 && errors.Is(err, errHeaderEnding) {
-
-							l3.h.headerBytes = append(l3.h.headerBytes, headerEnding...)
-
-							l3.h.formName, l3.h.fileName = getFoFi(l3.h.headerBytes)
-						}
-					}
-
 					if (len(l2) > 1 && d.E() == Probably) ||
 						(len(l2) == 1 && d.E() == True) {
 
@@ -247,10 +237,9 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 					}
 
 					delete(l2, false)
-
 					delete(m.Map[kgen], kdet)
 
-					l2[false] = l3
+					l2[false] = oldValueFalseUpated
 
 					l1New[kdet] = l2
 
@@ -260,11 +249,18 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
 				} else {
 
-					delete(l2, true)
+					if (len(l2) > 1 && d.E() == Probably) ||
+						(len(l2) > 1 && l2[false].e == Probably && l2[true].e == Probably && d.E() != Probably) ||
+						(len(l2) == 1 && d.E() == True) {
 
+						kdet.part++
+					}
+
+					delete(l2, true)
+					delete(l2, false)
 					delete(m.Map[kgen], kdet)
 
-					kdet.part++
+					l2[false] = oldValueFalseUpated
 
 					l1New[kdet] = l2
 
@@ -281,9 +277,19 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 				return nil
 			}
 
+			if (len(l2) > 1 && d.E() == Probably) ||
+				(len(l2) == 1 && d.E() == True) {
+
+				kdet.part++
+			}
+
+			delete(l2, false)
+
 			delete(m.Map[kgen], kdet)
 
-			kdet.part++
+			oldValueFalse.e = d.E()
+
+			l2[false] = oldValueFalseUpated
 
 			l1New[kdet] = l2
 
