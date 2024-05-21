@@ -24,7 +24,7 @@ func main() {
 
 	dh := dataHandler.NewMemoryDataHandler()
 	repo := repository.NewParserRepository(dh)
-	trans := transmitters.NewParserTransmitters()
+	trans := transmitters.NewTransmitter()
 	inf := infrastructure.NewInfraStructure(repo, trans)
 	srv := service.NewParserService(inf)
 	ctr := controllers.NewController(srv)

@@ -45,6 +45,8 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 	bou := newDataHandlerBoundary(sDTO.Bou)
 
 	s.infrastructure.Register(sl, bou)
+
+	s.infrastructure.Send(&infrastructure.TransferUnitStruct{})
 }
 
 func newDataHandlerBoundary(boundary entities.Boundary) dataHandler.Boundary {

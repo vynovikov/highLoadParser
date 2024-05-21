@@ -1,25 +1,19 @@
 package infrastructure
 
-type TransferUnitStruct struct {
-	TH TransferHeader
-	TB TransferBody
-}
-
-type TransferHeader struct {
-}
-
-type TransferBody struct {
-	B []byte
-}
-
 type TransferUnit interface {
-	Tx() error
+	Key() []byte
+	Value() []byte
 }
 
-func (t *TransferUnitStruct) Tx() error {
+type TransferUnitStruct struct {
+}
+
+func (t *TransferUnitStruct) Key() []byte {
 
 	return nil
 }
 
-type Presence struct {
+func (t *TransferUnitStruct) Value() []byte {
+
+	return nil
 }

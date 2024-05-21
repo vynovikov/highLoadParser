@@ -202,7 +202,7 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
 				oldHeader := oldValueTrue.h.headerBytes
 
-				dispositionIndex := bytes.Index(body, []byte("Content-Disposition"))
+				dispositionIndex := bytes.Index(body, []byte(CONTENT_DISPOSITION))
 
 				if dispositionIndex > 0 && byteOps.SameByteSlices(append(oldHeader, body[:dispositionIndex-2]...), genBoundary(bou)) {
 

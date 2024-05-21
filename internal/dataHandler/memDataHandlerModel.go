@@ -14,7 +14,8 @@ var (
 )
 
 const (
-	False Disposition = iota
+	CONTENT_DISPOSITION             = "Content-Disposition"
+	False               Disposition = iota
 	True
 	Probably
 	incomplete sufficiency = iota
