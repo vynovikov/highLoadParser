@@ -921,10 +921,6 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Buffer: []DataHandlerDTO{},
 			},
 		},
-
-		// TODO:
-		// DataUnit after isSub 2 cases
-
 	}
 
 	for _, v := range tt {
@@ -932,6 +928,101 @@ func (s *dataHandlerSuite) TestUpdate() {
 		s.Run(v.name, func() {
 
 			err := v.initDataHandler.Updade(v.dto, v.bou)
+
+			if v.wantedError != nil {
+
+				s.Equal(v.wantedError, err)
+			}
+
+			s.Equal(v.wantedDataHandler, v.initDataHandler)
+		})
+	}
+}
+
+func (s *dataHandlerSuite) TestDelete() {
+
+	tt := []struct {
+		name              string
+		initDataHandler   DataHandler
+		ts                string
+		wantedDataHandler DataHandler
+		wantedError       error
+	}{
+		{
+			name: "1. Delete key ",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: Probably,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}}}},
+					{ts: "www"}: {{ts: "www", part: 1}: {
+						false: value{
+							e: Probably,
+							h: headerData{
+								formName:    "bob",
+								fileName:    "long.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			ts: "qqq",
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "www"}: {{ts: "www", part: 1}: {
+						false: value{
+							e: Probably,
+							h: headerData{
+								formName:    "bob",
+								fileName:    "long.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}}}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+
+		{
+			name: "2. Delete key and remake Map",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
+						false: value{
+							e: Probably,
+							h: headerData{
+								formName:    "alice",
+								fileName:    "short.txt",
+								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							}},
+						true: value{
+							e: Probably,
+							h: headerData{
+								formName:    "",
+								fileName:    "",
+								headerBytes: []byte("\r\n-----"),
+							}},
+					}},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			ts: "qqq",
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map:    map[keyGeneral]map[keyDetailed]map[bool]value{},
+				Buffer: []DataHandlerDTO{},
+			},
+		},
+	}
+
+	for _, v := range tt {
+
+		s.Run(v.name, func() {
+
+			err := v.initDataHandler.Delete(v.ts)
 
 			if v.wantedError != nil {
 

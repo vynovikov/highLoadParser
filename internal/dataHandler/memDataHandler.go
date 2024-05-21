@@ -27,7 +27,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) error {
 
 	var l2Key bool
 
-	kgen, kdet := newKeyGeneral(d), newKeyDetailed(d)
+	kgen, kdet := newKeyGeneralFromDTO(d), newKeyDetailed(d)
 
 	val, err := newValue(d, bou)
 	if err != nil &&
@@ -169,11 +169,9 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
 	var err error
 
-	kgen, kdet, oldValueFalseUpated := newKeyGeneral(d), newKeyDetailed(d), value{}
+	kgen, kdet, oldValueFalseUpated := newKeyGeneralFromDTO(d), newKeyDetailed(d), value{}
 
 	body := d.Body()
-
-	//length := len(body)
 
 	if l1, ok := m.Map[kgen]; ok {
 
@@ -304,7 +302,15 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 	return nil
 }
 
-func (m *memoryDataHandlerStruct) Delete(string) error {
+func (m *memoryDataHandlerStruct) Delete(ts string) error {
+
+	delete(m.Map, newKeyGeneralFromTS(ts))
+
+	if len(m.Map) == 0 {
+
+		m.Map = make(map[keyGeneral]map[keyDetailed]map[bool]value)
+	}
+
 	return nil
 }
 
@@ -348,6 +354,20 @@ func fullFill(val value, d DataHandlerDTO, bou Boundary) (value, error) {
 	}
 
 	return resValue, nil
+}
+
+func newKeyGeneralFromDTO(d DataHandlerDTO) keyGeneral {
+
+	return keyGeneral{
+		ts: d.TS(),
+	}
+}
+
+func newKeyGeneralFromTS(ts string) keyGeneral {
+
+	return keyGeneral{
+		ts: ts,
+	}
 }
 
 func newValue(d DataHandlerDTO, bou Boundary) (value, error) {

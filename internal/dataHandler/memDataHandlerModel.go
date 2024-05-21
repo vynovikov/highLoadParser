@@ -98,13 +98,6 @@ type keyGeneral struct {
 	ts string
 }
 
-func newKeyGeneral(d DataHandlerDTO) keyGeneral {
-
-	return keyGeneral{
-		ts: d.TS(),
-	}
-}
-
 type keyDetailed struct {
 	ts   string
 	part int
