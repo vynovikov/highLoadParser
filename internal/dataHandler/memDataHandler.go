@@ -181,7 +181,11 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
 			if len(l2) > 1 {
 
-				oldHeader := l2[true].h.headerBytes
+				oldValueTrue := l2[true]
+
+				oldValueFalse := l2[false]
+
+				oldHeader := oldValueTrue.h.headerBytes
 
 				dispositionIndex := bytes.Index(body, []byte("Content-Disposition"))
 
@@ -202,6 +206,53 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 					kdet.part++
 
 					l1New[kdet] = l2New
+
+					m.Map[kgen] = l1New
+
+					return nil
+
+				} else if oldValueFalse.e != Probably {
+
+					l3, ok := l2[false]
+
+					l3.e = d.E()
+
+					if ok && len(l3.h.formName) == 0 {
+
+						headerEndingBS := make([]byte, 0, maxHeaderLimit)
+
+						if length > maxHeaderLimit {
+
+							headerEndingBS = append(headerEndingBS, body[:maxHeaderLimit]...)
+
+						} else {
+
+							headerEndingBS = append(headerEndingBS, body...)
+						}
+
+						headerEnding, err := getHeaderLines(headerEndingBS, bou)
+
+						if len(headerEndingBS) > 0 && errors.Is(err, errHeaderEnding) {
+
+							l3.h.headerBytes = append(l3.h.headerBytes, headerEnding...)
+
+							l3.h.formName, l3.h.fileName = getFoFi(l3.h.headerBytes)
+						}
+					}
+
+					if (len(l2) > 1 && d.E() == Probably) ||
+						(len(l2) == 1 && d.E() == True) {
+
+						kdet.part++
+					}
+
+					delete(l2, false)
+
+					delete(m.Map[kgen], kdet)
+
+					l2[false] = l3
+
+					l1New[kdet] = l2
 
 					m.Map[kgen] = l1New
 
@@ -230,44 +281,9 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 				return nil
 			}
 
-			l3, ok := l2[false]
-
-			l3.e = d.E()
-
-			if ok && len(l3.h.formName) == 0 {
-
-				headerEndingBS := make([]byte, 0, maxHeaderLimit)
-
-				if length > maxHeaderLimit {
-
-					headerEndingBS = append(headerEndingBS, body[:maxHeaderLimit]...)
-
-				} else {
-
-					headerEndingBS = append(headerEndingBS, body...)
-				}
-
-				headerEnding, err := getHeaderLines(headerEndingBS, bou)
-
-				if len(headerEndingBS) > 0 && errors.Is(err, errHeaderEnding) {
-
-					l3.h.headerBytes = append(l3.h.headerBytes, headerEnding...)
-
-					l3.h.formName, l3.h.fileName = getFoFi(l3.h.headerBytes)
-				}
-			}
-
-			if (len(l2) > 1 && d.E() == Probably) ||
-				(len(l2) == 1 && d.E() == True) {
-
-				kdet.part++
-			}
-
-			delete(l2, false)
-
 			delete(m.Map[kgen], kdet)
 
-			l2[false] = l3
+			kdet.part++
 
 			l1New[kdet] = l2
 
@@ -284,6 +300,48 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
 func (m *memoryDataHandlerStruct) Delete(string) error {
 	return nil
+}
+
+func fullFill(val value, d DataHandlerDTO, bou Boundary) (value, error) {
+
+	if len(val.h.formName) != 0 {
+
+		return val, nil
+	}
+
+	body, resValue := make([]byte, 0, maxHeaderLimit), value{}
+
+	resValue.e = d.E()
+
+	length := len(d.Body())
+
+	if length >= maxHeaderLimit {
+
+		body = append(body, d.Body()[:maxHeaderLimit]...)
+	} else {
+
+		body = append(body, d.Body()...)
+	}
+
+	headerEnding, err := getHeaderLines(body, bou)
+
+	if err != nil {
+
+		if errors.Is(err, errHeaderEnding) {
+
+			headerFull := append(val.h.headerBytes, headerEnding...)
+
+			resValue.h.headerBytes = headerFull
+
+			resValue.h.formName, resValue.h.fileName = getFoFi(headerFull)
+
+		} else {
+
+			return value{}, err
+		}
+	}
+
+	return resValue, nil
 }
 
 func newValue(d DataHandlerDTO, bou Boundary) (value, error) {
