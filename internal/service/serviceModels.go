@@ -203,33 +203,29 @@ type DataHandlerDTO interface {
 }
 
 func (psu *parserServiceUnitStruct) Part() int {
-
 	return psu.part
 }
 
 func (psu *parserServiceUnitStruct) TS() string {
-
 	return psu.ts
 }
 
 func (psu *parserServiceUnitStruct) Body() []byte {
-
 	return psu.body
 }
 
 func (psu *parserServiceUnitStruct) SetBody(b []byte) {
-
 	psu.body = append(make([]byte, 0, len(b)), b...)
 }
 
-func (psu *parserServiceUnitStruct) B() dataHandler.Disposition {
+func (psu *parserServiceUnitStruct) B() disposition {
 
-	return dataHandler.Disposition(psu.b)
+	return psu.b
 }
 
-func (psu *parserServiceUnitStruct) E() dataHandler.Disposition {
+func (psu *parserServiceUnitStruct) E() disposition {
 
-	return dataHandler.Disposition(psu.b)
+	return psu.b
 }
 
 func (psu *parserServiceUnitStruct) Last() bool {
@@ -276,5 +272,13 @@ type ParserServiceDTO struct {
 
 func newDataHandlerUnit(s ServiceDTO) *dataHandler.DataHandlerUnit {
 
-	return &dataHandler.DataHandlerUnit{}
+	return &dataHandler.DataHandlerUnit{
+		Dh_part:  s.Part(),
+		Dh_ts:    s.TS(),
+		Dh_body:  s.Body(),
+		Dh_b:     dataHandler.Disposition(s.B()),
+		Dh_e:     dataHandler.Disposition(s.E()),
+		Dh_isSub: s.IsSub(),
+		Dh_last:  s.Last(),
+	}
 }

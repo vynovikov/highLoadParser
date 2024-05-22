@@ -38,61 +38,56 @@ type DataHandlerDTO interface {
 }
 
 type DataHandlerUnit struct {
-	part  int
-	ts    string
-	body  []byte
-	b     Disposition
-	e     Disposition
-	last  bool
-	isSub bool
+	Dh_part  int
+	Dh_ts    string
+	Dh_body  []byte
+	Dh_b     Disposition
+	Dh_e     Disposition
+	Dh_last  bool
+	Dh_isSub bool
 }
 
 func NewDataHandlerUnit(d DataHandlerDTO) *DataHandlerUnit {
 	return &DataHandlerUnit{
-		part: d.Part(),
-		ts:   d.TS(),
-		body: d.Body(),
-		b:    d.B(),
-		e:    d.E(),
-		last: d.Last(),
+		Dh_part: d.Part(),
+		Dh_ts:   d.TS(),
+		Dh_body: d.Body(),
+		Dh_b:    d.B(),
+		Dh_e:    d.E(),
+		Dh_last: d.Last(),
 	}
 }
 
 func (d *DataHandlerUnit) Part() int {
-	return d.part
+	return d.Dh_part
 }
 
 func (d *DataHandlerUnit) TS() string {
-	return d.ts
+	return d.Dh_ts
 }
 
 func (d *DataHandlerUnit) Body() []byte {
-	return d.body
+	return d.Dh_body
 }
 
 func (d *DataHandlerUnit) SetBody(b []byte) {
-	d.body = b
+	d.Dh_body = b
 }
 
 func (d *DataHandlerUnit) B() Disposition {
-	return d.b
+	return d.Dh_b
 }
 
 func (d *DataHandlerUnit) E() Disposition {
-	return d.e
+	return d.Dh_e
 }
 
 func (d *DataHandlerUnit) Last() bool {
-	return d.last
+	return d.Dh_last
 }
 
 func (d *DataHandlerUnit) IsSub() bool {
-	return d.isSub
-}
-
-type key struct {
-	TS   string
-	Part int
+	return d.Dh_isSub
 }
 
 type keyGeneral struct {
@@ -101,22 +96,14 @@ type keyGeneral struct {
 
 type keyDetailed struct {
 	ts   string
-	Part int
+	part int
 }
 
 func newKeyDetailed(d DataHandlerDTO) keyDetailed {
 
 	return keyDetailed{
 		ts:   d.TS(),
-		Part: d.Part(),
-	}
-}
-
-func newKey(d DataHandlerDTO) key {
-
-	return key{
-		TS:   d.TS(),
-		Part: d.Part(),
+		part: d.Part(),
 	}
 }
 
