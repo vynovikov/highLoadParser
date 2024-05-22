@@ -30,23 +30,40 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 
 	sDTO.Evolve(0)
 
-	sl := make([]dataHandler.DataHandlerDTO, 0, len(sDTO.psus)+1)
+	dataHandlerUnits := make([]dataHandler.DataHandlerDTO, 0, len(sDTO.psus)+1)
+	transferUnits := make([]infrastructure.TransferUnit, 0, len(sDTO.psus)+1)
 
 	for _, v := range sDTO.psus {
 
-		sl = append(sl, v)
+		serviceUnit := newServiceUnit(v)
+
+		dhu := newDataHandlerUnit(serviceUnit)
+
+		dataHandlerUnits = append(dataHandlerUnits, dhu)
+
+		tsu := newTransferUnit(serviceUnit)
+
+		transferUnits = append(transferUnits, tsu)
+
 	}
 
 	if sDTO.pssu != nil {
 
-		sl = append(sl, sDTO.pssu)
+		serviceUnit := newServiceUnit(sDTO.pssu)
+
+		dhu := newDataHandlerUnit(serviceUnit)
+
+		dataHandlerUnits = append(dataHandlerUnits, dhu)
+
+		tsu := newTransferUnit(serviceUnit)
+
+		transferUnits = append(transferUnits, tsu)
 	}
 
 	bou := newDataHandlerBoundary(sDTO.Bou)
 
-	s.infrastructure.Register(sl, bou)
+	s.infrastructure.Register(dataHandlerUnits, bou)
 
-	s.infrastructure.Send(&infrastructure.TransferUnitStruct{})
 }
 
 func newDataHandlerBoundary(boundary entities.Boundary) dataHandler.Boundary {

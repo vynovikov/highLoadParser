@@ -101,14 +101,14 @@ type keyGeneral struct {
 
 type keyDetailed struct {
 	ts   string
-	part int
+	Part int
 }
 
 func newKeyDetailed(d DataHandlerDTO) keyDetailed {
 
 	return keyDetailed{
 		ts:   d.TS(),
-		part: d.Part(),
+		Part: d.Part(),
 	}
 }
 

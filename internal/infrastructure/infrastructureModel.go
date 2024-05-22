@@ -5,15 +5,27 @@ type TransferUnit interface {
 	Value() []byte
 }
 
-type TransferUnitStruct struct {
+type transferUnitStruct struct {
+	key   []byte
+	value []byte
 }
 
-func (t *TransferUnitStruct) Key() []byte {
+/*
+func NewTransferUnit(d InfrastructureDTO) *transferUnitStruct {
 
-	return nil
+	return &transferUnitStruct{
+		key:   []byte("alice"),
+		value: []byte("azaza"),
+	}
+}
+*/
+
+func (t *transferUnitStruct) Key() []byte {
+
+	return t.key
 }
 
-func (t *TransferUnitStruct) Value() []byte {
+func (t *transferUnitStruct) Value() []byte {
 
-	return nil
+	return t.value
 }
