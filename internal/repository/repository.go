@@ -6,7 +6,7 @@ import (
 )
 
 type ParserRepository interface {
-	Register([]dataHandler.DataHandlerDTO, dataHandler.Boundary) error
+	Register(dataHandler.DataHandlerDTO, dataHandler.Boundary) (*dataHandler.TT, error)
 }
 
 type repositoryStruct struct {
@@ -19,41 +19,42 @@ func NewParserRepository(dh dataHandler.DataHandler) *repositoryStruct {
 	}
 }
 
-func (r *repositoryStruct) Register(dtos []dataHandler.DataHandlerDTO, bou dataHandler.Boundary) error {
+func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou dataHandler.Boundary) (*dataHandler.TT, error) {
 
-	for _, d := range dtos {
+	var err error
 
-		d = dataHandler.NewDataHandlerUnit(d)
+	d := dataHandler.NewDataHandlerUnit(dto)
 
-		switch {
+	resTT := &dataHandler.TT{}
 
-		case d.B() == dataHandler.False:
+	switch {
 
-			err := r.dataHandler.Create(d, bou)
-			if err != nil {
+	case d.B() == dataHandler.False:
 
-				logger.L.Infof("in repository.Register unable to create %s %d: %v\n", d.TS(), d.Part(), err)
-			}
+		resTT, err = r.dataHandler.Create(d, bou)
+		if err != nil {
 
-		case d.B() == dataHandler.True:
-
-			err := r.dataHandler.Updade(d, bou)
-			if err != nil {
-
-				logger.L.Infof("in repository.Register unable to update %s %d: %v\n", d.TS(), d.Part(), err)
-			}
+			logger.L.Infof("in repository.Register unable to create %s %d: %v\n", d.TS(), d.Part(), err)
 		}
 
-		if d.Last() {
+	case d.B() == dataHandler.True:
 
-			err := r.dataHandler.Delete(d.TS())
+		_, err := r.dataHandler.Updade(d, bou)
+		if err != nil {
 
-			if err != nil {
-
-				logger.L.Infof("in repository.Register unable to delete %s %v\n", d.TS(), err)
-			}
+			logger.L.Infof("in repository.Register unable to update %s %d: %v\n", d.TS(), d.Part(), err)
 		}
 	}
 
-	return nil
+	if d.Last() {
+
+		err := r.dataHandler.Delete(d.TS())
+
+		if err != nil {
+
+			logger.L.Infof("in repository.Register unable to delete %s %v\n", d.TS(), err)
+		}
+	}
+
+	return resTT, nil
 }

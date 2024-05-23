@@ -23,18 +23,18 @@ func NewMemoryDataHandler() *memoryDataHandlerStruct {
 	}
 }
 
-func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) error {
+func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) (*TT, error) {
 
 	var l2Key bool
 
-	kgen, kdet := newKeyGeneralFromDTO(d), newKeyDetailed(d)
+	kgen, kdet, resTT := newKeyGeneralFromDTO(d), newKeyDetailed(d), newResult(d)
 
 	val, err := newValue(d, bou)
 	if err != nil &&
 		!errors.Is(err, errHeaderNotFull) &&
 		!errors.Is(err, errHeaderEnding) {
 
-		return err
+		return resTT, err
 	}
 
 	if len(m.Map[kgen]) == 0 {
@@ -56,7 +56,9 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) error {
 
 		m.Map[kgen] = l1
 
-		return nil
+		resTT.Fullfill(d, val)
+
+		return resTT, nil
 	}
 
 	// Not empty m.Map
@@ -98,7 +100,9 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) error {
 
 				m.Map[kgen] = l1
 
-				return nil
+				resTT.Fullfill(d, val)
+
+				return resTT, nil
 			}
 
 			kdet.part++
@@ -111,7 +115,9 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) error {
 
 			m.Map[kgen] = l1
 
-			return nil
+			resTT.Fullfill(d, val)
+
+			return resTT, nil
 		}
 
 	default:
@@ -142,7 +148,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) error {
 
 				m.Map[kgen] = l1
 
-				return nil
+				return resTT, nil
 			}
 
 			l1, l2 := make(map[keyDetailed]map[bool]value), make(map[bool]value)
@@ -153,11 +159,11 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) error {
 
 			m.Map[kgen] = l1
 
-			return nil
+			return resTT, nil
 		}
 	}
 
-	return nil
+	return resTT, nil
 }
 
 func (m *memoryDataHandlerStruct) Read(DataHandlerDTO) (value, error) {
@@ -165,9 +171,12 @@ func (m *memoryDataHandlerStruct) Read(DataHandlerDTO) (value, error) {
 	return value{}, nil
 }
 
-func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
+func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) (*TT, error) {
 
-	var err error
+	var (
+		err   error
+		resTT *TT
+	)
 
 	kgen, kdet, oldValueFalseUpated := newKeyGeneralFromDTO(d), newKeyDetailed(d), value{}
 
@@ -224,7 +233,7 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
 					m.Map[kgen] = l1New
 
-					return nil
+					return resTT, nil
 
 				} else if oldValueFalse.e != Probably {
 
@@ -243,7 +252,7 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
 					m.Map[kgen] = l1New
 
-					return nil
+					return resTT, nil
 
 				} else {
 
@@ -264,7 +273,7 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
 					m.Map[kgen] = l1New
 
-					return nil
+					return resTT, nil
 				}
 			}
 
@@ -272,7 +281,7 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
 				delete(m.Map[kgen], kdet)
 
-				return nil
+				return resTT, nil
 			}
 
 			if (len(l2) > 1 && d.E() == Probably) ||
@@ -293,13 +302,13 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) error {
 
 			m.Map[kgen] = l1New
 
-			return nil
+			return resTT, nil
 		}
 	}
 
 	m.Buffer = append(m.Buffer, d)
 
-	return nil
+	return resTT, nil
 }
 
 func (m *memoryDataHandlerStruct) Delete(ts string) error {
@@ -372,9 +381,7 @@ func newKeyGeneralFromTS(ts string) keyGeneral {
 
 func newValue(d DataHandlerDTO, bou Boundary) (value, error) {
 
-	headerB := make([]byte, 0, maxHeaderLimit)
-
-	body := d.Body()
+	headerB, body, _ := make([]byte, 0, maxHeaderLimit), d.Body(), 0
 
 	lengh := len(body)
 
@@ -414,6 +421,37 @@ func newValue(d DataHandlerDTO, bou Boundary) (value, error) {
 			headerBytes: exactHeaderBytes,
 		},
 	}, nil
+}
+
+func newResult(d DataHandlerDTO) *TT {
+
+	if d.IsSub() {
+
+		return &TT{
+			Dh_TS:    d.TS(),
+			Dh_Part:  d.Part(),
+			Dh_Body:  make([]byte, 0),
+			Dh_IsSub: d.IsSub(),
+		}
+	}
+
+	return &TT{
+		Dh_TS:    d.TS(),
+		Dh_Part:  d.Part(),
+		Dh_Body:  make([]byte, 0, len(d.Body())),
+		Dh_IsSub: d.IsSub(),
+		Dh_End:   d.E() == False,
+		Dh_Final: d.Last(),
+	}
+}
+
+func (t *TT) Fullfill(d DataHandlerDTO, v value) {
+
+	t.Dh_FormName = v.h.formName
+
+	t.Dh_FileName = v.h.fileName
+
+	t.Dh_Body = d.Body()[len(v.h.headerBytes):]
 }
 
 // getHeaderLines returns header lines found in b

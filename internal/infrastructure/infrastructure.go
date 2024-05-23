@@ -7,8 +7,8 @@ import (
 )
 
 type Infrastructure interface {
-	Register([]dataHandler.DataHandlerDTO, dataHandler.Boundary) error
-	Send([]TransferUnit) error
+	Register(dataHandler.DataHandlerDTO, dataHandler.Boundary) (*dataHandler.TT, error)
+	Send(TransferUnit) error
 }
 
 type infrastructureStruct struct {
@@ -24,17 +24,12 @@ func NewInfraStructure(repo repository.ParserRepository, transmitter transmitter
 		transmitter: transmitter,
 	}
 }
-func (i *infrastructureStruct) Register(dtos []dataHandler.DataHandlerDTO, bou dataHandler.Boundary) error {
+func (i *infrastructureStruct) Register(dtos dataHandler.DataHandlerDTO, bou dataHandler.Boundary) (*dataHandler.TT, error) {
 
 	return i.repo.Register(dtos, bou)
 }
 
-func (i *infrastructureStruct) Send(units []TransferUnit) error {
+func (i *infrastructureStruct) Send(unit TransferUnit) error {
 
-	for _, v := range units {
-
-		i.transmitter.TransmitToSaver(v)
-	}
-
-	return nil
+	return i.transmitter.TransmitToSaver(unit)
 }

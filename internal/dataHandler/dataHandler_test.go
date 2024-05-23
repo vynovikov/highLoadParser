@@ -78,6 +78,7 @@ func (s *dataHandlerSuite) TestCreate() {
 		dto               DataHandlerDTO
 		bou               Boundary
 		wantedDataHandler DataHandler
+		wantedResult      *TT
 		wantedError       error
 	}{
 
@@ -101,6 +102,15 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
+			wantedResult: &TT{
+				Dh_TS:       "qqq",
+				Dh_Part:     0,
+				Dh_FormName: "alice",
+				Dh_FileName: "",
+				Dh_Body:     []byte("azazaza"),
+				Dh_IsSub:    false,
+				Dh_End:      false,
+			},
 		},
 
 		{
@@ -122,6 +132,15 @@ func (s *dataHandlerSuite) TestCreate() {
 							}}}},
 				},
 				Buffer: []DataHandlerDTO{},
+			},
+			wantedResult: &TT{
+				Dh_TS:       "qqq",
+				Dh_Part:     0,
+				Dh_FormName: "alice",
+				Dh_FileName: "short.txt",
+				Dh_Body:     []byte("azazaza"),
+				Dh_IsSub:    false,
+				Dh_End:      false,
 			},
 		},
 
@@ -145,6 +164,15 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
+			wantedResult: &TT{
+				Dh_TS:       "qqq",
+				Dh_Part:     0,
+				Dh_FormName: "",
+				Dh_FileName: "",
+				Dh_Body:     make([]byte, 0),
+				Dh_IsSub:    false,
+				Dh_End:      false,
+			},
 		},
 
 		{
@@ -166,6 +194,15 @@ func (s *dataHandlerSuite) TestCreate() {
 						}}}},
 				},
 				Buffer: []DataHandlerDTO{},
+			},
+			wantedResult: &TT{
+				Dh_TS:       "qqq",
+				Dh_Part:     0,
+				Dh_FormName: "",
+				Dh_FileName: "",
+				Dh_Body:     make([]byte, 0),
+				Dh_IsSub:    true,
+				Dh_End:      false,
 			},
 		},
 
@@ -202,6 +239,16 @@ func (s *dataHandlerSuite) TestCreate() {
 						}}}},
 				},
 				Buffer: []DataHandlerDTO{},
+			},
+			wantedResult: &TT{
+				Dh_TS:       "qqq",
+				Dh_Part:     0,
+				Dh_FormName: "bob",
+				Dh_FileName: "long.txt",
+				Dh_Body:     []byte("bzbzbzbzbz"),
+				Dh_IsSub:    false,
+				Dh_End:      false,
+				Dh_Final:    false,
 			},
 		},
 
@@ -242,8 +289,16 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
+			wantedResult: &TT{
+				Dh_TS:       "qqq",
+				Dh_Part:     0,
+				Dh_FormName: "",
+				Dh_FileName: "",
+				Dh_Body:     make([]byte, 0),
+				Dh_IsSub:    true,
+				Dh_End:      false,
+			},
 		},
-
 		{
 			name: "7. Map has same key and different part, !isSub",
 			initDataHandler: &memoryDataHandlerStruct{
@@ -274,6 +329,16 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
+			wantedResult: &TT{
+				Dh_TS:       "qqq",
+				Dh_Part:     4,
+				Dh_FormName: "bob",
+				Dh_FileName: "long.txt",
+				Dh_Body:     []byte("bzbzbzbzbz"),
+				Dh_IsSub:    false,
+				Dh_End:      false,
+				Dh_Final:    false,
+			},
 		},
 
 		{
@@ -296,6 +361,7 @@ func (s *dataHandlerSuite) TestCreate() {
 			wantedDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 4}: {
+
 						true: {
 							e: Probably,
 							h: headerData{
@@ -305,6 +371,15 @@ func (s *dataHandlerSuite) TestCreate() {
 							}}}},
 				},
 				Buffer: []DataHandlerDTO{},
+			},
+			wantedResult: &TT{
+				Dh_TS:       "qqq",
+				Dh_Part:     4,
+				Dh_FormName: "",
+				Dh_FileName: "",
+				Dh_Body:     make([]byte, 0),
+				Dh_IsSub:    true,
+				Dh_End:      false,
 			},
 		},
 
@@ -337,6 +412,16 @@ func (s *dataHandlerSuite) TestCreate() {
 							}}}},
 				},
 				Buffer: []DataHandlerDTO{},
+			},
+			wantedResult: &TT{
+				Dh_TS:       "qqq",
+				Dh_Part:     4,
+				Dh_FormName: "bob",
+				Dh_FileName: "long.txt",
+				Dh_Body:     []byte("bzbzbzbzbz"),
+				Dh_IsSub:    false,
+				Dh_End:      false,
+				Dh_Final:    false,
 			},
 		},
 
@@ -376,6 +461,15 @@ func (s *dataHandlerSuite) TestCreate() {
 							}}}}},
 				Buffer: []DataHandlerDTO{},
 			},
+			wantedResult: &TT{
+				Dh_TS:       "qqq",
+				Dh_Part:     4,
+				Dh_FormName: "",
+				Dh_FileName: "",
+				Dh_Body:     make([]byte, 0),
+				Dh_IsSub:    true,
+				Dh_End:      false,
+			},
 		},
 
 		{
@@ -407,6 +501,16 @@ func (s *dataHandlerSuite) TestCreate() {
 							}}}},
 				},
 				Buffer: []DataHandlerDTO{},
+			},
+			wantedResult: &TT{
+				Dh_TS:       "qqq",
+				Dh_Part:     4,
+				Dh_FormName: "bob",
+				Dh_FileName: "long.txt",
+				Dh_Body:     []byte("bzbzbzbzbz"),
+				Dh_IsSub:    false,
+				Dh_End:      false,
+				Dh_Final:    false,
 			},
 		},
 
@@ -448,6 +552,16 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
+			wantedResult: &TT{
+				Dh_TS:       "qqq",
+				Dh_Part:     4,
+				Dh_FormName: "bob",
+				Dh_FileName: "long.txt",
+				Dh_Body:     []byte("bzbzbzbzbz"),
+				Dh_IsSub:    false,
+				Dh_End:      false,
+				Dh_Final:    false,
+			},
 		},
 
 		{
@@ -487,6 +601,15 @@ func (s *dataHandlerSuite) TestCreate() {
 							}}}}},
 				Buffer: []DataHandlerDTO{},
 			},
+			wantedResult: &TT{
+				Dh_TS:       "qqq",
+				Dh_Part:     4,
+				Dh_FormName: "",
+				Dh_FileName: "",
+				Dh_Body:     make([]byte, 0),
+				Dh_IsSub:    true,
+				Dh_End:      false,
+			},
 		},
 	}
 
@@ -494,7 +617,7 @@ func (s *dataHandlerSuite) TestCreate() {
 
 		s.Run(v.name, func() {
 
-			err := v.initDataHandler.Create(v.dto, v.bou)
+			gotResult, err := v.initDataHandler.Create(v.dto, v.bou)
 
 			if v.wantedError != nil {
 
@@ -502,6 +625,8 @@ func (s *dataHandlerSuite) TestCreate() {
 			}
 
 			s.Equal(v.wantedDataHandler, v.initDataHandler)
+
+			s.Equal(v.wantedResult, gotResult)
 		})
 	}
 }
@@ -513,6 +638,7 @@ func (s *dataHandlerSuite) TestUpdate() {
 		dto               DataHandlerDTO
 		bou               Boundary
 		wantedDataHandler DataHandler
+		wantedResult      TT
 		wantedError       error
 	}{
 
@@ -927,7 +1053,7 @@ func (s *dataHandlerSuite) TestUpdate() {
 
 		s.Run(v.name, func() {
 
-			err := v.initDataHandler.Updade(v.dto, v.bou)
+			gotResult, err := v.initDataHandler.Updade(v.dto, v.bou)
 
 			if v.wantedError != nil {
 
@@ -935,6 +1061,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 			}
 
 			s.Equal(v.wantedDataHandler, v.initDataHandler)
+
+			s.Equal(v.wantedResult, gotResult)
 		})
 	}
 }

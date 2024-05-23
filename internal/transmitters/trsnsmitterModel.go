@@ -18,6 +18,8 @@ func NewTransferUnitStruct(t TransferUnit) *transferUnitStruct {
 	}
 }
 
+func newTransferUnit()
+
 func (t *transferUnitStruct) Key() []byte {
 
 	return t.key

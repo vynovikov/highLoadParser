@@ -243,11 +243,11 @@ type transferUnitStruct struct {
 	value []byte
 }
 
-func newTransferUnit(d ServiceDTO) *transferUnitStruct {
+func newTransferUnit(t dataHandler.ProducerUnit) *transferUnitStruct {
 
 	return &transferUnitStruct{
-		key:   []byte(d.TS()),
-		value: d.Body(),
+		key:   []byte("header"),
+		value: t.Body(),
 	}
 }
 

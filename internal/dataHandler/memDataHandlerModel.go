@@ -131,3 +131,64 @@ type Boundary struct {
 	Root   []byte
 	Suffix []byte
 }
+
+type ProducerUnit interface {
+	TS() string
+	Part() int
+	FormName() string
+	FileName() string
+	Body() []byte
+	IsSub() bool
+	End() bool
+	Final() bool
+}
+
+type TT struct {
+	Dh_TS       string
+	Dh_Part     int
+	Dh_FormName string
+	Dh_FileName string
+	Dh_Body     []byte
+	Dh_End      bool
+	Dh_Final    bool
+	Dh_IsSub    bool
+}
+
+func (t *TT) TS() string {
+
+	return t.Dh_TS
+}
+func (t *TT) Part() int {
+
+	return t.Dh_Part
+}
+
+func (t *TT) FormName() string {
+
+	return t.Dh_FormName
+}
+
+func (t *TT) FileName() string {
+
+	return t.Dh_FileName
+}
+
+func (t *TT) Body() []byte {
+
+	return t.Dh_Body
+}
+
+func (t *TT) End() bool {
+
+	return t.Dh_End
+}
+
+func (t *TT) Final() bool {
+
+	return t.Dh_Final
+}
+
+func (t *TT) IsSub() bool {
+
+	return t.Dh_IsSub
+}
