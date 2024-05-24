@@ -97,7 +97,7 @@ func (s *ParserServiceDTO) Evolve(start int) {
 
 		s.last = true
 
-		psu := NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, True, False), NewParserServiceBody(b))
+		psu := NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, 1, 0), NewParserServiceBody(b))
 
 		s.psus = append(s.psus, &psu)
 
@@ -155,16 +155,16 @@ func (s *ParserServiceDTO) Evolve(start int) {
 
 			if s.last && start == 0 {
 
-				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, True, False), NewParserServiceBody(b))
+				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, 1, 0), NewParserServiceBody(b))
 			} else if s.last && start != 0 {
 
-				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, False, False), NewParserServiceBody(b))
+				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, 0, 0), NewParserServiceBody(b))
 			} else if !s.last && start == 0 {
 
-				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, True, True), NewParserServiceBody(b))
+				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, 1, 1), NewParserServiceBody(b))
 			} else if !s.last && start != 0 {
 
-				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, False, True), NewParserServiceBody(b))
+				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, 0, 1), NewParserServiceBody(b))
 			}
 
 		} else if (s.pssu == nil && len(ll) > 2 && byteOps.BeginningEqual(ll[2:], boundaryCore)) ||
@@ -172,20 +172,20 @@ func (s *ParserServiceDTO) Evolve(start int) {
 
 			if start == 0 {
 
-				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, True, False), NewParserServiceBody(b))
+				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, 1, 0), NewParserServiceBody(b))
 			} else {
 
-				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, False, True), NewParserServiceBody(b))
+				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, 0, 1), NewParserServiceBody(b))
 			}
 
 		} else {
 
 			if start == 0 {
 
-				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, True, Probably), NewParserServiceBody(b))
+				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, 1, 2), NewParserServiceBody(b))
 			} else {
 
-				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, False, Probably), NewParserServiceBody(b))
+				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, 0, 2), NewParserServiceBody(b))
 			}
 		}
 
@@ -199,10 +199,10 @@ func (s *ParserServiceDTO) Evolve(start int) {
 
 		if start == 0 {
 
-			psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, True, False), NewParserServiceBody(b[:idx-start-len(entities.Sep)]))
+			psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, 1, 0), NewParserServiceBody(b[:idx-start-len(entities.Sep)]))
 		} else {
 
-			psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, False, False), NewParserServiceBody(b[:idx-start-len(entities.Sep)]))
+			psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, 0, 0), NewParserServiceBody(b[:idx-start-len(entities.Sep)]))
 		}
 
 		s.psus = append(s.psus, &psu)

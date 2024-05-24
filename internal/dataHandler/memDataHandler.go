@@ -75,7 +75,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) (*TT, e
 
 				if l3, ok := l2[false]; ok {
 
-					if l3.e == True && d.E() == True {
+					if l3.e == 1 && d.E() == 1 {
 
 						kdet.part++
 
@@ -88,7 +88,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) (*TT, e
 					l2[false] = val
 
 				}
-				if _, ok := l2[true]; ok && d.E() == Probably {
+				if _, ok := l2[true]; ok && d.E() == 2 {
 
 					kdet.part++
 
@@ -130,7 +130,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) (*TT, e
 
 				if l3, ok := l2[false]; ok {
 
-					if l3.e == Probably {
+					if l3.e == 2 {
 
 						delete(l1, kdet)
 
@@ -235,10 +235,10 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) (*TT, e
 
 					return resTT, nil
 
-				} else if oldValueFalse.e != Probably {
+				} else if oldValueFalse.e != 2 {
 
-					if (len(l2) > 1 && d.E() == Probably) ||
-						(len(l2) == 1 && d.E() == True) {
+					if (len(l2) > 1 && d.E() == 2) ||
+						(len(l2) == 1 && d.E() == 1) {
 
 						kdet.part++
 					}
@@ -256,9 +256,9 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) (*TT, e
 
 				} else {
 
-					if (len(l2) > 1 && d.E() == Probably) ||
-						(len(l2) > 1 && l2[false].e == Probably && l2[true].e == Probably && d.E() != Probably) ||
-						(len(l2) == 1 && d.E() == True) {
+					if (len(l2) > 1 && d.E() == 2) ||
+						(len(l2) > 1 && l2[false].e == 2 && l2[true].e == 2 && d.E() != 2) ||
+						(len(l2) == 1 && d.E() == 1) {
 
 						kdet.part++
 					}
@@ -277,15 +277,15 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) (*TT, e
 				}
 			}
 
-			if ok && d.E() == False {
+			if ok && d.E() == 0 {
 
 				delete(m.Map[kgen], kdet)
 
 				return resTT, nil
 			}
 
-			if (len(l2) > 1 && d.E() == Probably) ||
-				(len(l2) == 1 && d.E() == True) {
+			if (len(l2) > 1 && d.E() == 2) ||
+				(len(l2) == 1 && d.E() == 1) {
 
 				kdet.part++
 			}
@@ -440,7 +440,7 @@ func newResult(d DataHandlerDTO) *TT {
 		Dh_Part:  d.Part(),
 		Dh_Body:  make([]byte, 0, len(d.Body())),
 		Dh_IsSub: d.IsSub(),
-		Dh_End:   d.E() == False,
+		Dh_End:   d.E() == 0,
 		Dh_Final: d.Last(),
 	}
 }

@@ -46,8 +46,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    Probably,
+							B:    1,
+							E:    2,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -84,8 +84,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    Probably,
+							B:    1,
+							E:    2,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -122,8 +122,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    True,
+							B:    1,
+							E:    1,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -151,8 +151,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    Probably,
+							B:    1,
+							E:    2,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -190,8 +190,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    False,
+							B:    1,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -219,8 +219,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    False,
+							B:    1,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza"),
@@ -230,8 +230,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    False,
-							E:    True,
+							B:    0,
+							E:    1,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
@@ -257,8 +257,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    False,
+							B:    1,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza"),
@@ -268,8 +268,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    False,
-							E:    Probably,
+							B:    0,
+							E:    2,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
@@ -304,8 +304,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    False,
+							B:    1,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza"),
@@ -315,8 +315,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    False,
-							E:    Probably,
+							B:    0,
+							E:    2,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -354,8 +354,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    False,
+							B:    1,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb"),
@@ -384,8 +384,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    False,
+							B:    1,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb"),
@@ -395,8 +395,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    False,
-							E:    False,
+							B:    0,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -424,8 +424,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    False,
+							B:    1,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb"),
@@ -435,8 +435,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    False,
-							E:    Probably,
+							B:    0,
+							E:    2,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -473,8 +473,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    False,
+							B:    1,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb"),
@@ -484,8 +484,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    False,
-							E:    Probably,
+							B:    0,
+							E:    2,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -523,8 +523,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    False,
+							B:    1,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb"),
@@ -534,8 +534,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    False,
-							E:    False,
+							B:    0,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -563,8 +563,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    False,
+							B:    1,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazaz"),
@@ -574,8 +574,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    False,
-							E:    False,
+							B:    0,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -585,8 +585,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    False,
-							E:    False,
+							B:    0,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("c1234567890czczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczcz"),
@@ -596,8 +596,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    False,
-							E:    True,
+							B:    0,
+							E:    1,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("d1234567890dzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdz"),
@@ -626,8 +626,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    False,
+							B:    1,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazaazazazazaazazazazaazazazazaazazazazaazazazazaazazazaza"),
@@ -656,8 +656,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    False,
+							B:    1,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazaz"),
@@ -667,8 +667,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    False,
-							E:    False,
+							B:    0,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -697,8 +697,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 0,
 							TS:   "qqq",
-							B:    True,
-							E:    False,
+							B:    1,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("uffix" + entities.Sep),
@@ -727,8 +727,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 1,
 							TS:   "qqq",
-							B:    True,
-							E:    False,
+							B:    1,
+							E:    0,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("ootbSuffix" + entities.Sep),
@@ -756,8 +756,8 @@ func (s *serviceSuite) TestEvolve() {
 						PSH: ParserServiceHeader{
 							Part: 1,
 							TS:   "qqq",
-							B:    True,
-							E:    True,
+							B:    1,
+							E:    1,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),

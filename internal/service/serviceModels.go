@@ -19,12 +19,12 @@ const (
 type ParserServiceHeader struct {
 	Part int
 	TS   string
-	B    disposition
-	E    disposition
+	B    int
+	E    int
 	last bool
 }
 
-func NewParserServiceHeader(ts string, p int, b, e disposition) ParserServiceHeader {
+func NewParserServiceHeader(ts string, p int, b, e int) ParserServiceHeader {
 	return ParserServiceHeader{
 		Part: p,
 		TS:   ts,
@@ -94,8 +94,8 @@ type ServiceDTO interface {
 	TS() string
 	Body() []byte
 	SetBody([]byte)
-	B() disposition
-	E() disposition
+	B() int
+	E() int
 	Last() bool
 	IsSub() bool
 }
@@ -110,11 +110,11 @@ func (su *ParserServiceUnit) TS() string {
 	return su.PSH.TS
 }
 
-func (su *ParserServiceUnit) B() disposition {
+func (su *ParserServiceUnit) B() int {
 	return su.PSH.B
 }
 
-func (su *ParserServiceUnit) E() disposition {
+func (su *ParserServiceUnit) E() int {
 	return su.PSH.E
 }
 
@@ -144,12 +144,12 @@ func (ss *ParserServiceSub) TS() string {
 	return ss.PSSH.TS
 }
 
-func (ss *ParserServiceSub) B() disposition {
-	return False
+func (ss *ParserServiceSub) B() int {
+	return 0
 }
 
-func (ss *ParserServiceSub) E() disposition {
-	return Probably
+func (ss *ParserServiceSub) E() int {
+	return 2
 }
 
 func (ss *ParserServiceSub) Body() []byte {
@@ -172,8 +172,8 @@ type parserServiceUnitStruct struct {
 	part  int
 	ts    string
 	body  []byte
-	b     disposition
-	e     disposition
+	b     int
+	e     int
 	isSub bool
 	last  bool
 }
@@ -218,12 +218,12 @@ func (psu *parserServiceUnitStruct) SetBody(b []byte) {
 	psu.body = append(make([]byte, 0, len(b)), b...)
 }
 
-func (psu *parserServiceUnitStruct) B() disposition {
+func (psu *parserServiceUnitStruct) B() int {
 
 	return psu.b
 }
 
-func (psu *parserServiceUnitStruct) E() disposition {
+func (psu *parserServiceUnitStruct) E() int {
 
 	return psu.b
 }
@@ -276,8 +276,8 @@ func newDataHandlerUnit(s ServiceDTO) *dataHandler.DataHandlerUnit {
 		Dh_part:  s.Part(),
 		Dh_ts:    s.TS(),
 		Dh_body:  s.Body(),
-		Dh_b:     dataHandler.Disposition(s.B()),
-		Dh_e:     dataHandler.Disposition(s.E()),
+		Dh_b:     s.B(),
+		Dh_e:     s.E(),
 		Dh_isSub: s.IsSub(),
 		Dh_last:  s.Last(),
 	}

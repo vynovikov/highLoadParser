@@ -31,8 +31,8 @@ type DataHandlerDTO interface {
 	TS() string
 	Body() []byte
 	SetBody([]byte)
-	B() Disposition
-	E() Disposition
+	B() int
+	E() int
 	Last() bool
 	IsSub() bool
 }
@@ -41,8 +41,8 @@ type DataHandlerUnit struct {
 	Dh_part  int
 	Dh_ts    string
 	Dh_body  []byte
-	Dh_b     Disposition
-	Dh_e     Disposition
+	Dh_b     int
+	Dh_e     int
 	Dh_last  bool
 	Dh_isSub bool
 }
@@ -74,11 +74,11 @@ func (d *DataHandlerUnit) SetBody(b []byte) {
 	d.Dh_body = b
 }
 
-func (d *DataHandlerUnit) B() Disposition {
+func (d *DataHandlerUnit) B() int {
 	return d.Dh_b
 }
 
-func (d *DataHandlerUnit) E() Disposition {
+func (d *DataHandlerUnit) E() int {
 	return d.Dh_e
 }
 
@@ -109,7 +109,7 @@ func newKeyDetailed(d DataHandlerDTO) keyDetailed {
 
 type value struct {
 	h headerData
-	e Disposition
+	e int
 }
 
 type headerData struct {

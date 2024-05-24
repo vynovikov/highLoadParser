@@ -29,7 +29,7 @@ func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou dataHand
 
 	switch {
 
-	case d.B() == dataHandler.False:
+	case d.B() == 0:
 
 		resTT, err = r.dataHandler.Create(d, bou)
 		if err != nil {
@@ -37,7 +37,7 @@ func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou dataHand
 			logger.L.Infof("in repository.Register unable to create %s %d: %v\n", d.TS(), d.Part(), err)
 		}
 
-	case d.B() == dataHandler.True:
+	case d.B() == 1:
 
 		_, err := r.dataHandler.Updade(d, bou)
 		if err != nil {
