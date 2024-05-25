@@ -71,7 +71,6 @@ func (s *dataHandlerSuite) TestIsLastBoundaryPart() {
 	}
 }
 
-// TODO: *TT -> interface
 func (s *dataHandlerSuite) TestCreate() {
 	tt := []struct {
 		name              string
@@ -632,6 +631,7 @@ func (s *dataHandlerSuite) TestCreate() {
 	}
 }
 
+// TODO: implement result calculation upon updating
 func (s *dataHandlerSuite) TestUpdate() {
 	tt := []struct {
 		name              string
