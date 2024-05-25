@@ -143,7 +143,7 @@ type ProducerUnit interface {
 	Final() bool
 }
 
-type TT struct {
+type ProducerUnitStruct struct {
 	Dh_TS       string
 	Dh_Part     int
 	Dh_FormName string
@@ -154,41 +154,41 @@ type TT struct {
 	Dh_IsSub    bool
 }
 
-func (t *TT) TS() string {
+func (t *ProducerUnitStruct) TS() string {
 
 	return t.Dh_TS
 }
-func (t *TT) Part() int {
+func (t *ProducerUnitStruct) Part() int {
 
 	return t.Dh_Part
 }
 
-func (t *TT) FormName() string {
+func (t *ProducerUnitStruct) FormName() string {
 
 	return t.Dh_FormName
 }
 
-func (t *TT) FileName() string {
+func (t *ProducerUnitStruct) FileName() string {
 
 	return t.Dh_FileName
 }
 
-func (t *TT) Body() []byte {
+func (t *ProducerUnitStruct) Body() []byte {
 
 	return t.Dh_Body
 }
 
-func (t *TT) End() bool {
+func (t *ProducerUnitStruct) End() bool {
 
 	return t.Dh_End
 }
 
-func (t *TT) Final() bool {
+func (t *ProducerUnitStruct) Final() bool {
 
 	return t.Dh_Final
 }
 
-func (t *TT) IsSub() bool {
+func (t *ProducerUnitStruct) IsSub() bool {
 
 	return t.Dh_IsSub
 }

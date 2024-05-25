@@ -6,7 +6,7 @@ import (
 )
 
 type ParserRepository interface {
-	Register(dataHandler.DataHandlerDTO, dataHandler.Boundary) (*dataHandler.TT, error)
+	Register(dataHandler.DataHandlerDTO, dataHandler.Boundary) (dataHandler.ProducerUnit, error)
 }
 
 type repositoryStruct struct {
@@ -19,13 +19,14 @@ func NewParserRepository(dh dataHandler.DataHandler) *repositoryStruct {
 	}
 }
 
-func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou dataHandler.Boundary) (*dataHandler.TT, error) {
+func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou dataHandler.Boundary) (dataHandler.ProducerUnit, error) {
 
-	var err error
+	var (
+		err   error
+		resTT dataHandler.ProducerUnit
+	)
 
 	d := dataHandler.NewDataHandlerUnit(dto)
-
-	resTT := &dataHandler.TT{}
 
 	switch {
 

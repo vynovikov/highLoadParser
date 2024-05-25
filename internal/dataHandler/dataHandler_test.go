@@ -71,6 +71,7 @@ func (s *dataHandlerSuite) TestIsLastBoundaryPart() {
 	}
 }
 
+// TODO: *TT -> interface
 func (s *dataHandlerSuite) TestCreate() {
 	tt := []struct {
 		name              string
@@ -78,7 +79,7 @@ func (s *dataHandlerSuite) TestCreate() {
 		dto               DataHandlerDTO
 		bou               Boundary
 		wantedDataHandler DataHandler
-		wantedResult      *TT
+		wantedResult      ProducerUnit
 		wantedError       error
 	}{
 
@@ -102,7 +103,7 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
-			wantedResult: &TT{
+			wantedResult: &ProducerUnitStruct{
 				Dh_TS:       "qqq",
 				Dh_Part:     0,
 				Dh_FormName: "alice",
@@ -133,7 +134,7 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
-			wantedResult: &TT{
+			wantedResult: &ProducerUnitStruct{
 				Dh_TS:       "qqq",
 				Dh_Part:     0,
 				Dh_FormName: "alice",
@@ -164,7 +165,7 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
-			wantedResult: &TT{
+			wantedResult: &ProducerUnitStruct{
 				Dh_TS:       "qqq",
 				Dh_Part:     0,
 				Dh_FormName: "",
@@ -195,7 +196,7 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
-			wantedResult: &TT{
+			wantedResult: &ProducerUnitStruct{
 				Dh_TS:       "qqq",
 				Dh_Part:     0,
 				Dh_FormName: "",
@@ -240,7 +241,7 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
-			wantedResult: &TT{
+			wantedResult: &ProducerUnitStruct{
 				Dh_TS:       "qqq",
 				Dh_Part:     0,
 				Dh_FormName: "bob",
@@ -289,7 +290,7 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
-			wantedResult: &TT{
+			wantedResult: &ProducerUnitStruct{
 				Dh_TS:       "qqq",
 				Dh_Part:     0,
 				Dh_FormName: "",
@@ -329,7 +330,7 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
-			wantedResult: &TT{
+			wantedResult: &ProducerUnitStruct{
 				Dh_TS:       "qqq",
 				Dh_Part:     4,
 				Dh_FormName: "bob",
@@ -372,7 +373,7 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
-			wantedResult: &TT{
+			wantedResult: &ProducerUnitStruct{
 				Dh_TS:       "qqq",
 				Dh_Part:     4,
 				Dh_FormName: "",
@@ -413,7 +414,7 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
-			wantedResult: &TT{
+			wantedResult: &ProducerUnitStruct{
 				Dh_TS:       "qqq",
 				Dh_Part:     4,
 				Dh_FormName: "bob",
@@ -461,7 +462,7 @@ func (s *dataHandlerSuite) TestCreate() {
 							}}}}},
 				Buffer: []DataHandlerDTO{},
 			},
-			wantedResult: &TT{
+			wantedResult: &ProducerUnitStruct{
 				Dh_TS:       "qqq",
 				Dh_Part:     4,
 				Dh_FormName: "",
@@ -502,7 +503,7 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
-			wantedResult: &TT{
+			wantedResult: &ProducerUnitStruct{
 				Dh_TS:       "qqq",
 				Dh_Part:     4,
 				Dh_FormName: "bob",
@@ -552,7 +553,7 @@ func (s *dataHandlerSuite) TestCreate() {
 				},
 				Buffer: []DataHandlerDTO{},
 			},
-			wantedResult: &TT{
+			wantedResult: &ProducerUnitStruct{
 				Dh_TS:       "qqq",
 				Dh_Part:     4,
 				Dh_FormName: "bob",
@@ -601,7 +602,7 @@ func (s *dataHandlerSuite) TestCreate() {
 							}}}}},
 				Buffer: []DataHandlerDTO{},
 			},
-			wantedResult: &TT{
+			wantedResult: &ProducerUnitStruct{
 				Dh_TS:       "qqq",
 				Dh_Part:     4,
 				Dh_FormName: "",
@@ -631,7 +632,6 @@ func (s *dataHandlerSuite) TestCreate() {
 	}
 }
 
-// TODO fix TestUpdaate
 func (s *dataHandlerSuite) TestUpdate() {
 	tt := []struct {
 		name              string
@@ -639,7 +639,7 @@ func (s *dataHandlerSuite) TestUpdate() {
 		dto               DataHandlerDTO
 		bou               Boundary
 		wantedDataHandler DataHandler
-		wantedResult      TT
+		wantedResult      ProducerUnit
 		wantedError       error
 	}{
 

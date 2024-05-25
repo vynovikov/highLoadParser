@@ -23,7 +23,7 @@ func NewMemoryDataHandler() *memoryDataHandlerStruct {
 	}
 }
 
-func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) (*TT, error) {
+func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) (ProducerUnit, error) {
 
 	var l2Key bool
 
@@ -171,11 +171,11 @@ func (m *memoryDataHandlerStruct) Read(DataHandlerDTO) (value, error) {
 	return value{}, nil
 }
 
-func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) (*TT, error) {
+func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) (ProducerUnit, error) {
 
 	var (
 		err   error
-		resTT *TT
+		resTT *ProducerUnitStruct
 	)
 
 	kgen, kdet, oldValueFalseUpated := newKeyGeneralFromDTO(d), newKeyDetailed(d), value{}
@@ -423,11 +423,11 @@ func newValue(d DataHandlerDTO, bou Boundary) (value, error) {
 	}, nil
 }
 
-func newResult(d DataHandlerDTO) *TT {
+func newResult(d DataHandlerDTO) *ProducerUnitStruct {
 
 	if d.IsSub() {
 
-		return &TT{
+		return &ProducerUnitStruct{
 			Dh_TS:    d.TS(),
 			Dh_Part:  d.Part(),
 			Dh_Body:  make([]byte, 0),
@@ -435,7 +435,7 @@ func newResult(d DataHandlerDTO) *TT {
 		}
 	}
 
-	return &TT{
+	return &ProducerUnitStruct{
 		Dh_TS:    d.TS(),
 		Dh_Part:  d.Part(),
 		Dh_Body:  make([]byte, 0, len(d.Body())),
@@ -445,7 +445,7 @@ func newResult(d DataHandlerDTO) *TT {
 	}
 }
 
-func (t *TT) Fullfill(d DataHandlerDTO, v value) {
+func (t *ProducerUnitStruct) Fullfill(d DataHandlerDTO, v value) {
 
 	t.Dh_FormName = v.h.formName
 
