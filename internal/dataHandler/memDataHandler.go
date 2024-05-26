@@ -56,7 +56,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) (Produc
 
 		m.Map[kgen] = l1
 
-		resTT.Fullfill(d, val)
+		resTT.updateProducerUnit(d, val, 0)
 
 		return resTT, nil
 	}
@@ -100,7 +100,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) (Produc
 
 				m.Map[kgen] = l1
 
-				resTT.Fullfill(d, val)
+				resTT.updateProducerUnit(d, val, 0)
 
 				return resTT, nil
 			}
@@ -115,7 +115,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) (Produc
 
 			m.Map[kgen] = l1
 
-			resTT.Fullfill(d, val)
+			resTT.updateProducerUnit(d, val, 0)
 
 			return resTT, nil
 		}
@@ -174,11 +174,10 @@ func (m *memoryDataHandlerStruct) Read(DataHandlerDTO) (value, error) {
 func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) (ProducerUnit, error) {
 
 	var (
-		err   error
-		resTT *ProducerUnitStruct
+		err error
 	)
 
-	kgen, kdet, oldValueFalseUpated := newKeyGeneralFromDTO(d), newKeyDetailed(d), value{}
+	kgen, kdet, oldValueFalseUpated, resTT, headerEndingIndex := newKeyGeneralFromDTO(d), newKeyDetailed(d), value{}, newResult(d), -1
 
 	body := d.Body()
 
@@ -192,11 +191,13 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) (Produc
 
 			if len(oldValueFalse.h.formName) == 0 {
 
-				oldValueFalseUpated, err = fullFill(oldValueFalse, d, bou)
+				oldValueFalseUpated, _, err = updateValue(oldValueFalse, d, bou)
 				if err != nil {
 
 					logger.L.Warn(err)
 				}
+
+				headerEndingIndex = len(oldValueFalseUpated.h.headerBytes) - len(oldValueFalse.h.headerBytes)
 
 			} else {
 
@@ -302,6 +303,8 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) (Produc
 
 			m.Map[kgen] = l1New
 
+			resTT.updateProducerUnit(d, oldValueFalseUpated, headerEndingIndex)
+
 			return resTT, nil
 		}
 	}
@@ -323,11 +326,12 @@ func (m *memoryDataHandlerStruct) Delete(ts string) error {
 	return nil
 }
 
-func fullFill(val value, d DataHandlerDTO, bou Boundary) (value, error) {
+// updates value returns index of first body symbol
+func updateValue(val value, d DataHandlerDTO, bou Boundary) (value, int, error) {
 
 	if len(val.h.formName) != 0 {
 
-		return val, nil
+		return val, -1, nil
 	}
 
 	body, resValue := make([]byte, 0, maxHeaderLimit), value{}
@@ -346,23 +350,21 @@ func fullFill(val value, d DataHandlerDTO, bou Boundary) (value, error) {
 
 	headerEnding, err := getHeaderLines(body, bou)
 
-	if err != nil {
+	if err == nil ||
+		errors.Is(err, errHeaderEnding) {
 
-		if errors.Is(err, errHeaderEnding) {
+		headerFull := append(val.h.headerBytes, headerEnding...)
 
-			headerFull := append(val.h.headerBytes, headerEnding...)
+		resValue.h.headerBytes = headerFull
 
-			resValue.h.headerBytes = headerFull
+		resValue.h.formName, resValue.h.fileName = getFoFi(headerFull)
 
-			resValue.h.formName, resValue.h.fileName = getFoFi(headerFull)
+		return resValue, len(headerEnding), nil
 
-		} else {
+	} else {
 
-			return value{}, err
-		}
+		return value{}, -1, err
 	}
-
-	return resValue, nil
 }
 
 func newKeyGeneralFromDTO(d DataHandlerDTO) keyGeneral {
@@ -445,13 +447,30 @@ func newResult(d DataHandlerDTO) *ProducerUnitStruct {
 	}
 }
 
-func (t *ProducerUnitStruct) Fullfill(d DataHandlerDTO, v value) {
+func (t *ProducerUnitStruct) updateProducerUnit(d DataHandlerDTO, v value, headerEndingIndex int) []byte {
 
 	t.Dh_FormName = v.h.formName
 
 	t.Dh_FileName = v.h.fileName
 
-	t.Dh_Body = d.Body()[len(v.h.headerBytes):]
+	if d.B() == 0 {
+
+		return make([]byte, 0)
+	}
+
+	// d.B() > 0
+
+	if headerEndingIndex > 0 {
+
+		t.Dh_Body = d.Body()[:headerEndingIndex]
+
+		return d.Body()[:headerEndingIndex]
+	} else {
+
+		t.Dh_Body = d.Body()
+
+		return d.Body()
+	}
 }
 
 // getHeaderLines returns header lines found in b
@@ -890,6 +909,39 @@ func getFoFi(b []byte) (string, string) {
 	}
 
 	return fo, fi
+}
+
+func getHeaderEndingIndex(body, header []byte) int {
+
+	if len(body) == 0 || len(header) == 0 {
+
+		return -1
+	}
+	i := 1
+
+	for i < len(body) {
+
+		logger.L.Infoln(string(body[:i]))
+
+		if !bytes.Contains(header, body[:i]) {
+
+			if i < 3 {
+
+				return -1
+
+			} else {
+
+				logger.L.Infoln(string(body[:i-1]))
+
+				return i - 1
+			}
+
+		}
+
+		i++
+	}
+
+	return -1
 }
 
 // completeValue completes given value based on dataPiece and boundary parameters.
