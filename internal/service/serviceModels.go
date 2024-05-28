@@ -1,8 +1,11 @@
 package service
 
 import (
+	"encoding/json"
+
 	"github.com/vynovikov/highLoadParser/internal/dataHandler"
 	"github.com/vynovikov/highLoadParser/internal/entities"
+	"github.com/vynovikov/highLoadParser/internal/logger"
 )
 
 type disposition int
@@ -243,12 +246,36 @@ type transferUnitStruct struct {
 	value []byte
 }
 
-func newTransferUnit(t dataHandler.ProducerUnit) *transferUnitStruct {
+func newTransferUnit(p dataHandler.ProducerUnit) []*transferUnitStruct {
 
-	return &transferUnitStruct{
-		key:   []byte("header"),
-		value: t.Body(),
+	res := make([]*transferUnitStruct, 0, 2)
+
+	headerMap := make(map[string]string)
+
+	headerMap["formName"] = p.FormName()
+
+	if len(p.FileName()) > 0 {
+
+		headerMap["fileName"] = p.FileName()
 	}
+
+	val, err := json.Marshal(headerMap)
+	if err != nil {
+
+		logger.L.Warn(err)
+	}
+
+	res = append(res, &transferUnitStruct{
+		key:   []byte("header"),
+		value: val,
+	})
+
+	res = append(res, &transferUnitStruct{
+		key:   []byte("body"),
+		value: p.Body(),
+	})
+
+	return res
 }
 
 func (t *transferUnitStruct) Key() []byte {

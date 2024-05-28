@@ -45,9 +45,10 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 			logger.L.Warn(err)
 		}
 
-		tsu := newTransferUnit(resTT)
+		tsus := newTransferUnit(resTT)
 
-		s.infrastructure.Send(tsu)
+		s.infrastructure.Send(tsus)
+
 
 	}
 
@@ -57,16 +58,12 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 
 		dhu := newDataHandlerUnit(serviceUnit)
 
-		resTT, err := s.infrastructure.Register(dhu, bou)
+		_, err := s.infrastructure.Register(dhu, bou)
 
 		if err != nil {
 
 			logger.L.Warn(err)
 		}
-
-		tsu := newTransferUnit(resTT)
-
-		s.infrastructure.Send(tsu)
 	}
 
 }

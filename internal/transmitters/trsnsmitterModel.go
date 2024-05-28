@@ -5,25 +5,25 @@ type TransferUnit interface {
 	Value() []byte
 }
 
-type transferUnitStruct struct {
+type TransferUnitStruct struct {
 	key   []byte
 	value []byte
 }
 
-func NewTransferUnitStruct(t TransferUnit) *transferUnitStruct {
+func NewTransferUnitStruct(t TransferUnit) *TransferUnitStruct {
 
-	return &transferUnitStruct{
+	return &TransferUnitStruct{
 		key:   t.Key(),
 		value: t.Value(),
 	}
 }
 
-func (t *transferUnitStruct) Key() []byte {
+func (t *TransferUnitStruct) Key() []byte {
 
 	return t.key
 }
 
-func (t *transferUnitStruct) Value() []byte {
+func (t *TransferUnitStruct) Value() []byte {
 
 	return t.value
 }
