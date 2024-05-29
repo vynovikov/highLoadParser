@@ -5,6 +5,7 @@ import (
 
 	"github.com/vynovikov/highLoadParser/internal/dataHandler"
 	"github.com/vynovikov/highLoadParser/internal/entities"
+	"github.com/vynovikov/highLoadParser/internal/infrastructure"
 	"github.com/vynovikov/highLoadParser/internal/logger"
 )
 
@@ -241,14 +242,19 @@ func (psu *parserServiceUnitStruct) IsSub() bool {
 	return psu.isSub
 }
 
+type TransferUnit interface {
+	Key() []byte
+	Value() []byte
+}
+
 type transferUnitStruct struct {
 	key   []byte
 	value []byte
 }
 
-func newTransferUnit(p dataHandler.ProducerUnit) []*transferUnitStruct {
+func newTransferUnit(p dataHandler.ProducerUnit) []infrastructure.TransferUnit {
 
-	res := make([]*transferUnitStruct, 0, 2)
+	res := make([]infrastructure.TransferUnit, 0, 2)
 
 	headerMap := make(map[string]string)
 
@@ -265,14 +271,14 @@ func newTransferUnit(p dataHandler.ProducerUnit) []*transferUnitStruct {
 		logger.L.Warn(err)
 	}
 
-	res = append(res, &transferUnitStruct{
-		key:   []byte("header"),
-		value: val,
+	res = append(res, &infrastructure.TransferUnitStruct{
+		I_key:   []byte("header"),
+		I_value: val,
 	})
 
-	res = append(res, &transferUnitStruct{
-		key:   []byte("body"),
-		value: p.Body(),
+	res = append(res, &infrastructure.TransferUnitStruct{
+		I_key:   []byte("body"),
+		I_value: p.Body(),
 	})
 
 	return res

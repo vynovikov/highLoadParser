@@ -149,6 +149,7 @@ type ProducerUnitStruct struct {
 	Dh_FormName string
 	Dh_FileName string
 	Dh_Body     []byte
+	Dh_Start    bool
 	Dh_End      bool
 	Dh_Final    bool
 	Dh_IsSub    bool

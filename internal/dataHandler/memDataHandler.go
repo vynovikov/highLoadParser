@@ -448,7 +448,6 @@ func newResult(d DataHandlerDTO) *ProducerUnitStruct {
 			Dh_IsSub: d.IsSub(),
 		}
 	}
-
 	return &ProducerUnitStruct{
 		Dh_TS:    d.TS(),
 		Dh_Part:  d.Part(),
@@ -459,29 +458,32 @@ func newResult(d DataHandlerDTO) *ProducerUnitStruct {
 	}
 }
 
-func (t *ProducerUnitStruct) updateProducerUnit(d DataHandlerDTO, v value, headerEndingIndex int) []byte {
+func (t *ProducerUnitStruct) updateProducerUnit(d DataHandlerDTO, v value, headerEndingIndex int) {
 
 	t.Dh_FormName = v.h.formName
 
 	t.Dh_FileName = v.h.fileName
-	/*
-		if d.B() == 0 {
 
-			return make([]byte, 0)
-		}
-	*/
-	// d.B() > 0
-
-	if headerEndingIndex > 0 {
+	if d.B() == 1 && headerEndingIndex > 0 {
 
 		t.Dh_Body = d.Body()[headerEndingIndex:]
 
-		return d.Body()[headerEndingIndex:]
-	} else {
+		t.Dh_Start = true
+
+	} else if d.B() == 1 {
 
 		t.Dh_Body = d.Body()
 
-		return d.Body()
+	} else if d.B() == 0 && len(v.h.formName) == 0 {
+
+		t.Dh_Body = make([]byte, 0)
+
+	} else if d.B() == 0 && len(v.h.formName) > 0 {
+
+		t.Dh_Body = d.Body()[headerEndingIndex:]
+
+		t.Dh_Start = true
+
 	}
 }
 

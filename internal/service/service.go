@@ -45,10 +45,9 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 			logger.L.Warn(err)
 		}
 
-		tsus := newTransferUnit(resTT)
+		tsus := append(make([]infrastructure.TransferUnit, 0), newTransferUnit(resTT)...)
 
 		s.infrastructure.Send(tsus)
-
 
 	}
 
