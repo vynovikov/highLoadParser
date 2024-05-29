@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"encoding/json"
 
 	"github.com/vynovikov/highLoadParser/internal/dataHandler"
 	"github.com/vynovikov/highLoadParser/internal/entities"
@@ -206,4 +207,39 @@ func (s *ParserServiceDTO) Evolve(start int) {
 		s.Evolve(idx + len(entities.Sep) + len(boundaryCore))
 
 	}
+}
+
+func newTransferUnit(p dataHandler.ProducerUnit) []infrastructure.TransferUnit {
+
+	res := make([]infrastructure.TransferUnit, 0, 2)
+
+	headerMap := make(map[string]string)
+
+	headerMap["formName"] = p.FormName()
+
+	if len(p.FileName()) > 0 {
+
+		headerMap["fileName"] = p.FileName()
+	}
+
+	val, err := json.Marshal(headerMap)
+	if err != nil {
+
+		logger.L.Warn(err)
+	}
+	if p.Start() {
+
+		res = append(res, &infrastructure.TransferUnitStruct{
+			I_key:   []byte("header"),
+			I_value: val,
+		})
+
+	}
+
+	res = append(res, &infrastructure.TransferUnitStruct{
+		I_key:   []byte("body"),
+		I_value: p.Body(),
+	})
+
+	return res
 }

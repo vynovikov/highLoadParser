@@ -138,6 +138,7 @@ type ProducerUnit interface {
 	FormName() string
 	FileName() string
 	Body() []byte
+	Start() bool
 	IsSub() bool
 	End() bool
 	Final() bool
@@ -177,6 +178,11 @@ func (t *ProducerUnitStruct) FileName() string {
 func (t *ProducerUnitStruct) Body() []byte {
 
 	return t.Dh_Body
+}
+
+func (t *ProducerUnitStruct) Start() bool {
+
+	return t.Dh_Start
 }
 
 func (t *ProducerUnitStruct) End() bool {
