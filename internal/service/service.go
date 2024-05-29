@@ -233,13 +233,20 @@ func newTransferUnit(p dataHandler.ProducerUnit) []infrastructure.TransferUnit {
 			I_key:   []byte("header"),
 			I_value: val,
 		})
-
 	}
 
 	res = append(res, &infrastructure.TransferUnitStruct{
 		I_key:   []byte("body"),
 		I_value: p.Body(),
 	})
+
+	if p.Final() { // TODO fix Final absense issue
+
+		res = append(res, &infrastructure.TransferUnitStruct{
+			I_key:   []byte("header"),
+			I_value: []byte("final"),
+		})
+	}
 
 	return res
 }

@@ -434,6 +434,35 @@ func (s *dataHandlerSuite) TestCreate() {
 				Dh_Final:    false,
 			},
 		},
+		// TODO: fix this tc && fix ordering
+		{
+			name: "10. Map has same key and same part, dto.B() == 0, dto.E() == 0, last",
+			initDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			dto: &DataHandlerUnit{Dh_ts: "qqq", Dh_part: 4, Dh_body: []byte("Content-Disposition: form-data; name=\"bob\"\r\n\r\nbzbzbzbzbz"), Dh_b: 0, Dh_e: 0, Dh_isSub: false, Dh_last: true},
+			bou: Boundary{Prefix: []byte("---------------"), Root: []byte("bRoot")},
+			wantedDataHandler: &memoryDataHandlerStruct{
+				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
+					{ts: "qqq"}: {},
+				},
+				Buffer: []DataHandlerDTO{},
+			},
+			wantedResult: &ProducerUnitStruct{
+				Dh_TS:       "qqq",
+				Dh_Part:     4,
+				Dh_FormName: "bob",
+				Dh_FileName: "",
+				Dh_Body:     []byte("bzbzbzbzbz"),
+				Dh_Start:    true,
+				Dh_IsSub:    false,
+				Dh_End:      true,
+				Dh_Final:    true,
+			},
+		},
 
 		{
 			name: "10. Map has same key and same part, isSub",
