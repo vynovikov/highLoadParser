@@ -192,7 +192,8 @@ func (s *serviceSuite) TestEvolve() {
 							Part: 0,
 							TS:   "qqq",
 							B:    1,
-							E:    3,
+							E:    0,
+							last: true,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -356,7 +357,8 @@ func (s *serviceSuite) TestEvolve() {
 							Part: 0,
 							TS:   "qqq",
 							B:    1,
-							E:    3,
+							E:    0,
+							last: true,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb"),
@@ -397,7 +399,8 @@ func (s *serviceSuite) TestEvolve() {
 							Part: 0,
 							TS:   "qqq",
 							B:    0,
-							E:    3,
+							E:    0,
+							last: true,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -536,7 +539,8 @@ func (s *serviceSuite) TestEvolve() {
 							Part: 0,
 							TS:   "qqq",
 							B:    0,
-							E:    3,
+							E:    0,
+							last: true,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -628,7 +632,8 @@ func (s *serviceSuite) TestEvolve() {
 							Part: 0,
 							TS:   "qqq",
 							B:    1,
-							E:    3,
+							E:    0,
+							last: true,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("a1234567890azazazazaazazazazaazazazazaazazazazaazazazazaazazazazaazazazaza"),
@@ -669,7 +674,8 @@ func (s *serviceSuite) TestEvolve() {
 							Part: 0,
 							TS:   "qqq",
 							B:    0,
-							E:    3,
+							E:    0,
+							last: true,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
@@ -699,7 +705,8 @@ func (s *serviceSuite) TestEvolve() {
 							Part: 0,
 							TS:   "qqq",
 							B:    1,
-							E:    3,
+							E:    0,
+							last: true,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("uffix" + entities.Sep),
@@ -729,7 +736,8 @@ func (s *serviceSuite) TestEvolve() {
 							Part: 1,
 							TS:   "qqq",
 							B:    1,
-							E:    3,
+							E:    0,
+							last: true,
 						},
 						PSB: ParserServiceBody{
 							B: []byte("ootbSuffix" + entities.Sep),

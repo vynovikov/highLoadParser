@@ -24,12 +24,13 @@ type ParserServiceHeader struct {
 	last bool
 }
 
-func NewParserServiceHeader(ts string, p int, b, e int) ParserServiceHeader {
+func NewParserServiceHeader(ts string, p int, b, e int, l bool) ParserServiceHeader {
 	return ParserServiceHeader{
 		Part: p,
 		TS:   ts,
 		B:    b,
 		E:    e,
+		last: l,
 	}
 }
 
