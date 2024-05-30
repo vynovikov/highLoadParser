@@ -222,6 +222,7 @@ func (s *ParserServiceDTO) Evolve(start int) {
 
 }
 
+// TODO fix manual test f1 case
 func newTransferUnit(p dataHandler.ProducerUnit) []infrastructure.TransferUnit {
 
 	res := make([]infrastructure.TransferUnit, 0, 2)
