@@ -101,7 +101,19 @@ func (s *ParserServiceDTO) Evolve(start int) {
 		return
 	}
 
-	if start == 0 {
+	if s.Part == 0 && bytes.Contains(b, []byte(entities.BoundaryField)) {
+
+		s.headerOmited = true
+
+		s.Evolve(bytes.Index(b, boundaryCore) + len(boundaryCore) + len(entities.Sep))
+
+		return
+	}
+
+	if (start != 0 && s.headerOmited) ||
+		(start == 0 && !s.headerOmited) {
+
+		s.headerOmited = false
 
 		be := make([]byte, 0)
 
@@ -207,6 +219,7 @@ func (s *ParserServiceDTO) Evolve(start int) {
 		s.Evolve(idx + len(entities.Sep) + len(boundaryCore))
 
 	}
+
 }
 
 func newTransferUnit(p dataHandler.ProducerUnit) []infrastructure.TransferUnit {

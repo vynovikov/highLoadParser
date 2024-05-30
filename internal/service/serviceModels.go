@@ -259,13 +259,14 @@ func (t *transferUnitStruct) Value() []byte {
 }
 
 type ParserServiceDTO struct {
-	Part int
-	TS   string
-	Body []byte
-	Bou  entities.Boundary
-	last bool
-	psus []*ParserServiceUnit
-	pssu *ParserServiceSub
+	Part         int
+	TS           string
+	Body         []byte
+	Bou          entities.Boundary
+	headerOmited bool
+	last         bool
+	psus         []*ParserServiceUnit
+	pssu         *ParserServiceSub
 }
 
 func newDataHandlerUnit(s ServiceDTO) *dataHandler.DataHandlerUnit {
