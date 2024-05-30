@@ -54,7 +54,10 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) (Produc
 
 		l1[kdet] = l2
 
-		m.Map[kgen] = l1
+		if !d.Last() {
+
+			m.Map[kgen] = l1
+		}
 
 		resTT.updateProducerUnit(d, val, len(val.h.headerBytes))
 
