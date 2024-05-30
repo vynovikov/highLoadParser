@@ -96,6 +96,8 @@ func (s *ParserServiceDTO) Evolve(start int) {
 
 		psu := NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, 1, 0), NewParserServiceBody(b))
 
+		psu.PSH.E = 3
+
 		s.psus = append(s.psus, &psu)
 
 		return
@@ -184,6 +186,10 @@ func (s *ParserServiceDTO) Evolve(start int) {
 
 				psu = NewParserServiceUnit(NewParserServiceHeader(s.TS, s.Part, 0, 2), NewParserServiceBody(b))
 			}
+		}
+
+		if s.last {
+			psu.PSH.E = 3
 		}
 
 		s.psus = append(s.psus, &psu)
