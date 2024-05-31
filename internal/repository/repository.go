@@ -40,7 +40,7 @@ func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou dataHand
 
 	case d.B() == 1:
 
-		_, err := r.dataHandler.Updade(d, bou)
+		resTT, err = r.dataHandler.Updade(d, bou)
 		if err != nil {
 
 			logger.L.Infof("in repository.Register unable to update %s %d: %v\n", d.TS(), d.Part(), err)

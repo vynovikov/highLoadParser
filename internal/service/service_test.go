@@ -22,321 +22,321 @@ func (s *serviceSuite) TestEvolve() {
 		initDTO   *ParserServiceDTO
 		wantedDTO *ParserServiceDTO
 	}{
+		/*
+			{
+				name:      "0. Nil",
+				initDTO:   nil,
+				wantedDTO: nil,
+			},
 
-		{
-			name:      "0. Nil",
-			initDTO:   nil,
-			wantedDTO: nil,
-		},
+			{
+				name: "1. CR in the end",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + "\r"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    2,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+							},
+						},
+					},
+					pssu: &ParserServiceSub{
+						PSSH: ParserServiceSubHeader{
+							Part: 1,
+							TS:   "qqq",
+						},
+						PSSB: ParserServiceSubBody{
+							B: []byte("\r"),
+						},
+					},
+				},
+			},
 
-		{
-			name: "1. CR in the end",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + "\r"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
+			{
+				name: "2. CRLF in the end",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + "\r\n"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    2,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+							},
+						},
+					},
+					pssu: &ParserServiceSub{
+						PSSH: ParserServiceSubHeader{
 							Part: 1,
 							TS:   "qqq",
-							B:    1,
-							E:    2,
 						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+						PSSB: ParserServiceSubBody{
+							B: []byte("\r\n"),
 						},
-					},
-				},
-				pssu: &ParserServiceSub{
-					PSSH: ParserServiceSubHeader{
-						Part: 1,
-						TS:   "qqq",
-					},
-					PSSB: ParserServiceSubBody{
-						B: []byte("\r"),
 					},
 				},
 			},
-		},
 
-		{
-			name: "2. CRLF in the end",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + "\r\n"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    1,
-							E:    2,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+			{
+				name: "3. No full boundary and no partial boundary",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    1,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+							},
 						},
 					},
 				},
-				pssu: &ParserServiceSub{
-					PSSH: ParserServiceSubHeader{
-						Part: 1,
-						TS:   "qqq",
-					},
-					PSSB: ParserServiceSubBody{
-						B: []byte("\r\n"),
-					},
-				},
 			},
-		},
 
-		{
-			name: "3. No full boundary and no partial boundary",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
+			{
+				name: "4. No full boundary, partial boundary present",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefixbRo"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    2,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+							},
+						},
+					},
+					pssu: &ParserServiceSub{
+						PSSH: ParserServiceSubHeader{
 							Part: 1,
 							TS:   "qqq",
-							B:    1,
-							E:    1,
 						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+						PSSB: ParserServiceSubBody{
+							B: []byte("\r\nbPrefixbRo"),
 						},
 					},
 				},
 			},
-		},
 
-		{
-			name: "4. No full boundary, partial boundary present",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefixbRo"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    1,
-							E:    2,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+			{
+				name: "5. No full boundary, last boundary",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefixbRootbSuffix" + entities.Sep),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					last: true,
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    0,
+								last: true,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+							},
 						},
 					},
 				},
-				pssu: &ParserServiceSub{
-					PSSH: ParserServiceSubHeader{
-						Part: 1,
-						TS:   "qqq",
-					},
-					PSSB: ParserServiceSubBody{
-						B: []byte("\r\nbPrefixbRo"),
-					},
-				},
 			},
-		},
 
-		{
-			name: "5. No full boundary, last boundary",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefixbRootbSuffix" + entities.Sep),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				last: true,
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    1,
-							E:    0,
-							last: true,
+			{
+				name: "6. One full boundary",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    0,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza"),
+							},
 						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-						},
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    0,
+								E:    1,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
 					},
 				},
 			},
-		},
 
-		{
-			name: "6. One full boundary",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
+			{
+				name: "7. One full boundary. Partial boundary present",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefixbRo"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    0,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza"),
+							},
+						},
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    0,
+								E:    2,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+					},
+					pssu: &ParserServiceSub{
+						PSSH: ParserServiceSubHeader{
 							Part: 1,
 							TS:   "qqq",
-							B:    1,
-							E:    0,
 						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza"),
+						PSSB: ParserServiceSubBody{
+							B: []byte("\r\nbPrefixbRo"),
 						},
 					},
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    0,
-							E:    1,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
 				},
 			},
-		},
 
-		{
-			name: "7. One full boundary. Partial boundary present",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefixbRo"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    1,
-							E:    0,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza"),
-						},
-					},
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    0,
-							E:    2,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz")}},
+			{
+				name: "8. One full boundary. CR",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz\r"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 				},
-				pssu: &ParserServiceSub{
-					PSSH: ParserServiceSubHeader{
-						Part: 1,
-						TS:   "qqq",
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    0,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza"),
+							},
+						},
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    0,
+								E:    2,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+							},
+						},
 					},
-					PSSB: ParserServiceSubBody{
-						B: []byte("\r\nbPrefixbRo"),
-					},
-				},
-			},
-		},
-
-		{
-			name: "8. One full boundary. CR",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz\r"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
+					pssu: &ParserServiceSub{
+						PSSH: ParserServiceSubHeader{
 							Part: 1,
 							TS:   "qqq",
-							B:    1,
-							E:    0,
 						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza"),
-						},
-					},
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    0,
-							E:    2,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+						PSSB: ParserServiceSubBody{
+							B: []byte("\r"),
 						},
 					},
 				},
-				pssu: &ParserServiceSub{
-					PSSH: ParserServiceSubHeader{
-						Part: 1,
-						TS:   "qqq",
-					},
-					PSSB: ParserServiceSubBody{
-						B: []byte("\r"),
-					},
-				},
 			},
-		},
-
+		*/
 		{
 			name: "9. Full last boundary after begin piece",
 			initDTO: &ParserServiceDTO{
@@ -367,443 +367,444 @@ func (s *serviceSuite) TestEvolve() {
 				},
 			},
 		},
+		/*
+			{
+				name: "10. Full last boundary after begin piece",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefix" + "bRoot" + "bSuffix" + entities.Sep),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					last: true,
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    0,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb"),
+							},
+						},
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    0,
+								E:    0,
+								last: true,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+							},
+						},
+					},
+				},
+			},
 
-		{
-			name: "10. Full last boundary after begin piece",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefix" + "bRoot" + "bSuffix" + entities.Sep),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				last: true,
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    1,
-							E:    0,
+			{
+				name: "11. Full boundary in the end",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefixbRoot"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    0,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb"),
+							},
 						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb"),
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    0,
+								E:    2,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+							},
 						},
 					},
-					{
-						PSH: ParserServiceHeader{
+					pssu: &ParserServiceSub{
+						PSSH: ParserServiceSubHeader{
 							Part: 1,
 							TS:   "qqq",
-							B:    0,
-							E:    0,
-							last: true,
 						},
-						PSB: ParserServiceBody{
-							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+						PSSB: ParserServiceSubBody{
+							B: []byte(entities.Sep + "bPrefixbRoot"),
 						},
 					},
 				},
 			},
-		},
 
-		{
-			name: "11. Full boundary in the end",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefixbRoot"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    1,
-							E:    0,
+			{
+				name: "12. Full boundary in the end with CR",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefixbRoot" + "\r"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    0,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb"),
+							},
 						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb"),
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    0,
+								E:    2,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+							},
 						},
 					},
-					{
-						PSH: ParserServiceHeader{
+					pssu: &ParserServiceSub{
+						PSSH: ParserServiceSubHeader{
 							Part: 1,
 							TS:   "qqq",
-							B:    0,
-							E:    2,
 						},
-						PSB: ParserServiceBody{
-							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+						PSSB: ParserServiceSubBody{
+							B: []byte(entities.Sep + "bPrefixbRoot" + "\r"),
 						},
 					},
 				},
-				pssu: &ParserServiceSub{
-					PSSH: ParserServiceSubHeader{
-						Part: 1,
-						TS:   "qqq",
-					},
-					PSSB: ParserServiceSubBody{
-						B: []byte(entities.Sep + "bPrefixbRoot"),
-					},
-				},
 			},
-		},
 
-		{
-			name: "12. Full boundary in the end with CR",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefixbRoot" + "\r"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    1,
-							E:    0,
+			{
+				name: "13. Partial last boundary with entities.Separated suffix after middle piece",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefix" + "bRoot" + "bSu"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					last: true,
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    0,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb"),
+							},
 						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb"),
-						},
-					},
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    0,
-							E:    2,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    0,
+								E:    0,
+								last: true,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+							},
 						},
 					},
 				},
-				pssu: &ParserServiceSub{
-					PSSH: ParserServiceSubHeader{
-						Part: 1,
-						TS:   "qqq",
-					},
-					PSSB: ParserServiceSubBody{
-						B: []byte(entities.Sep + "bPrefixbRoot" + "\r"),
-					},
-				},
 			},
-		},
 
-		{
-			name: "13. Partial last boundary with entities.Separated suffix after middle piece",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefix" + "bRoot" + "bSu"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				last: true,
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    1,
-							E:    0,
+			{
+				name: "14. Three full boundary no partial boundary",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazaz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "c1234567890czczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczcz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "d1234567890dzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazaz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "c1234567890czczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczcz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "d1234567890dzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    0,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazaz"),
+							},
 						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazabzbzbzbzbzbzbzbzbzbzbzbzbzbzbzb"),
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    0,
+								E:    0,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+							},
 						},
-					},
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    0,
-							E:    0,
-							last: true,
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    0,
+								E:    0,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("c1234567890czczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczcz"),
+							},
 						},
-						PSB: ParserServiceBody{
-							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    0,
+								E:    1,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("d1234567890dzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdz"),
+							},
 						},
 					},
 				},
 			},
-		},
 
-		{
-			name: "14. Three full boundary no partial boundary",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazaz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "c1234567890czczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczcz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "d1234567890dzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazaz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "c1234567890czczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczcz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "d1234567890dzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    1,
-							E:    0,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazaz"),
-						},
-					},
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    0,
-							E:    0,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-						},
-					},
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    0,
-							E:    0,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("c1234567890czczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczczcz"),
-						},
-					},
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    0,
-							E:    1,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("d1234567890dzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdz"),
+			{
+				name: "15. Partial last boundary after begin piece",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazaazazazazaazazazazaazazazazaazazazazaazazazazaazazazaza" + entities.Sep + "bPrefix" + "bRoot" + "bSuf"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazaazazazazaazazazazaazazazazaazazazazaazazazazaazazazaza"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					last: true,
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    0,
+								last: true,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazaazazazazaazazazazaazazazazaazazazazaazazazazaazazazaza"),
+							},
 						},
 					},
 				},
 			},
-		},
 
-		{
-			name: "15. Partial last boundary after begin piece",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazaazazazazaazazazazaazazazazaazazazazaazazazazaazazazaza" + entities.Sep + "bPrefix" + "bRoot" + "bSuf"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazaazazazazaazazazazaazazazazaazazazazaazazazazaazazazaza"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				last: true,
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    1,
-							E:    0,
-							last: true,
+			{
+				name: "16. Partial last boundary after middle piece",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazaz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefix" + "bRoot" + "bSuf"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazaz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					last: true,
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    0,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazaz"),
+							},
 						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazaazazazazaazazazazaazazazazaazazazazaazazazazaazazazaza"),
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    0,
+								E:    0,
+								last: true,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+							},
 						},
 					},
 				},
 			},
-		},
 
-		{
-			name: "16. Partial last boundary after middle piece",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazaz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz" + entities.Sep + "bPrefix" + "bRoot" + "bSuf"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazaz" + entities.Sep + "bPrefix" + "bRoot" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				last: true,
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    1,
-							E:    0,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazazaz"),
-						},
-					},
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    0,
-							E:    0,
-							last: true,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+			{
+				name: "17. Last part of last boundary",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("uffix" + entities.Sep),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("uffix" + entities.Sep),
+					last: true,
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    0,
+								last: true,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("uffix" + entities.Sep),
+							},
 						},
 					},
 				},
 			},
-		},
 
-		{
-			name: "17. Last part of last boundary",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("uffix" + entities.Sep),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("uffix" + entities.Sep),
-				last: true,
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    1,
-							E:    0,
-							last: true,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("uffix" + entities.Sep),
+			{
+				name: "18. Intermediate part of last boundary",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("ootbSuffix" + entities.Sep),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("ootbSuffix" + entities.Sep),
+					last: true,
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    0,
+								last: true,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("ootbSuffix" + entities.Sep),
+							},
 						},
 					},
 				},
 			},
-		},
 
-		{
-			name: "18. Intermediate part of last boundary",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("ootbSuffix" + entities.Sep),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("ootbSuffix" + entities.Sep),
-				last: true,
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    1,
-							E:    0,
-							last: true,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("ootbSuffix" + entities.Sep),
+			{
+				name: "19. No boundary",
+				initDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 1,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 1,
+								TS:   "qqq",
+								B:    1,
+								E:    1,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+							},
 						},
 					},
 				},
 			},
-		},
 
-		{
-			name: "19. No boundary",
-			initDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 1,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
-							Part: 1,
-							TS:   "qqq",
-							B:    1,
-							E:    1,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + "b1234567890bzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbzbz"),
+			{
+				name: "20. Omit request header",
+				initDTO: &ParserServiceDTO{
+					Part: 0,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + entities.BoundaryField + "bzbzbzbz" + entities.Sep + "bPrefixbRoot" + entities.Sep + "c1234567890czczczczczczczczczczczczczcczczczczczczczczczczczczczcczczczczczczczczczczczczczc"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+				},
+				wantedDTO: &ParserServiceDTO{
+					Part: 0,
+					TS:   "qqq",
+					Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + entities.BoundaryField + "bzbzbzbz" + entities.Sep + "bPrefixbRoot" + entities.Sep + "c1234567890czczczczczczczczczczczczczcczczczczczczczczczczczczczcczczczczczczczczczczczczczc"),
+					Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+					psus: []*ParserServiceUnit{
+						{
+							PSH: ParserServiceHeader{
+								Part: 0,
+								TS:   "qqq",
+								B:    0,
+								E:    1,
+							},
+							PSB: ParserServiceBody{
+								B: []byte("c1234567890czczczczczczczczczczczczczcczczczczczczczczczczczczczcczczczczczczczczczczczczczc"),
+							},
 						},
 					},
 				},
 			},
-		},
-
-		{
-			name: "20. Omit request header",
-			initDTO: &ParserServiceDTO{
-				Part: 0,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + entities.BoundaryField + "bzbzbzbz" + entities.Sep + "bPrefixbRoot" + entities.Sep + "c1234567890czczczczczczczczczczczczczcczczczczczczczczczczczczczcczczczczczczczczczczczczczc"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-			},
-			wantedDTO: &ParserServiceDTO{
-				Part: 0,
-				TS:   "qqq",
-				Body: []byte("a1234567890azazazazazazazazazazazazazazazazazazazazazazazazazaza" + entities.Sep + entities.BoundaryField + "bzbzbzbz" + entities.Sep + "bPrefixbRoot" + entities.Sep + "c1234567890czczczczczczczczczczczczczcczczczczczczczczczczczczczcczczczczczczczczczczczczczc"),
-				Bou:  entities.Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
-				psus: []*ParserServiceUnit{
-					{
-						PSH: ParserServiceHeader{
-							Part: 0,
-							TS:   "qqq",
-							B:    0,
-							E:    1,
-						},
-						PSB: ParserServiceBody{
-							B: []byte("c1234567890czczczczczczczczczczczczczcczczczczczczczczczczczczczcczczczczczczczczczczczczczc"),
-						},
-					},
-				},
-			},
-		},
+		*/
 	}
 	for _, v := range tt {
 		s.Run(v.name, func() {

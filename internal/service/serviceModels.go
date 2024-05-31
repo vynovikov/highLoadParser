@@ -226,7 +226,7 @@ func (psu *parserServiceUnitStruct) B() int {
 
 func (psu *parserServiceUnitStruct) E() int {
 
-	return psu.b
+	return psu.e
 }
 
 func (psu *parserServiceUnitStruct) Last() bool {
