@@ -36,12 +36,11 @@ func (t *transmittersStruct) TransmitToSaver(units []TransferUnit) error {
 
 	for _, v := range units {
 
-		//logger.L.Infof("in transmitter.TransmitToParser sending unit key: %s, value: %s\n", string(v.Key()), string(v.Value()))
-
 		t.saverKafkaWriter.WriteMessages(context.Background(), kafka.Message{
 			Key:   v.Key(),
 			Value: v.Value(),
 		})
+
 	}
 
 	return nil

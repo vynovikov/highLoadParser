@@ -2,13 +2,14 @@ package service
 
 import (
 	"bytes"
-	"encoding/json"
 
 	"github.com/vynovikov/highLoadParser/internal/dataHandler"
 	"github.com/vynovikov/highLoadParser/internal/entities"
 	"github.com/vynovikov/highLoadParser/internal/infrastructure"
 	"github.com/vynovikov/highLoadParser/internal/logger"
+	"github.com/vynovikov/highLoadParser/internal/service/pb"
 	"github.com/vynovikov/highLoadParser/pkg/byteOps"
+	"google.golang.org/protobuf/proto"
 )
 
 type ParcerService interface {
@@ -222,25 +223,22 @@ func (s *ParserServiceDTO) Evolve(start int) {
 
 }
 
-// TODO fix manual test f1 case
 func newTransferUnit(p dataHandler.ProducerUnit) []infrastructure.TransferUnit {
 
 	res := make([]infrastructure.TransferUnit, 0, 2)
 
-	headerMap := make(map[string]string)
-
-	headerMap["formName"] = p.FormName()
-
-	if len(p.FileName()) > 0 {
-
-		headerMap["fileName"] = p.FileName()
-	}
-
-	val, err := json.Marshal(headerMap)
+	val, err := proto.Marshal(&pb.MessageHeader{
+		Ts:       p.TS(),
+		FormName: p.FormName(),
+		FileName: p.FileName(),
+	})
 	if err != nil {
 
 		logger.L.Warn(err)
 	}
+
+	logger.L.Infoln(string(val))
+
 	if p.Start() {
 
 		res = append(res, &infrastructure.TransferUnitStruct{
