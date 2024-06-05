@@ -35,6 +35,7 @@ func (t *transmittersStruct) TransmitToLogger(TransferUnit) error {
 	return nil
 }
 
+// TODO: Create encoding dependency
 func (t *transmittersStruct) TransmitToSaver(unit TransferUnit) error {
 
 	protoKey := &pb.MessageHeader{
