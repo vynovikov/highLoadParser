@@ -7,9 +7,7 @@ import (
 	"github.com/vynovikov/highLoadParser/internal/entities"
 	"github.com/vynovikov/highLoadParser/internal/infrastructure"
 	"github.com/vynovikov/highLoadParser/internal/logger"
-	"github.com/vynovikov/highLoadParser/internal/service/pb"
 	"github.com/vynovikov/highLoadParser/pkg/byteOps"
-	"google.golang.org/protobuf/proto"
 )
 
 type ParcerService interface {
@@ -47,9 +45,9 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 			logger.L.Warn(err)
 		}
 
-		tsus := append(make([]infrastructure.TransferUnit, 0), newTransferUnit(resTT)...)
+		tsu := newTransferUnit(resTT)
 
-		s.infrastructure.Send(tsus)
+		s.infrastructure.Send(tsu)
 
 	}
 
@@ -223,42 +221,7 @@ func (s *ParserServiceDTO) Evolve(start int) {
 
 }
 
-func newTransferUnit(p dataHandler.ProducerUnit) []infrastructure.TransferUnit {
+func newTransferUnit(p dataHandler.ProducerUnit) transferUnitStruct {
 
-	res := make([]infrastructure.TransferUnit, 0, 2)
-
-	val, err := proto.Marshal(&pb.MessageHeader{
-		Ts:       p.TS(),
-		FormName: p.FormName(),
-		FileName: p.FileName(),
-	})
-	if err != nil {
-
-		logger.L.Warn(err)
-	}
-
-	logger.L.Infoln(string(val))
-
-	if p.Start() {
-
-		res = append(res, &infrastructure.TransferUnitStruct{
-			I_key:   []byte("header"),
-			I_value: val,
-		})
-	}
-
-	res = append(res, &infrastructure.TransferUnitStruct{
-		I_key:   []byte("body"),
-		I_value: p.Body(),
-	})
-
-	if p.Final() { // TODO fix Final absense issue
-
-		res = append(res, &infrastructure.TransferUnitStruct{
-			I_key:   []byte("header"),
-			I_value: []byte("final"),
-		})
-	}
-
-	return res
+	return transferUnitStruct{}
 }

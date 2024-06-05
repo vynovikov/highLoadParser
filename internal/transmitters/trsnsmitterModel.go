@@ -27,3 +27,6 @@ func (t *TransferUnitStruct) Value() []byte {
 
 	return t.value
 }
+
+type ProducerUnit interface {
+}

@@ -7,7 +7,7 @@ import (
 )
 
 type ParserTransmitter interface {
-	TransmitToSaver([]TransferUnit) error
+	TransmitToSaver(ProducerUnit) error
 	TransmitToLogger(TransferUnit) error
 }
 
@@ -32,16 +32,12 @@ func (t *transmittersStruct) TransmitToLogger(TransferUnit) error {
 	return nil
 }
 
-func (t *transmittersStruct) TransmitToSaver(units []TransferUnit) error {
+func (t *transmittersStruct) TransmitToSaver(unit ProducerUnit) error {
 
-	for _, v := range units {
-
-		t.saverKafkaWriter.WriteMessages(context.Background(), kafka.Message{
-			Key:   v.Key(),
-			Value: v.Value(),
-		})
-
-	}
+	t.saverKafkaWriter.WriteMessages(context.Background(), kafka.Message{
+		Key:   unit.Key(),
+		Value: unit.Value(),
+	})
 
 	return nil
 }

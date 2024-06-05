@@ -239,25 +239,27 @@ func (psu *parserServiceUnitStruct) IsSub() bool {
 	return psu.isSub
 }
 
-type TransferUnit interface {
-	Key() []byte
-	Value() []byte
-}
+/*
+	type TransferUnit interface {
+		Key() []byte
+		Value() []byte
+	}
 
-type transferUnitStruct struct {
-	key   []byte
-	value []byte
-}
+	type transferUnitStruct struct {
+		key   []byte
+		value []byte
+	}
 
-func (t *transferUnitStruct) Key() []byte {
+func (t transferUnitStruct) Key() []byte {
 
-	return t.key
-}
-func (t *transferUnitStruct) Value() []byte {
+		return t.key
+	}
 
-	return t.value
-}
+func (t transferUnitStruct) Value() []byte {
 
+		return t.value
+	}
+*/
 type ParserServiceDTO struct {
 	Part         int
 	TS           string
@@ -280,4 +282,72 @@ func newDataHandlerUnit(s ServiceDTO) *dataHandler.DataHandlerUnit {
 		Dh_isSub: s.IsSub(),
 		Dh_last:  s.Last(),
 	}
+}
+
+type TransferUnit interface {
+	TS() string
+	Part() int
+	FormName() string
+	FileName() string
+	Body() []byte
+	Start() bool
+	IsSub() bool
+	End() bool
+	Final() bool
+}
+
+type transferUnitStruct struct {
+	ts       string
+	part     int
+	formName string
+	fileName string
+	body     []byte
+	start    bool
+	end      bool
+	final    bool
+	isSub    bool
+}
+
+func (t transferUnitStruct) TS() string {
+
+	return t.ts
+}
+func (t transferUnitStruct) Part() int {
+
+	return t.part
+}
+
+func (t transferUnitStruct) FormName() string {
+
+	return t.formName
+}
+
+func (t transferUnitStruct) FileName() string {
+
+	return t.fileName
+}
+
+func (t transferUnitStruct) Body() []byte {
+
+	return t.body
+}
+
+func (t transferUnitStruct) Start() bool {
+
+	return t.start
+}
+
+func (t transferUnitStruct) End() bool {
+
+	return t.end
+}
+
+func (t transferUnitStruct) Final() bool {
+
+	return t.final
+}
+
+func (t transferUnitStruct) IsSub() bool {
+
+	return t.isSub
 }

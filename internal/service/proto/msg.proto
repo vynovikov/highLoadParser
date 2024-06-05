@@ -6,9 +6,10 @@ message MessageHeader{
     string ts = 1;
     string form_name = 2;
     string file_name = 3;
+    bool first =4;
 }
 
 message MessageBody{
-    bytes field_value = 1;
+    bytes body = 1;
     bool last = 2;
 }
