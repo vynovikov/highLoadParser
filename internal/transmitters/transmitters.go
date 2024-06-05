@@ -4,10 +4,13 @@ import (
 	"context"
 
 	"github.com/segmentio/kafka-go"
+	"github.com/vynovikov/highLoadParser/internal/logger"
+	"github.com/vynovikov/highLoadParser/internal/service/pb"
+	"google.golang.org/protobuf/proto"
 )
 
 type ParserTransmitter interface {
-	TransmitToSaver(ProducerUnit) error
+	TransmitToSaver(TransferUnit) error
 	TransmitToLogger(TransferUnit) error
 }
 
@@ -32,11 +35,35 @@ func (t *transmittersStruct) TransmitToLogger(TransferUnit) error {
 	return nil
 }
 
-func (t *transmittersStruct) TransmitToSaver(unit ProducerUnit) error {
+func (t *transmittersStruct) TransmitToSaver(unit TransferUnit) error {
+
+	protoKey := &pb.MessageHeader{
+		Ts:       unit.TS(),
+		FormName: unit.FormName(),
+		FileName: unit.FileName(),
+		First:    unit.Start(),
+	}
+
+	protoValue := &pb.MessageBody{
+		Body: unit.Body(),
+		Last: unit.End(),
+	}
+
+	marshalledKey, err := proto.Marshal(protoKey)
+	if err != nil {
+
+		logger.L.Warn(err)
+	}
+
+	marshalledValue, err := proto.Marshal(protoValue)
+	if err != nil {
+
+		logger.L.Warn(err)
+	}
 
 	t.saverKafkaWriter.WriteMessages(context.Background(), kafka.Message{
-		Key:   unit.Key(),
-		Value: unit.Value(),
+		Key:   marshalledKey,
+		Value: marshalledValue,
 	})
 
 	return nil

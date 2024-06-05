@@ -223,5 +223,14 @@ func (s *ParserServiceDTO) Evolve(start int) {
 
 func newTransferUnit(p dataHandler.ProducerUnit) transferUnitStruct {
 
-	return transferUnitStruct{}
+	return transferUnitStruct{
+		ts:       p.TS(),
+		formName: p.FormName(),
+		fileName: p.FileName(),
+		body:     p.Body(),
+		start:    p.Start(),
+		end:      p.End(),
+		final:    p.Final(),
+		isSub:    p.IsSub(),
+	}
 }
