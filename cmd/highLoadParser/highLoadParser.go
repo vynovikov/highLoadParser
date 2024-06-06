@@ -9,6 +9,7 @@ import (
 
 	"github.com/vynovikov/highLoadParser/internal/controllers"
 	"github.com/vynovikov/highLoadParser/internal/dataHandler"
+	"github.com/vynovikov/highLoadParser/internal/encoder"
 	"github.com/vynovikov/highLoadParser/internal/infrastructure"
 	"github.com/vynovikov/highLoadParser/internal/repository"
 	"github.com/vynovikov/highLoadParser/internal/routers/tp"
@@ -24,7 +25,8 @@ func main() {
 
 	dh := dataHandler.NewMemoryDataHandler()
 	repo := repository.NewParserRepository(dh)
-	trans := transmitters.NewTransmitter()
+	enc := encoder.NewProtobufEncoder()
+	trans := transmitters.NewTransmitter(enc)
 	inf := infrastructure.NewInfraStructure(repo, trans)
 	srv := service.NewParserService(inf)
 	ctr := controllers.NewController(srv)

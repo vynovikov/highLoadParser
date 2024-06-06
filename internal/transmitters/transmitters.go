@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/segmentio/kafka-go"
+	"github.com/vynovikov/highLoadParser/internal/encoder"
 	"github.com/vynovikov/highLoadParser/internal/logger"
 	"github.com/vynovikov/highLoadParser/internal/service/pb"
 	"google.golang.org/protobuf/proto"
@@ -16,9 +17,10 @@ type ParserTransmitter interface {
 
 type transmittersStruct struct {
 	saverKafkaWriter *kafka.Writer
+	encoder          encoder.Encoder
 }
 
-func NewTransmitter() *transmittersStruct {
+func NewTransmitter(e encoder.Encoder) *transmittersStruct {
 
 	return &transmittersStruct{
 
@@ -27,6 +29,7 @@ func NewTransmitter() *transmittersStruct {
 			Topic:    "topic1",
 			Balancer: &kafka.RoundRobin{},
 		}),
+		encoder: e,
 	}
 }
 
