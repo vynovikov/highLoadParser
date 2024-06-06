@@ -5,9 +5,6 @@ import (
 
 	"github.com/segmentio/kafka-go"
 	"github.com/vynovikov/highLoadParser/internal/encoder"
-	"github.com/vynovikov/highLoadParser/internal/logger"
-	"github.com/vynovikov/highLoadParser/internal/service/pb"
-	"google.golang.org/protobuf/proto"
 )
 
 type ParserTransmitter interface {
@@ -20,7 +17,7 @@ type transmittersStruct struct {
 	encoder          encoder.Encoder
 }
 
-func NewTransmitter(e encoder.Encoder) *transmittersStruct {
+func NewTransmitter(enc encoder.Encoder) *transmittersStruct {
 
 	return &transmittersStruct{
 
@@ -29,7 +26,7 @@ func NewTransmitter(e encoder.Encoder) *transmittersStruct {
 			Topic:    "topic1",
 			Balancer: &kafka.RoundRobin{},
 		}),
-		encoder: e,
+		encoder: enc,
 	}
 }
 
@@ -38,36 +35,14 @@ func (t *transmittersStruct) TransmitToLogger(TransferUnit) error {
 	return nil
 }
 
-// TODO: Create encoding dependency
 func (t *transmittersStruct) TransmitToSaver(unit TransferUnit) error {
 
-	protoKey := &pb.MessageHeader{
-		Ts:       unit.TS(),
-		FormName: unit.FormName(),
-		FileName: unit.FileName(),
-		First:    unit.Start(),
-	}
-
-	protoValue := &pb.MessageBody{
-		Body: unit.Body(),
-		Last: unit.End(),
-	}
-
-	marshalledKey, err := proto.Marshal(protoKey)
-	if err != nil {
-
-		logger.L.Warn(err)
-	}
-
-	marshalledValue, err := proto.Marshal(protoValue)
-	if err != nil {
-
-		logger.L.Warn(err)
-	}
+	encodedKey := t.encoder.EncodeKey(unit)
+	encodedValue := t.encoder.EncodeValue(unit)
 
 	t.saverKafkaWriter.WriteMessages(context.Background(), kafka.Message{
-		Key:   marshalledKey,
-		Value: marshalledValue,
+		Key:   encodedKey,
+		Value: encodedValue,
 	})
 
 	return nil
