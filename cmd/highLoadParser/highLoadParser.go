@@ -25,7 +25,7 @@ func main() {
 
 	dh := dataHandler.NewMemoryDataHandler()
 	repo := repository.NewParserRepository(dh)
-	enc := encoder.NewJSONEncoder()
+	enc := encoder.NewProtobufEncoder()
 	trans := transmitters.NewTransmitter(enc)
 	inf := infrastructure.NewInfraStructure(repo, trans)
 	srv := service.NewParserService(inf)

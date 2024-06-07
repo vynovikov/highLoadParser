@@ -1,0 +1,7 @@
+.git
+.vscode
+.gitignore
+.dockerignore
+forKubernetes
+forManual
+cmd/highloadParser/highloadParser_test.go
