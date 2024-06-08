@@ -2,9 +2,11 @@ package transmitters
 
 import (
 	"context"
+	"os"
 
 	"github.com/segmentio/kafka-go"
 	"github.com/vynovikov/highLoadParser/internal/encoder"
+	"github.com/vynovikov/highLoadParser/internal/logger"
 )
 
 type ParserTransmitter interface {
@@ -19,11 +21,16 @@ type transmittersStruct struct {
 
 func NewTransmitter(enc encoder.Encoder) *transmittersStruct {
 
+	broker := os.Getenv("KAFKA_ADDR")
+	topic := os.Getenv("KAFKA_TOPIC")
+
+	logger.L.Infof("in transmitters.NewTransmitter broker: %s, topic: %s\n", broker, topic)
+
 	return &transmittersStruct{
 
 		saverKafkaWriter: kafka.NewWriter(kafka.WriterConfig{
-			Brokers:  []string{"localhost:29092"},
-			Topic:    "topic1",
+			Brokers:  []string{broker},
+			Topic:    topic,
 			Balancer: &kafka.RoundRobin{},
 		}),
 		encoder: enc,
