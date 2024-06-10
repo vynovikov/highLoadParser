@@ -3,6 +3,7 @@ package transmitters
 import (
 	"context"
 	"net"
+	"os"
 	"time"
 
 	"github.com/segmentio/kafka-go"
@@ -17,34 +18,26 @@ type ParserTransmitter interface {
 
 func NewTransmitter(enc encoder.Encoder) *transmittersStruct {
 
-	//kafkaAddr := os.Getenv("KAFKA_ADDR")
-	kafkaAddr := "localhost"
-	//kafkaPort := os.Getenv("KAFKA_PORT")
-	kafkaPort := "29092"
-
-	dialURI := net.JoinHostPort(kafkaAddr, kafkaPort)
-
-	//kafkaTopic := os.Getenv("KAFKA_TOPIC")
-	kafkaTopic := "topic1"
-
-	logger.L.Infof("in transmitters.NewTransmitter dialURI: %s, topic: %s\n", dialURI, kafkaTopic)
-
 	var (
 		conn       *kafka.Conn
 		err        error
 		partitions []kafka.Partition
 	)
 
-	for i := 0; i < 5; i++ {
+	kafkaAddr := os.Getenv("KAFKA_ADDR")
+	kafkaPort := os.Getenv("KAFKA_PORT")
+	kafkaTopic := os.Getenv("KAFKA_TOPIC")
 
-		logger.L.Infof("in transmitters.NewTransmitter %d attempt to connect to %s %s", i, "tcp", dialURI)
+	dialURI := net.JoinHostPort(kafkaAddr, kafkaPort)
+
+	for i := 0; i < 5; i++ {
 
 		conn, err = kafka.Dial("tcp", dialURI)
 		if err != nil {
 
 			logger.L.Errorf("in rpc.NewReceiver cannot dial: %v. Trying again\n", err)
 
-			time.Sleep(time.Second * 5)
+			time.Sleep(time.Second * 10)
 
 			continue
 		}
@@ -53,9 +46,7 @@ func NewTransmitter(enc encoder.Encoder) *transmittersStruct {
 
 		if err != nil {
 
-			logger.L.Errorf("in transmitters.NewTransmitter error reading partitions %v. Trying again", err)
-
-			time.Sleep(time.Second * 5)
+			time.Sleep(time.Second * 10)
 
 			continue
 
@@ -65,27 +56,17 @@ func NewTransmitter(enc encoder.Encoder) *transmittersStruct {
 
 			if p.Topic == kafkaTopic {
 
-				logger.L.Infof("in rpc.NewReceiver topic %s is found\n", kafkaTopic)
-
-				wc := kafka.WriterConfig{
-					Brokers:  []string{dialURI},
-					Topic:    kafkaTopic,
-					Balancer: &kafka.RoundRobin{},
-				}
-
-				logger.L.Infof("in rpc.NewReceiver writerConfig %v\n", wc)
-
-				kw := kafka.NewWriter(wc)
-
-				logger.L.Infof("in rpc.NewReceiver kafkaWriter %v\n", kw)
-
 				ts := &transmittersStruct{
 
-					saverKafkaWriter: kw,
-					encoder:          enc,
+					saverKafkaWriter: kafka.NewWriter(kafka.WriterConfig{
+						Brokers:  []string{dialURI},
+						Topic:    kafkaTopic,
+						Balancer: &kafka.RoundRobin{},
+					}),
+					encoder: enc,
 				}
 
-				logger.L.Infof("in rpc.NewReceiver ts: %v:%v\n", ts.saverKafkaWriter, ts.encoder)
+				logger.L.Infof("in rpc.NewTransmitter ts: %v:%v\n", ts.saverKafkaWriter, ts.encoder)
 
 				return ts
 			}
