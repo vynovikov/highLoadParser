@@ -2,8 +2,7 @@ package transmitters
 
 import (
 	"context"
-	"fmt"
-	"os"
+	"net"
 	"time"
 
 	"github.com/segmentio/kafka-go"
@@ -16,58 +15,79 @@ type ParserTransmitter interface {
 	TransmitToLogger(TransferUnit) error
 }
 
-type transmittersStruct struct {
-	saverKafkaWriter *kafka.Writer
-	encoder          encoder.Encoder
-}
-
 func NewTransmitter(enc encoder.Encoder) *transmittersStruct {
 
-	kafkaAddr := os.Getenv("KAFKA_ADDR")
-	kafkaPort := os.Getenv("KAFKA_PORT")
-	kafkaTopic := os.Getenv("KAFKA_TOPIC")
+	//kafkaAddr := os.Getenv("KAFKA_ADDR")
+	kafkaAddr := "localhost"
+	//kafkaPort := os.Getenv("KAFKA_PORT")
+	kafkaPort := "29092"
 
-	logger.L.Infof("in transmitters.NewTransmitter broker: %s:%s, topic: %s\n", kafkaAddr, kafkaPort, kafkaTopic)
+	dialURI := net.JoinHostPort(kafkaAddr, kafkaPort)
+
+	//kafkaTopic := os.Getenv("KAFKA_TOPIC")
+	kafkaTopic := "topic1"
+
+	logger.L.Infof("in transmitters.NewTransmitter dialURI: %s, topic: %s\n", dialURI, kafkaTopic)
 
 	var (
-		conn *kafka.Conn
-		err  error
+		conn       *kafka.Conn
+		err        error
+		partitions []kafka.Partition
 	)
 
 	for i := 0; i < 5; i++ {
 
-		logger.L.Infof("in transmitters.NewTransmitter %d attempt to connect to %s %s", i, "tcp", fmt.Sprintf("%s:%s", kafkaAddr, kafkaPort))
+		logger.L.Infof("in transmitters.NewTransmitter %d attempt to connect to %s %s", i, "tcp", dialURI)
 
-		conn, err = kafka.Dial("tcp", fmt.Sprintf("%s:%s", kafkaAddr, kafkaPort))
+		conn, err = kafka.Dial("tcp", dialURI)
 		if err != nil {
-			logger.L.Errorf("in rpc.NewReceiver cannot dial: %v\n", err)
-			time.Sleep(time.Second * 10)
-			if conn != nil {
-				conn.Close()
-			}
+
+			logger.L.Errorf("in rpc.NewReceiver cannot dial: %v. Trying again\n", err)
+
+			time.Sleep(time.Second * 5)
+
+			continue
 		}
-	}
-	partitions, err := conn.ReadPartitions()
-	if err != nil {
 
-		logger.L.Errorln(err)
-		os.Exit(1)
-	}
+		partitions, err = conn.ReadPartitions()
 
-	for _, p := range partitions {
+		if err != nil {
 
-		if p.Topic == kafkaTopic {
+			logger.L.Errorf("in transmitters.NewTransmitter error reading partitions %v. Trying again", err)
 
-			logger.L.Infof("in rpc.NewReceiver topic %s is found\n", kafkaTopic)
+			time.Sleep(time.Second * 5)
 
-			return &transmittersStruct{
+			continue
 
-				saverKafkaWriter: kafka.NewWriter(kafka.WriterConfig{
-					Brokers:  []string{fmt.Sprintf("%s:%s", kafkaAddr, kafkaPort)},
+		}
+
+		for _, p := range partitions {
+
+			if p.Topic == kafkaTopic {
+
+				logger.L.Infof("in rpc.NewReceiver topic %s is found\n", kafkaTopic)
+
+				wc := kafka.WriterConfig{
+					Brokers:  []string{dialURI},
 					Topic:    kafkaTopic,
 					Balancer: &kafka.RoundRobin{},
-				}),
-				encoder: enc,
+				}
+
+				logger.L.Infof("in rpc.NewReceiver writerConfig %v\n", wc)
+
+				kw := kafka.NewWriter(wc)
+
+				logger.L.Infof("in rpc.NewReceiver kafkaWriter %v\n", kw)
+
+				ts := &transmittersStruct{
+
+					saverKafkaWriter: kw,
+					encoder:          enc,
+				}
+
+				logger.L.Infof("in rpc.NewReceiver ts: %v:%v\n", ts.saverKafkaWriter, ts.encoder)
+
+				return ts
 			}
 		}
 	}
