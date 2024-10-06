@@ -341,7 +341,7 @@ func (m *memoryDataHandlerStruct) Delete(ts string) error {
 	return nil
 }
 
-func (m *memoryDataHandlerStruct) Set(string) error {
+func (m *memoryDataHandlerStruct) Set(keyDetailed, value) error {
 	return nil
 }
 

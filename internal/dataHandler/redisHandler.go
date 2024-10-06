@@ -49,7 +49,7 @@ func (r *redisHandler) Create(d DataHandlerDTO, bou Boundary) (ProducerUnit, err
 	return resTT, nil
 }
 
-func (r *redisHandler) Set(string, value) error {
+func (r *redisHandler) Set(keyDetailed, value) error {
 	return nil
 }
 
