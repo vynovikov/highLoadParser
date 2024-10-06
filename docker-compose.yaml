@@ -1,29 +1,41 @@
-version: '3'
 services:
   highloadparser:
-    image: vynovikov/highloadparser:0.1
+    build: .
+    container_name: highloadparser    
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KAFKA_HOSTNAME=kafka
+      - KAFKA_PORT=9092
+      - KAFKA_TOPIC=highloadparser
     ports:
       - 3000:3000
-    environment:
-      - KAFKA_HOSTNAME=kafka
-      - KAFKA_PORT=9092
-    depends_on:
-      - kafka
-  highloadsaver:
-    image: vynovikov/highloadsaver:0.1
-    environment:
-      - HOSTNAME=highloadsaver
-      - KAFKA_HOSTNAME=kafka
-      - KAFKA_PORT=9092
+      - 40000:40000      
+    depends_on:      
+      kafka:
+        condition: service_healthy
+    networks:
+      - app-network
     volumes:
-      - "./results:/results"
-    depends_on:
-      - kafka
+      - go-mod-cache:/go/pkg/mod
+      - go-mod-cache:/go/bin/dlv
+      - .:/build
+
+  redis:
+    image: redis/redis-stack:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - app-network
+
   kafka:
     image: confluentinc/cp-kafka:latest
     depends_on:
@@ -31,7 +43,48 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9092"]
+      interval: 10s
+      retries: 5
+
+  kafka-init:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - kafka
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server kafka:9092 --list
+
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic highloadparser --replication-factor 1 --partitions 1      
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka:9092 --list
+      "
+    networks:
+      - app-network
+    restart: "no"
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    ports:
+      - "5540:5540"
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  go-mod-cache:

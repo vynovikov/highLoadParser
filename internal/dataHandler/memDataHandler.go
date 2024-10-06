@@ -59,7 +59,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) (Produc
 			m.Map[kgen] = l1
 		}
 
-		resTT.updateProducerUnit(d, val, len(val.h.headerBytes))
+		resTT.updateProducerUnit(d, val, len(val.H.headerBytes))
 
 		return resTT, nil
 	}
@@ -78,7 +78,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) (Produc
 
 				if l3, ok := l2[false]; ok {
 
-					if l3.e == 1 && d.E() == 1 {
+					if l3.E == 1 && d.E() == 1 {
 
 						kdet.part++
 
@@ -103,7 +103,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) (Produc
 
 				m.Map[kgen] = l1
 
-				resTT.updateProducerUnit(d, val, len(val.h.headerBytes))
+				resTT.updateProducerUnit(d, val, len(val.H.headerBytes))
 
 				return resTT, nil
 			}
@@ -118,7 +118,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) (Produc
 
 			m.Map[kgen] = l1
 
-			resTT.updateProducerUnit(d, val, len(val.h.headerBytes))
+			resTT.updateProducerUnit(d, val, len(val.H.headerBytes))
 
 			return resTT, nil
 		}
@@ -133,7 +133,7 @@ func (m *memoryDataHandlerStruct) Create(d DataHandlerDTO, bou Boundary) (Produc
 
 				if l3, ok := l2[false]; ok {
 
-					if l3.e == 2 {
+					if l3.E == 2 {
 
 						delete(l1, kdet)
 
@@ -192,7 +192,7 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) (Produc
 
 			oldValueFalse := l2[false]
 
-			if len(oldValueFalse.h.formName) == 0 {
+			if len(oldValueFalse.H.formName) == 0 {
 
 				oldValueFalseUpated, _, err = updateValue(oldValueFalse, d, bou)
 				if err != nil {
@@ -200,20 +200,20 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) (Produc
 					logger.L.Warn(err)
 				}
 
-				headerEndingIndex = len(oldValueFalseUpated.h.headerBytes) - len(oldValueFalse.h.headerBytes)
+				headerEndingIndex = len(oldValueFalseUpated.H.headerBytes) - len(oldValueFalse.H.headerBytes)
 
 			} else {
 
 				oldValueFalseUpated = oldValueFalse
 
-				oldValueFalseUpated.e = d.E()
+				oldValueFalseUpated.E = d.E()
 			}
 
 			if len(l2) > 1 {
 
 				oldValueTrue := l2[true]
 
-				oldHeader := oldValueTrue.h.headerBytes
+				oldHeader := oldValueTrue.H.headerBytes
 
 				dispositionIndex := bytes.Index(body, []byte(CONTENT_DISPOSITION))
 
@@ -237,13 +237,13 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) (Produc
 
 					m.Map[kgen] = l1New
 
-					headerEndingIndex = len(val.h.headerBytes)
+					headerEndingIndex = len(val.H.headerBytes)
 
 					resTT.updateProducerUnit(d, val, headerEndingIndex)
 
 					return resTT, nil
 
-				} else if oldValueFalse.e != 2 {
+				} else if oldValueFalse.E != 2 {
 
 					if (len(l2) > 1 && d.E() == 2) ||
 						(len(l2) == 1 && d.E() == 1) {
@@ -267,7 +267,7 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) (Produc
 				} else {
 
 					if (len(l2) > 1 && d.E() == 2) ||
-						(len(l2) > 1 && l2[false].e == 2 && l2[true].e == 2 && d.E() != 2) ||
+						(len(l2) > 1 && l2[false].E == 2 && l2[true].E == 2 && d.E() != 2) ||
 						(len(l2) == 1 && d.E() == 1) {
 
 						kdet.part++
@@ -283,7 +283,7 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) (Produc
 
 					m.Map[kgen] = l1New
 
-					d.SetBody(append(oldValueTrue.h.headerBytes, d.Body()...))
+					d.SetBody(append(oldValueTrue.H.headerBytes, d.Body()...))
 
 					resTT.updateProducerUnit(d, oldValueFalseUpated, 0)
 
@@ -310,7 +310,7 @@ func (m *memoryDataHandlerStruct) Updade(d DataHandlerDTO, bou Boundary) (Produc
 
 			delete(m.Map[kgen], kdet)
 
-			oldValueFalse.e = d.E()
+			oldValueFalse.E = d.E()
 
 			l2[false] = oldValueFalseUpated
 
@@ -341,17 +341,21 @@ func (m *memoryDataHandlerStruct) Delete(ts string) error {
 	return nil
 }
 
+func (m *memoryDataHandlerStruct) Set(string) error {
+	return nil
+}
+
 // updates value returns index of first body symbol
 func updateValue(val value, d DataHandlerDTO, bou Boundary) (value, int, error) {
 
-	if len(val.h.formName) != 0 {
+	if len(val.H.formName) != 0 {
 
 		return val, -1, nil
 	}
 
 	body, resValue := make([]byte, 0, maxHeaderLimit), value{}
 
-	resValue.e = d.E()
+	resValue.E = d.E()
 
 	length := len(d.Body())
 
@@ -368,11 +372,11 @@ func updateValue(val value, d DataHandlerDTO, bou Boundary) (value, int, error) 
 	if err == nil ||
 		errors.Is(err, errHeaderEnding) {
 
-		headerFull := append(val.h.headerBytes, headerEnding...)
+		headerFull := append(val.H.headerBytes, headerEnding...)
 
-		resValue.h.headerBytes = headerFull
+		resValue.H.headerBytes = headerFull
 
-		resValue.h.formName, resValue.h.fileName = getFoFi(headerFull)
+		resValue.H.formName, resValue.H.fileName = getFoFi(headerFull)
 
 		return resValue, len(headerEnding), nil
 
@@ -418,8 +422,8 @@ func newValue(d DataHandlerDTO, bou Boundary) (value, error) {
 			errors.Is(err, errHeaderEnding) {
 
 			return value{
-				e: d.E(),
-				h: headerData{
+				E: d.E(),
+				H: headerData{
 					headerBytes: exactHeaderBytes,
 				},
 			}, err
@@ -431,8 +435,8 @@ func newValue(d DataHandlerDTO, bou Boundary) (value, error) {
 	fo, fi := getFoFi(exactHeaderBytes)
 
 	return value{
-		e: d.E(),
-		h: headerData{
+		E: d.E(),
+		H: headerData{
 			formName:    fo,
 			fileName:    fi,
 			headerBytes: exactHeaderBytes,
@@ -463,9 +467,9 @@ func newResult(d DataHandlerDTO) *ProducerUnitStruct {
 
 func (t *ProducerUnitStruct) updateProducerUnit(d DataHandlerDTO, v value, headerEndingIndex int) {
 
-	t.Dh_FormName = v.h.formName
+	t.Dh_FormName = v.H.formName
 
-	t.Dh_FileName = v.h.fileName
+	t.Dh_FileName = v.H.fileName
 
 	if d.B() == 1 && headerEndingIndex > 0 {
 
@@ -477,11 +481,11 @@ func (t *ProducerUnitStruct) updateProducerUnit(d DataHandlerDTO, v value, heade
 
 		t.Dh_Body = d.Body()
 
-	} else if d.B() == 0 && len(v.h.formName) == 0 {
+	} else if d.B() == 0 && len(v.H.formName) == 0 {
 
 		t.Dh_Body = make([]byte, 0)
 
-	} else if d.B() == 0 && len(v.h.formName) > 0 {
+	} else if d.B() == 0 && len(v.H.formName) > 0 {
 
 		t.Dh_Body = d.Body()[headerEndingIndex:]
 

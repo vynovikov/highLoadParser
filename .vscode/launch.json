@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Docker: Remote Debug",
+        "type": "go",
+        "request": "attach",
+        "mode": "remote",    // Path inside the container
+        "port": 40000,             // Port used by Delve
+        "host": "127.0.0.1",
+        "showLog": true
+      }
+    ]
+  }

@@ -93,8 +93,8 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
@@ -125,8 +125,8 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -157,8 +157,8 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n"),
@@ -189,8 +189,8 @@ func (s *dataHandlerSuite) TestCreate() {
 			wantedDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 0}: {true: {
-						e: 2,
-						h: headerData{
+						E: 2,
+						H: headerData{
 							formName:    "",
 							fileName:    "",
 							headerBytes: []byte("\r\n----"),
@@ -215,8 +215,8 @@ func (s *dataHandlerSuite) TestCreate() {
 			initDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "www"}: {{ts: "www", part: 4}: {false: {
-						e: 1,
-						h: headerData{
+						E: 1,
+						H: headerData{
 							formName:    "alice",
 							fileName:    "short.txt",
 							headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -228,15 +228,15 @@ func (s *dataHandlerSuite) TestCreate() {
 			wantedDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "www"}: {{ts: "www", part: 4}: {false: {
-						e: 1,
-						h: headerData{
+						E: 1,
+						H: headerData{
 							formName:    "alice",
 							fileName:    "short.txt",
 							headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 						}}}},
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {false: {
-						e: 1,
-						h: headerData{
+						E: 1,
+						H: headerData{
 							formName:    "bob",
 							fileName:    "long.txt",
 							headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -262,8 +262,8 @@ func (s *dataHandlerSuite) TestCreate() {
 			initDataHandler: &memoryDataHandlerStruct{
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "www"}: {{ts: "www", part: 4}: {false: {
-						e: 1,
-						h: headerData{
+						E: 1,
+						H: headerData{
 							formName:    "alice",
 							fileName:    "short.txt",
 							headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -277,16 +277,16 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "www"}: {{ts: "www", part: 4}: {
 						false: {
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 							}}}},
 					{ts: "qqq"}: {{ts: "qqq", part: 0}: {
 						true: {
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("\r\n-----"),
@@ -312,8 +312,8 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 3}: {
 						false: {
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -327,8 +327,8 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 5}: {
 						false: {
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "bob",
 								fileName:    "long.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -355,8 +355,8 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 3}: {
 						false: {
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -371,8 +371,8 @@ func (s *dataHandlerSuite) TestCreate() {
 					{ts: "qqq"}: {{ts: "qqq", part: 4}: {
 
 						true: {
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("\r\n-----"),
@@ -398,8 +398,8 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 4}: {
 						false: {
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -413,8 +413,8 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 5}: {
 						false: {
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "bob",
 								fileName:    "long.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -470,8 +470,8 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 4}: {
 						false: {
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -485,15 +485,15 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 4}: {
 						false: {
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 							}},
 						true: {
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("\r\n-----"),
@@ -519,8 +519,8 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 4}: {
 						false: {
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -534,8 +534,8 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 4}: {
 						false: {
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "bob",
 								fileName:    "long.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -562,8 +562,8 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 4}: {
 						true: {
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("\r\n-----"),
@@ -577,15 +577,15 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 5}: {
 						true: {
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("\r\n-----"),
 							}},
 						false: {
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "bob",
 								fileName:    "long.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -613,8 +613,8 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 4}: {
 						false: {
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "bob",
 								fileName:    "long.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -628,16 +628,16 @@ func (s *dataHandlerSuite) TestCreate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 5}: {
 						false: {
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "bob",
 								fileName:    "long.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 							},
 						},
 						true: {
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("\r\n-----"),
@@ -693,8 +693,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -708,8 +708,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -736,8 +736,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -751,8 +751,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -779,8 +779,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("Content-Dispos"),
@@ -794,8 +794,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -822,8 +822,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("Content-Dispos"),
@@ -837,8 +837,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -865,8 +865,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("Content-Dispos"),
@@ -880,8 +880,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("Content-Dispos"),
@@ -899,8 +899,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("Content-Dispos"),
@@ -935,8 +935,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("Content-Dispos"),
@@ -950,8 +950,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -978,8 +978,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -993,8 +993,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -1021,15 +1021,15 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("Content-Dispos"),
 							}},
 						true: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("\r\n-----"),
@@ -1044,15 +1044,15 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
 						false: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 							}},
 						true: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("\r\n-----"),
@@ -1080,15 +1080,15 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 							}},
 						true: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("\r\n-----"),
@@ -1103,15 +1103,15 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
 						false: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 							}},
 						true: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("\r\n-----"),
@@ -1139,15 +1139,15 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 							}},
 						true: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("\r\n-----"),
@@ -1162,8 +1162,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "bob",
 								fileName:    "long.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -1191,15 +1191,15 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 							}},
 						true: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("\r\n-----"),
@@ -1214,8 +1214,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
 						false: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "bob",
 								fileName:    "long.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -1243,15 +1243,15 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 							}},
 						true: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("\r\n-----"),
@@ -1266,8 +1266,8 @@ func (s *dataHandlerSuite) TestUpdate() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 2}: {
 						false: value{
-							e: 1,
-							h: headerData{
+							E: 1,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -1323,16 +1323,16 @@ func (s *dataHandlerSuite) TestDelete() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 							}}}},
 					{ts: "www"}: {{ts: "www", part: 1}: {
 						false: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "bob",
 								fileName:    "long.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -1345,8 +1345,8 @@ func (s *dataHandlerSuite) TestDelete() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "www"}: {{ts: "www", part: 1}: {
 						false: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "bob",
 								fileName:    "long.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"bob\"; filename=\"long.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -1362,15 +1362,15 @@ func (s *dataHandlerSuite) TestDelete() {
 				Map: map[keyGeneral]map[keyDetailed]map[bool]value{
 					{ts: "qqq"}: {{ts: "qqq", part: 1}: {
 						false: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "alice",
 								fileName:    "short.txt",
 								headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
 							}},
 						true: value{
-							e: 2,
-							h: headerData{
+							E: 2,
+							H: headerData{
 								formName:    "",
 								fileName:    "",
 								headerBytes: []byte("\r\n-----"),
@@ -1418,8 +1418,8 @@ func (s *dataHandlerSuite) TestNewValue() {
 			dto:  &DataHandlerUnit{Dh_ts: "qqq", Dh_part: 0, Dh_body: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\nazazaza"), Dh_b: 0, Dh_e: 1, Dh_isSub: false, Dh_last: false},
 			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedValue: value{
-				e: 1,
-				h: headerData{
+				E: 1,
+				H: headerData{
 					formName:    "alice",
 					fileName:    "",
 					headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
@@ -1431,8 +1431,8 @@ func (s *dataHandlerSuite) TestNewValue() {
 			dto:  &DataHandlerUnit{Dh_ts: "qqq", Dh_part: 0, Dh_body: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza"), Dh_b: 0, Dh_e: 1, Dh_isSub: false, Dh_last: false},
 			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedValue: value{
-				e: 1,
-				h: headerData{
+				E: 1,
+				H: headerData{
 					formName:    "alice",
 					fileName:    "short.txt",
 					headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
@@ -1444,8 +1444,8 @@ func (s *dataHandlerSuite) TestNewValue() {
 			dto:  &DataHandlerUnit{Dh_ts: "qqq", Dh_part: 0, Dh_body: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r"), Dh_b: 0, Dh_e: 1, Dh_isSub: false, Dh_last: false},
 			bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedValue: value{
-				e: 1,
-				h: headerData{
+				E: 1,
+				H: headerData{
 					formName:    "",
 					fileName:    "",
 					headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r"),
@@ -1486,8 +1486,8 @@ func (s *dataHandlerSuite) TestUpdateValue() {
 		{
 			name: "1.Dh_b == 0. Value is full",
 			initValue: value{
-				e: 1,
-				h: headerData{
+				E: 1,
+				H: headerData{
 					formName:    "",
 					fileName:    "",
 					headerBytes: []byte(""),
@@ -1496,8 +1496,8 @@ func (s *dataHandlerSuite) TestUpdateValue() {
 			dto: &DataHandlerUnit{Dh_ts: "qqq", Dh_part: 0, Dh_body: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\nazazaza"), Dh_b: 0, Dh_e: 1, Dh_isSub: false, Dh_last: false},
 			bou: Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedValue: value{
-				e: 1,
-				h: headerData{
+				E: 1,
+				H: headerData{
 					formName:    "alice",
 					fileName:    "",
 					headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
@@ -1508,8 +1508,8 @@ func (s *dataHandlerSuite) TestUpdateValue() {
 		{
 			name: "2. Dh_b == 1. Value is not full, dto has header with no filename",
 			initValue: value{
-				e: 1,
-				h: headerData{
+				E: 1,
+				H: headerData{
 					formName:    "",
 					fileName:    "",
 					headerBytes: []byte("Content-Dispo"),
@@ -1518,8 +1518,8 @@ func (s *dataHandlerSuite) TestUpdateValue() {
 			dto: &DataHandlerUnit{Dh_ts: "qqq", Dh_part: 0, Dh_body: []byte("sition: form-data; name=\"alice\"\r\n\r\nazazaza"), Dh_b: 1, Dh_e: 1, Dh_isSub: false, Dh_last: false},
 			bou: Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedValue: value{
-				e: 1,
-				h: headerData{
+				E: 1,
+				H: headerData{
 					formName:    "alice",
 					fileName:    "",
 					headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
@@ -1530,8 +1530,8 @@ func (s *dataHandlerSuite) TestUpdateValue() {
 		{
 			name: "3. Dh_b == True. Value is not full, dto has header has both name and filename",
 			initValue: value{
-				e: 1,
-				h: headerData{
+				E: 1,
+				H: headerData{
 					formName:    "",
 					fileName:    "",
 					headerBytes: []byte("Content-Dispo"),
@@ -1540,8 +1540,8 @@ func (s *dataHandlerSuite) TestUpdateValue() {
 			dto: &DataHandlerUnit{Dh_ts: "qqq", Dh_part: 0, Dh_body: []byte("sition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazaza"), Dh_b: 1, Dh_e: 1, Dh_isSub: false, Dh_last: false},
 			bou: Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			wantedValue: value{
-				e: 1,
-				h: headerData{
+				E: 1,
+				H: headerData{
 					formName:    "alice",
 					fileName:    "short.txt",
 					headerBytes: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),

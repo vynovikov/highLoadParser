@@ -5,4 +5,5 @@ type DataHandler interface {
 	Read(DataHandlerDTO) (value, error)
 	Updade(DataHandlerDTO, Boundary) (ProducerUnit, error)
 	Delete(string) error
+	Set(string, value) error
 }

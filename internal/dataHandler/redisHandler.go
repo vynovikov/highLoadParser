@@ -1,0 +1,66 @@
+package dataHandler
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/vynovikov/highLoadParser/internal/logger"
+)
+
+type redisHandler struct {
+	client *redis.Client
+	ctx    context.Context
+}
+
+func NewRedisHandler() *redisHandler {
+	client := redis.NewClient(&redis.Options{
+		Addr:     "redis:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB})
+	})
+	ctx := context.Background()
+	return &redisHandler{
+		client: client,
+		ctx:    ctx,
+	}
+}
+
+func (r *redisHandler) Create(d DataHandlerDTO, bou Boundary) (ProducerUnit, error) {
+	_, _, resTT := newKeyGeneralFromDTO(d), newKeyDetailed(d), newResult(d)
+
+	val, err := newValue(d, bou)
+	if err != nil &&
+		!errors.Is(err, errHeaderNotFull) &&
+		!errors.Is(err, errHeaderEnding) {
+
+		return resTT, err
+	}
+	marshalledValue, _ := json.Marshal(val)
+
+	_, err = r.client.Set(r.ctx, d.TS(), marshalledValue, 0).Result()
+
+	if err != nil {
+		logger.L.Errorf("in redisHandler.Create error :%v\n", err)
+		return resTT, err
+	}
+
+	return resTT, nil
+}
+
+func (r *redisHandler) Set(string, value) error {
+	return nil
+}
+
+func (r *redisHandler) Read(DataHandlerDTO) (value, error) {
+	return value{}, nil
+}
+
+func (r *redisHandler) Updade(DataHandlerDTO, Boundary) (ProducerUnit, error) {
+	return &ProducerUnitStruct{}, nil
+}
+
+func (r *redisHandler) Delete(string) error {
+	return nil
+}

@@ -128,8 +128,16 @@ func respondContinue(conn net.Conn) {
 }
 
 func doRespond(conn net.Conn, body string) {
+	defer conn.Close()
 
-	fmt.Fprintf(conn, "HTTP/1.1 %s\r\nContent-Length: %d\r\nContent-Type: text/html\r\n\r\n%s", body, len(body), body)
+	// Write HTTP status line and headers
+	fmt.Fprintf(conn, "HTTP/1.1 %s\r\n", body)
+	fmt.Fprint(conn, "Content-Type: text/plain\r\n")
+	fmt.Fprintf(conn, "Content-Length: %d\r\n", len(body)+len("\r\n")) // length of the response body
+	fmt.Fprint(conn, "\r\n")                                           // end of headers
+
+	fmt.Fprintf(conn, "%s\r\n", body)
+
 }
 
 func ReadFirst(conn net.Conn, n int) ([]byte, error) {

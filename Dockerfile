@@ -1,23 +1,40 @@
-FROM golang:latest as build
+# Stage 1: Build the Go application
+FROM vynovikov/golang:0.1 AS builder
 
-WORKDIR /highLoadParser
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
+# Set the working directory inside the container
+WORKDIR /build
+
+# Copy go.mod and go.sum to the working directory
+COPY go.mod go.sum ./
+
+# Download necessary Go modules
+RUN go mod download
+
+# Copy the source code
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o highLoadParser ./cmd/highLoadParser
+# Build the Go app
+RUN go build -gcflags "all=-N -l" -o main cmd/highLoadParser/highLoadParser.go
 
-CMD ./highLoadParser
+# Final stage
+FROM vynovikov/alpine:0.1
 
-FROM alpine:latest as release
+# Set the working directory inside the container
+WORKDIR /app
 
-RUN apk --no-cache add ca-certificates && \
-	mkdir /tls
+# Copy the Go binary from the builder stage
+COPY --from=builder /build/main /app/main
+COPY --from=builder /go/bin/dlv /dlv
+COPY --from=builder /build/entrypoint.sh /app/entrypoint.sh
 
+RUN chmod +x /app/entrypoint.sh
+RUN chmod +x /dlv
 
-COPY --from=build /highLoadParser ./ 
+# Expose the application port (optional, if it's an API)
+EXPOSE 3000 40000
 
-RUN chmod +x ./highLoadParser
-
-ENTRYPOINT [ "./highLoadParser" ]
-
-EXPOSE 443 3000
+# Command to start Delve in headless mode for remote debugging
+#CMD ["/dlv","--accept-multiclient","--continue", "--headless=true", "--listen=:40000", "--api-version=2","--check-go-version=false", "exec", "/app/main"]
+CMD ["sh","./entrypoint.sh"]

@@ -108,8 +108,8 @@ func newKeyDetailed(d DataHandlerDTO) keyDetailed {
 }
 
 type value struct {
-	h headerData
-	e int
+	H headerData `json:"h"`
+	E int        `json:"e"`
 }
 
 type headerData struct {

@@ -24,7 +24,7 @@ func NewTransmitter(enc encoder.Encoder) *transmittersStruct {
 		partitions []kafka.Partition
 	)
 
-	kafkaAddr := os.Getenv("KAFKA_ADDR")
+	kafkaAddr := os.Getenv("KAFKA_HOSTNAME")
 	kafkaPort := os.Getenv("KAFKA_PORT")
 	kafkaTopic := os.Getenv("KAFKA_TOPIC")
 
@@ -35,7 +35,7 @@ func NewTransmitter(enc encoder.Encoder) *transmittersStruct {
 		conn, err = kafka.Dial("tcp", dialURI)
 		if err != nil {
 
-			logger.L.Errorf("in rpc.NewReceiver cannot dial: %v. Trying again\n", err)
+			logger.L.Errorf("in transmitters.NewTransmitter cannot dial: %v. Trying again\n", err)
 
 			time.Sleep(time.Second * 10)
 
@@ -46,11 +46,15 @@ func NewTransmitter(enc encoder.Encoder) *transmittersStruct {
 
 		if err != nil {
 
+			logger.L.Errorf("in transmitters.NewTransmitter cannot read partitions: %v. Trying again\n", err)
+
 			time.Sleep(time.Second * 10)
 
 			continue
 
 		}
+
+		logger.L.Infof("in transmitters.NewTransmitter partitions: %v len %d\n", partitions, len(partitions))
 
 		for _, p := range partitions {
 
@@ -66,9 +70,13 @@ func NewTransmitter(enc encoder.Encoder) *transmittersStruct {
 					encoder: enc,
 				}
 
-				logger.L.Infof("in rpc.NewTransmitter ts: %v:%v\n", ts.saverKafkaWriter, ts.encoder)
-
 				return ts
+
+			} else {
+
+				time.Sleep(time.Second * 10)
+
+				continue
 			}
 		}
 	}

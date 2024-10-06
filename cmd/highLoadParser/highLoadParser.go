@@ -23,7 +23,7 @@ var (
 
 func main() {
 
-	dh := dataHandler.NewMemoryDataHandler()
+	dh := dataHandler.NewRedisHandler()
 	repo := repository.NewParserRepository(dh)
 	enc := encoder.NewProtobufEncoder()
 	trans := transmitters.NewTransmitter(enc)

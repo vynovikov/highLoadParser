@@ -32,7 +32,7 @@ func NewTpReceiver(c controllers.ParserController) *tpReceiverStruct {
 	if err != nil {
 		logger.L.Error(err)
 	}
-	logger.L.Info("listening localhost:3000")
+	logger.L.Info("step 3: listening localhost:3000")
 
 	s := &TpServer{l: li}
 
