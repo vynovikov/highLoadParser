@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/vynovikov/highLoadParser/internal/dataHandler"
 	"github.com/vynovikov/highLoadParser/internal/entities"
+	"github.com/vynovikov/highLoadParser/internal/repository"
 )
 
 type disposition int
@@ -281,6 +282,24 @@ func newDataHandlerUnit(s ServiceDTO) *dataHandler.DataHandlerUnit {
 		Dh_e:     s.E(),
 		Dh_isSub: s.IsSub(),
 		Dh_last:  s.Last(),
+	}
+}
+
+func newRepositoryUnit(s ServiceDTO) *repository.RepositoryUnit {
+
+	return &repository.RepositoryUnit{
+		R_part:  s.Part(),
+		R_ts:    s.TS(),
+		R_body:  s.Body(),
+		R_b:     s.B(),
+		R_e:     s.E(),
+		R_isSub: s.IsSub(),
+		R_last:  s.Last(),
+		R_boundary: repository.Boundary{
+			Prefix: s.Bou.Prefix,
+			Root:   s.Bou.Root,
+			Suffix: s.Bou.Suffix,
+		},
 	}
 }
 

@@ -34,9 +34,13 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 
 	for _, v := range sDTO.psus {
 
+		//serviceUnit := newServiceUnit(v)
+
+		//dhu := newDataHandlerUnit(serviceUnit)
+
 		serviceUnit := newServiceUnit(v)
 
-		dhu := newDataHandlerUnit(serviceUnit)
+		dhu := newRepositoryUnit(serviceUnit)
 
 		resTT, err := s.infrastructure.Register(dhu, bou)
 

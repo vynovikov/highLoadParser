@@ -38,6 +38,10 @@ func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou dataHand
 
 	case d.B() == 0:
 
+		bou := newBoundary(d)
+
+		key := newKeyDetailed(d)
+
 		val, err := newValue(d, bou)
 		if err != nil &&
 			!errors.Is(err, errHeaderNotFull) &&
@@ -46,7 +50,7 @@ func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou dataHand
 			return resTT, err
 		}
 
-		err := r.dataHandler.Set(key, value)
+		err = r.dataHandler.Set(key, val)
 		if err != nil {
 
 			logger.L.Infof("in repository.Register unable to set %s %d: %v\n", d.TS(), d.Part(), err)
@@ -80,7 +84,7 @@ func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou dataHand
 	return resTT, nil
 }
 
-func newValue(d DataHandlerDTO, bou Boundary) (value, error) {
+func newValue(d dataHandler.DataHandlerDTO, bou Boundary) (dataHandler.Value, error) {
 
 	headerB, body, _ := make([]byte, 0, maxHeaderLimit), d.Body(), 0
 
@@ -473,4 +477,19 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 		return nil, errHeaderNotFound
 
 	}
+}
+
+func newKeyDetailed(d dataHandler.DataHandlerDTO) dataHandler.KeyDetailed {
+
+	return dataHandler.KeyDetailed{
+		Ts:   d.TS(),
+		Part: d.Part(),
+	}
+}
+
+func newBoundary(d dataHandler.DataHandlerDTO) Boundary {
+
+	return Boundary{
+		Prefix: d.Prefix(),
+		Root:   d.Root(),
 }
