@@ -7,7 +7,7 @@ import (
 )
 
 type Infrastructure interface {
-	Register(dataHandler.DataHandlerDTO, dataHandler.Boundary) (dataHandler.ProducerUnit, error)
+	Register(repository.RepositoryDTO, repository.Boundary) (dataHandler.ProducerUnit, error)
 	Send(dataHandler.ProducerUnit) error
 }
 
@@ -24,9 +24,9 @@ func NewInfraStructure(repo repository.ParserRepository, transmitter transmitter
 		transmitter: transmitter,
 	}
 }
-func (i *infrastructureStruct) Register(dtos dataHandler.DataHandlerDTO, bou dataHandler.Boundary) (dataHandler.ProducerUnit, error) {
+func (i *infrastructureStruct) Register(dto repository.RepositoryDTO, bou repository.Boundary) (dataHandler.ProducerUnit, error) {
 
-	return i.repo.Register(dtos, bou)
+	return i.repo.Register(dto, bou)
 }
 
 func (i *infrastructureStruct) Send(unit dataHandler.ProducerUnit) error {

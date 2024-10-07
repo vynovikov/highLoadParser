@@ -12,7 +12,7 @@ import (
 )
 
 type ParserRepository interface {
-	Register(dataHandler.DataHandlerDTO, dataHandler.Boundary) (dataHandler.ProducerUnit, error)
+	Register(dataHandler.DataHandlerDTO, Boundary) (dataHandler.ProducerUnit, error)
 }
 
 type repositoryStruct struct {
@@ -25,7 +25,7 @@ func NewParserRepository(dh dataHandler.DataHandler) *repositoryStruct {
 	}
 }
 
-func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou dataHandler.Boundary) (dataHandler.ProducerUnit, error) {
+func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou Boundary) (dataHandler.ProducerUnit, error) {
 
 	var (
 		err   error
@@ -37,8 +37,6 @@ func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou dataHand
 	switch {
 
 	case d.B() == 0:
-
-		bou := newBoundary(d)
 
 		key := newKeyDetailed(d)
 
@@ -63,6 +61,8 @@ func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou dataHand
 		}
 	*/
 	case d.B() == 1:
+
+		bou := dataHandler.Boundary{}
 
 		resTT, err = r.dataHandler.Updade(d, bou)
 		if err != nil {
@@ -485,11 +485,4 @@ func newKeyDetailed(d dataHandler.DataHandlerDTO) dataHandler.KeyDetailed {
 		Ts:   d.TS(),
 		Part: d.Part(),
 	}
-}
-
-func newBoundary(d dataHandler.DataHandlerDTO) Boundary {
-
-	return Boundary{
-		Prefix: d.Prefix(),
-		Root:   d.Root(),
 }

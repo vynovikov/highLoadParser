@@ -23,6 +23,7 @@ type ParserServiceHeader struct {
 	B    int
 	E    int
 	last bool
+	bou  repository.Boundary
 }
 
 func NewParserServiceHeader(ts string, p int, b, e int, l bool) ParserServiceHeader {
@@ -70,6 +71,7 @@ func NewParserServiceBody(b []byte) ParserServiceBody {
 type ParserServiceSubHeader struct {
 	Part int
 	TS   string
+	bou  repository.Boundary
 }
 
 func NewParserServiceSubHeader(ts string, p int) ParserServiceSubHeader {
@@ -178,6 +180,7 @@ type parserServiceUnitStruct struct {
 	e     int
 	isSub bool
 	last  bool
+	bou   repository.Boundary
 }
 
 func newServiceUnit(d ServiceDTO) *parserServiceUnitStruct {
@@ -193,6 +196,20 @@ func newServiceUnit(d ServiceDTO) *parserServiceUnitStruct {
 	}
 }
 
+func newServiceUnit1(d ServiceDTO, bou repository.Boundary) *parserServiceUnitStruct {
+
+	return &parserServiceUnitStruct{
+		part:  d.Part(),
+		ts:    d.TS(),
+		body:  d.Body(),
+		b:     d.B(),
+		e:     d.E(),
+		isSub: d.IsSub(),
+		last:  d.Last(),
+		bou:   bou,
+	}
+}
+
 type DataHandlerDTO interface {
 	Part() int
 	TS() string
@@ -202,6 +219,7 @@ type DataHandlerDTO interface {
 	E() dataHandler.Disposition
 	Last() bool
 	IsSub() bool
+	Bou() repository.Boundary
 }
 
 func (psu *parserServiceUnitStruct) Part() int {
@@ -238,6 +256,11 @@ func (psu *parserServiceUnitStruct) Last() bool {
 func (psu *parserServiceUnitStruct) IsSub() bool {
 
 	return psu.isSub
+}
+
+func (psu *parserServiceUnitStruct) Bou() repository.Boundary {
+
+	return psu.bou
 }
 
 /*
@@ -288,18 +311,14 @@ func newDataHandlerUnit(s ServiceDTO) *dataHandler.DataHandlerUnit {
 func newRepositoryUnit(s ServiceDTO) *repository.RepositoryUnit {
 
 	return &repository.RepositoryUnit{
-		R_part:  s.Part(),
-		R_ts:    s.TS(),
-		R_body:  s.Body(),
-		R_b:     s.B(),
-		R_e:     s.E(),
-		R_isSub: s.IsSub(),
-		R_last:  s.Last(),
-		R_boundary: repository.Boundary{
-			Prefix: s.Bou.Prefix,
-			Root:   s.Bou.Root,
-			Suffix: s.Bou.Suffix,
-		},
+		R_part:     s.Part(),
+		R_ts:       s.TS(),
+		R_body:     s.Body(),
+		R_b:        s.B(),
+		R_e:        s.E(),
+		R_isSub:    s.IsSub(),
+		R_last:     s.Last(),
+		R_boundary: s.Bou(),
 	}
 }
 

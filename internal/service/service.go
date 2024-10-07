@@ -7,6 +7,7 @@ import (
 	"github.com/vynovikov/highLoadParser/internal/entities"
 	"github.com/vynovikov/highLoadParser/internal/infrastructure"
 	"github.com/vynovikov/highLoadParser/internal/logger"
+	"github.com/vynovikov/highLoadParser/internal/repository"
 	"github.com/vynovikov/highLoadParser/pkg/byteOps"
 )
 
@@ -38,7 +39,7 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 
 		//dhu := newDataHandlerUnit(serviceUnit)
 
-		serviceUnit := newServiceUnit(v)
+		serviceUnit := newServiceUnit1(v, bou)
 
 		dhu := newRepositoryUnit(serviceUnit)
 
@@ -71,9 +72,9 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 
 }
 
-func newDataHandlerBoundary(boundary entities.Boundary) dataHandler.Boundary {
+func newDataHandlerBoundary(boundary entities.Boundary) repository.Boundary {
 
-	return dataHandler.Boundary{
+	return repository.Boundary{
 		Prefix: boundary.Prefix,
 		Root:   boundary.Root,
 		Suffix: boundary.Suffix,

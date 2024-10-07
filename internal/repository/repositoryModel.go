@@ -59,3 +59,35 @@ type RepositoryUnit struct {
 	R_isSub    bool
 	R_boundary Boundary
 }
+
+func (r *RepositoryUnit) Part() int {
+	return r.R_part
+}
+
+func (r *RepositoryUnit) TS() string {
+	return r.R_ts
+}
+
+func (r *RepositoryUnit) Body() []byte {
+	return r.R_body
+}
+
+func (r *RepositoryUnit) SetBody(b []byte) {
+	r.R_body = b
+}
+
+func (r *RepositoryUnit) B() int {
+	return r.R_b
+}
+
+func (r *RepositoryUnit) E() int {
+	return r.R_e
+}
+
+func (r *RepositoryUnit) Last() bool {
+	return r.R_last
+}
+
+func (r *RepositoryUnit) IsSub() bool {
+	return r.R_isSub
+}
