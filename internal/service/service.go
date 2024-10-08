@@ -27,23 +27,17 @@ func NewParserService(i infrastructure.Infrastructure) *parcerServiceStruct {
 
 func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 
-	logger.L.Infoln("in Serve got some")
-
 	sDTO.Evolve(0)
 
-	bou := newDataHandlerBoundary(sDTO.Bou)
+	bou := newRepositoryBoundary(sDTO.Bou)
 
 	for _, v := range sDTO.psus {
 
-		//serviceUnit := newServiceUnit(v)
-
-		//dhu := newDataHandlerUnit(serviceUnit)
-
 		serviceUnit := newServiceUnit1(v, bou)
 
-		dhu := newRepositoryUnit(serviceUnit)
+		dhu := newRepositoryUnit(serviceUnit, bou)
 
-		resTT, err := s.infrastructure.Register(dhu, bou)
+		resTT, err := s.infrastructure.Register(dhu)
 
 		if err != nil {
 
@@ -60,9 +54,9 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 
 		serviceUnit := newServiceUnit(sDTO.pssu)
 
-		dhu := newDataHandlerUnit(serviceUnit)
+		dhu := newRepositoryUnit(serviceUnit, bou)
 
-		_, err := s.infrastructure.Register(dhu, bou)
+		_, err := s.infrastructure.Register(dhu)
 
 		if err != nil {
 
@@ -72,7 +66,7 @@ func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 
 }
 
-func newDataHandlerBoundary(boundary entities.Boundary) repository.Boundary {
+func newRepositoryBoundary(boundary entities.Boundary) repository.Boundary {
 
 	return repository.Boundary{
 		Prefix: boundary.Prefix,

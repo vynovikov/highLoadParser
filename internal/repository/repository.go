@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"regexp"
 
 	"github.com/vynovikov/highLoadParser/internal/dataHandler"
 	"github.com/vynovikov/highLoadParser/internal/logger"
@@ -12,7 +13,7 @@ import (
 )
 
 type ParserRepository interface {
-	Register(dataHandler.DataHandlerDTO, Boundary) (dataHandler.ProducerUnit, error)
+	Register(RepositoryDTO) (dataHandler.ProducerUnit, error)
 }
 
 type repositoryStruct struct {
@@ -25,14 +26,12 @@ func NewParserRepository(dh dataHandler.DataHandler) *repositoryStruct {
 	}
 }
 
-func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou Boundary) (dataHandler.ProducerUnit, error) {
+func (r *repositoryStruct) Register(d RepositoryDTO) (dataHandler.ProducerUnit, error) {
 
 	var (
-		err   error
+		//err   error
 		resTT dataHandler.ProducerUnit
 	)
-
-	d := dataHandler.NewDataHandlerUnit(dto)
 
 	switch {
 
@@ -40,7 +39,7 @@ func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou Boundary
 
 		key := newKeyDetailed(d)
 
-		val, err := newValue(d, bou)
+		val, err := newValue(d)
 		if err != nil &&
 			!errors.Is(err, errHeaderNotFull) &&
 			!errors.Is(err, errHeaderEnding) {
@@ -54,37 +53,39 @@ func (r *repositoryStruct) Register(dto dataHandler.DataHandlerDTO, bou Boundary
 			logger.L.Infof("in repository.Register unable to set %s %d: %v\n", d.TS(), d.Part(), err)
 		}
 
-	/*	resTT, err = r.dataHandler.Create(d, bou)
-		if err != nil {
+		/*	resTT, err = r.dataHandler.Create(d, bou)
+				if err != nil {
 
-			logger.L.Infof("in repository.Register unable to create %s %d: %v\n", d.TS(), d.Part(), err)
-		}
-	*/
-	case d.B() == 1:
+					logger.L.Infof("in repository.Register unable to create %s %d: %v\n", d.TS(), d.Part(), err)
+				}
 
-		bou := dataHandler.Boundary{}
 
-		resTT, err = r.dataHandler.Updade(d, bou)
-		if err != nil {
+			case d.B() == 1:
 
-			logger.L.Infof("in repository.Register unable to update %s %d: %v\n", d.TS(), d.Part(), err)
-		}
-	}
+				bou := dataHandler.Boundary{}
 
-	if d.Last() {
+				resTT, err = r.dataHandler.Updade(d, bou)
+				if err != nil {
 
-		err := r.dataHandler.Delete(d.TS())
+					logger.L.Infof("in repository.Register unable to update %s %d: %v\n", d.TS(), d.Part(), err)
+				}
+			}
 
-		if err != nil {
+			if d.Last() {
 
-			logger.L.Infof("in repository.Register unable to delete %s %v\n", d.TS(), err)
-		}
+				err := r.dataHandler.Delete(d.TS())
+
+				if err != nil {
+
+					logger.L.Infof("in repository.Register unable to delete %s %v\n", d.TS(), err)
+				}
+		*/
 	}
 
 	return resTT, nil
 }
 
-func newValue(d dataHandler.DataHandlerDTO, bou Boundary) (dataHandler.Value, error) {
+func newValue(d RepositoryDTO) (dataHandler.Value, error) {
 
 	headerB, body, _ := make([]byte, 0, maxHeaderLimit), d.Body(), 0
 
@@ -99,31 +100,31 @@ func newValue(d dataHandler.DataHandlerDTO, bou Boundary) (dataHandler.Value, er
 		headerB = append(headerB, d.Body()...)
 	}
 
-	exactHeaderBytes, err := getHeaderLines(headerB, bou)
+	exactHeaderBytes, err := getHeaderLines(headerB, d.Bou())
 	if err != nil {
 
 		if errors.Is(err, errHeaderNotFull) ||
 			errors.Is(err, errHeaderEnding) {
 
-			return value{
+			return dataHandler.Value{
 				E: d.E(),
-				H: headerData{
-					headerBytes: exactHeaderBytes,
+				H: dataHandler.HeaderData{
+					HeaderBytes: exactHeaderBytes,
 				},
 			}, err
 		}
 
-		return value{}, err
+		return dataHandler.Value{}, err
 	}
 
 	fo, fi := getFoFi(exactHeaderBytes)
 
-	return value{
+	return dataHandler.Value{
 		E: d.E(),
-		H: headerData{
-			formName:    fo,
-			fileName:    fi,
-			headerBytes: exactHeaderBytes,
+		H: dataHandler.HeaderData{
+			FormName:    fo,
+			FileName:    fi,
+			HeaderBytes: exactHeaderBytes,
 		},
 	}, nil
 }
@@ -479,10 +480,92 @@ func getHeaderLines(b []byte, bou Boundary) ([]byte, error) {
 	}
 }
 
-func newKeyDetailed(d dataHandler.DataHandlerDTO) dataHandler.KeyDetailed {
+func newKeyDetailed(d RepositoryDTO) dataHandler.KeyDetailed {
 
 	return dataHandler.KeyDetailed{
 		Ts:   d.TS(),
 		Part: d.Part(),
 	}
+}
+
+func getFoFi(b []byte) (string, string) {
+
+	fo, fi, foPre, fiPre := "", "", []byte(" name=\""), []byte(" filename=\"")
+
+	if len(b) > 0 {
+
+		if bytes.Contains(b, foPre) {
+
+			fo = string(b[bytes.Index(b, foPre)+len(foPre) : byteOps.FindNext(b, []byte("\""), bytes.Index(b, foPre)+len(foPre))])
+
+			if bytes.Contains(b, fiPre) {
+
+				fi = string(b[bytes.Index(b, fiPre)+len(fiPre) : byteOps.FindNext(b, []byte("\""), bytes.Index(b, fiPre)+len(fiPre))])
+			}
+		}
+	}
+
+	return fo, fi
+}
+
+func genBoundary(bou Boundary) []byte {
+
+	Boundary := make([]byte, 0)
+
+	Boundary = append(Boundary, []byte("\r\n")...)
+	Boundary = append(Boundary, bou.Prefix...)
+	Boundary = append(Boundary, bou.Root...)
+
+	return Boundary
+}
+
+// sufficiency determines whether b is header for string data or for file data
+func sufficientType(b []byte) sufficiency {
+
+	r0 := regexp.MustCompile(`^Content-Disposition: form-data; name="[a-zA-zа-яА-Я0-9_.-:@#%^&\$\+\!\*\(\[\{\)\]\}]+"$`)
+	r1 := regexp.MustCompile(`^Content-Disposition: form-data; name="[a-zA-zа-яА-Я0-9_.-:@#%^&\$\+\!\*\(\[\{\)\]\}]+"; filename="[a-zA-zа-яА-Я0-9_.-:@#%^&\$\+\!\*\(\[\{\)\]\}]+"$`)
+
+	if r0.Match(b) {
+
+		return sufficient
+	}
+	if r1.Match(b) {
+
+		return insufficient
+	}
+
+	return incomplete
+}
+
+// isLastBoundaryPart returns true if b is ending part of last Boundary.
+// Tested in repository_test.go
+func isLastBoundaryPart(b []byte, bou Boundary) bool {
+
+	lenb, suffix := len(b), make([]byte, 0)
+
+	i, lastSymbol := lenb, b[lenb-1]
+
+	for i >= 1 {
+		if i == 1 {
+
+			return true
+		}
+
+		if i > 1 && b[i-1] != lastSymbol {
+
+			break
+		}
+
+		i--
+	}
+
+	suffix = b[i:]
+	rootLen := lenb - len(suffix)
+
+	if rootLen < lenb && bytes.Contains(genBoundary(bou), b[:rootLen]) {
+
+		return true
+	}
+
+	return false
 }

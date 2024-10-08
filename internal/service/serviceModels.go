@@ -23,7 +23,7 @@ type ParserServiceHeader struct {
 	B    int
 	E    int
 	last bool
-	bou  repository.Boundary
+	bou  entities.Boundary
 }
 
 func NewParserServiceHeader(ts string, p int, b, e int, l bool) ParserServiceHeader {
@@ -260,7 +260,10 @@ func (psu *parserServiceUnitStruct) IsSub() bool {
 
 func (psu *parserServiceUnitStruct) Bou() repository.Boundary {
 
-	return psu.bou
+	return repository.Boundary{
+		Prefix: psu.bou.Prefix,
+		Root:   psu.bou.Root,
+	}
 }
 
 /*
@@ -308,17 +311,17 @@ func newDataHandlerUnit(s ServiceDTO) *dataHandler.DataHandlerUnit {
 	}
 }
 
-func newRepositoryUnit(s ServiceDTO) *repository.RepositoryUnit {
+func newRepositoryUnit(s ServiceDTO, bou repository.Boundary) *repository.RepositoryUnit {
 
 	return &repository.RepositoryUnit{
-		R_part:     s.Part(),
-		R_ts:       s.TS(),
-		R_body:     s.Body(),
-		R_b:        s.B(),
-		R_e:        s.E(),
-		R_isSub:    s.IsSub(),
-		R_last:     s.Last(),
-		R_boundary: s.Bou(),
+		R_part:  s.Part(),
+		R_ts:    s.TS(),
+		R_body:  s.Body(),
+		R_b:     s.B(),
+		R_e:     s.E(),
+		R_isSub: s.IsSub(),
+		R_last:  s.Last(),
+		R_bou:   bou,
 	}
 }
 

@@ -49,7 +49,26 @@ func (r *redisHandler) Create(d DataHandlerDTO, bou Boundary) (ProducerUnit, err
 	return resTT, nil
 }
 
-func (r *redisHandler) Set(keyDetailed, value) error {
+func (r *redisHandler) Set(k KeyDetailed, v Value) error {
+
+	keyBytes, err := json.Marshal(k)
+	if err != nil {
+		logger.L.Errorf("in redisHandler.Set unable to marshal :%v\n", err)
+		return err
+	}
+
+	valueBytes, err := json.Marshal(v)
+	if err != nil {
+		logger.L.Errorf("in redisHandler.Set unable to marshal :%v\n", err)
+		return err
+	}
+
+	_, err = r.client.Set(r.ctx, string(keyBytes), valueBytes, 0).Result()
+
+	if err != nil {
+		logger.L.Errorf("in redisHandler.Set error while set to redis: %v\n", err)
+		return err
+	}
 	return nil
 }
 

@@ -41,6 +41,7 @@ type RepositoryDTO interface {
 	E() int
 	Last() bool
 	IsSub() bool
+	Bou() Boundary
 }
 
 type Boundary struct {
@@ -50,14 +51,14 @@ type Boundary struct {
 }
 
 type RepositoryUnit struct {
-	R_part     int
-	R_ts       string
-	R_body     []byte
-	R_b        int
-	R_e        int
-	R_last     bool
-	R_isSub    bool
-	R_boundary Boundary
+	R_part  int
+	R_ts    string
+	R_body  []byte
+	R_b     int
+	R_e     int
+	R_last  bool
+	R_isSub bool
+	R_bou   Boundary
 }
 
 func (r *RepositoryUnit) Part() int {
@@ -90,4 +91,8 @@ func (r *RepositoryUnit) Last() bool {
 
 func (r *RepositoryUnit) IsSub() bool {
 	return r.R_isSub
+}
+
+func (r *RepositoryUnit) Bou() Boundary {
+	return r.R_bou
 }

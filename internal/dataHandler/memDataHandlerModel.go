@@ -112,11 +112,6 @@ type value struct {
 	E int        `json:"e"`
 }
 
-type Value struct {
-	H headerData `json:"h"`
-	E int        `json:"e"`
-}
-
 type headerData struct {
 	formName    string
 	fileName    string
