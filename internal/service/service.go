@@ -27,7 +27,7 @@ func NewParserService(i infrastructure.Infrastructure) *parcerServiceStruct {
 
 func (s *parcerServiceStruct) Serve(sDTO ParserServiceDTO) {
 
-	logger.L.Infoln("in Serve got some data")
+	logger.L.Infoln("in Serve got some")
 
 	sDTO.Evolve(0)
 
