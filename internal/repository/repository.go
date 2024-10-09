@@ -46,7 +46,7 @@ func (r *repositoryStruct) Register(d RepositoryDTO) (dataHandler.ProducerUnit, 
 
 	case d.B() == 0:
 
-		_, err = r.dataHandler.Get(key)
+		got, err := r.dataHandler.Get(key)
 		if err != nil {
 
 			if errors.Is(err, dataHandler.ErrKeyNotFound) { // no data for this key
@@ -62,6 +62,8 @@ func (r *repositoryStruct) Register(d RepositoryDTO) (dataHandler.ProducerUnit, 
 				logger.L.Infof("in repository.Register unable to get value of key = %v: %v\n", key, err)
 			}
 		}
+
+		_ = got
 
 	case d.B() == 1:
 

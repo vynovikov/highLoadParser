@@ -111,6 +111,6 @@ func (r *redisHandler) Updade(DataHandlerDTO, Boundary) (ProducerUnit, error) {
 	return &ProducerUnitStruct{}, nil
 }
 
-func (r *redisHandler) Delete(string) error {
+func (r *redisHandler) Delete(KeyDetailed) error {
 	return nil
 }

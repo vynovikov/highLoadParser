@@ -43,12 +43,12 @@ func (m *mockRedisDataHandler) Set(dataHandler.KeyDetailed, dataHandler.Value) e
 }
 
 func (m *mockRedisDataHandler) Get(dataHandler.KeyDetailed) (dataHandler.Value, error) {
-	return dataHandler.Value{}, nil
+	args := m.Called()
+	return args.Get(0).(dataHandler.Value), args.Error(1)
 }
 
 func (s *repositorySuite) TestRegister() {
 	tt := []struct {
-		repo         ParserRepository
 		name         string
 		dto          RepositoryDTO
 		wantedKey    dataHandler.KeyDetailed
@@ -57,17 +57,40 @@ func (s *repositorySuite) TestRegister() {
 		wantedError  error
 	}{
 		{
-			repo: &repositoryStruct{
-				dataHandler: &mockRedisDataHandler{},
+			name: "1",
+			dto: &RepositoryUnit{
+				R_ts:   "qqq",
+				R_part: 0,
+				R_b:    0,
+				R_e:    0,
+				R_body: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\nazazaza"),
+				R_bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			},
+			wantedKey: dataHandler.KeyDetailed{
+				Ts:   "qqq",
+				Part: 0,
+			},
+			wantedValue: dataHandler.Value{
+				E: 0,
+				H: dataHandler.HeaderData{
+					FormName: "alice",
+					FileName: "",
+					Header:   []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+				},
+			},
+			wantedResult: &dataHandler.ProducerUnitStruct{},
+			wantedError:  nil,
 		},
 	}
 	for _, v := range tt {
 		s.Run(v.name, func() {
+			dh := &mockRedisDataHandler{}
+			dh.On("Get", v.wantedKey).Return(dataHandler.Value{H: dataHandler.HeaderData{FormName: "fuck you"}}, nil)
+			dh.On("Set", v.wantedKey, v.wantedValue).Return(nil)
 
-			v.repo.(*repositoryStruct).dataHandler.(*mockRedisDataHandler).On("Set", v.wantedKey, v.wantedValue).Return(nil).Once()
+			repo := NewParserRepository(dh)
 
-			gotRes, gotErr := v.repo.Register(v.dto)
+			gotRes, gotErr := repo.Register(v.dto)
 			if gotErr != nil {
 				s.Equal(v.wantedError, gotErr)
 			}
