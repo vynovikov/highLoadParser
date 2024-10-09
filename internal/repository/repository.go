@@ -28,21 +28,23 @@ func NewParserRepository(dh dataHandler.DataHandler) *repositoryStruct {
 
 func (r *repositoryStruct) Register(d RepositoryDTO) (dataHandler.ProducerUnit, error) {
 
+	var err error
+
 	resTT := &dataHandler.ProducerUnitStruct{}
+
+	key := newKeyDetailed(d)
+
+	val, err := newValue(d)
+	if err != nil &&
+		!errors.Is(err, errHeaderNotFull) &&
+		!errors.Is(err, errHeaderEnding) {
+
+		return resTT, err
+	}
 
 	switch {
 
 	case d.B() == 0:
-
-		key := newKeyDetailed(d)
-
-		val, err := newValue(d)
-		if err != nil &&
-			!errors.Is(err, errHeaderNotFull) &&
-			!errors.Is(err, errHeaderEnding) {
-
-			return resTT, err
-		}
 
 		_, err = r.dataHandler.Get(key)
 		if err != nil {
@@ -61,63 +63,44 @@ func (r *repositoryStruct) Register(d RepositoryDTO) (dataHandler.ProducerUnit, 
 			}
 		}
 
-		/*
-				if len(m.Map[kgen]) == 0 {
+	case d.B() == 1:
 
-					l1, l2 := make(map[keyDetailed]map[bool]value), make(map[bool]value)
+		switch d.E() {
+		case 0:
+			err = r.dataHandler.Delete(key)
+			if err != nil {
 
-				if !d.IsSub() {
-
-					kdet.part++
-
-				} else {
-
-					l2Key = true
-				}
-
-				l2[l2Key] = val
-
-				l1[kdet] = l2
-
-				if !d.Last() {
-
-					m.Map[kgen] = l1
-				}
-
-				resTT.updateProducerUnit(d, val, len(val.H.headerBytes))
-
-				return resTT, nil
-			}
-		*/
-
-		/*	resTT, err = r.dataHandler.Create(d, bou)
-				if err != nil {
-
-					logger.L.Infof("in repository.Register unable to create %s %d: %v\n", d.TS(), d.Part(), err)
-				}
-
-
-			case d.B() == 1:
-
-				bou := dataHandler.Boundary{}
-
-				resTT, err = r.dataHandler.Updade(d, bou)
-				if err != nil {
-
-					logger.L.Infof("in repository.Register unable to update %s %d: %v\n", d.TS(), d.Part(), err)
-				}
+				logger.L.Infof("in repository.Register unable to delete %s %d: %v\n", d.TS(), d.Part(), err)
 			}
 
-			if d.Last() {
+			return resTT, nil
+		case 1:
+			err = r.dataHandler.Delete(key)
+			if err != nil {
 
-				err := r.dataHandler.Delete(d.TS())
+				logger.L.Infof("in repository.Register unable to delete %s %d: %v\n", d.TS(), d.Part(), err)
+			}
 
-				if err != nil {
+			key.Part++
+		case 2:
+		}
 
-					logger.L.Infof("in repository.Register unable to delete %s %v\n", d.TS(), err)
-				}
-		*/
+		err = r.dataHandler.Set(key, val)
+		if err != nil {
+
+			logger.L.Infof("in repository.Register unable to update %s %d: %v\n", d.TS(), d.Part(), err)
+		}
 	}
+	/*
+		if d.Last() {
+
+			err := r.dataHandler.Delete(d.TS())
+
+			if err != nil {
+
+				logger.L.Infof("in repository.Register unable to delete %s %v\n", d.TS(), err)
+			}
+	*/
 
 	return resTT, nil
 }
@@ -145,8 +128,8 @@ func newValue(d RepositoryDTO) (dataHandler.Value, error) {
 
 			return dataHandler.Value{
 				E: d.E(),
-				H: dataHandler.HeaderData1{
-					Header: string(exactHeaderBytes),
+				H: dataHandler.HeaderData{
+					Header: exactHeaderBytes,
 				},
 			}, err
 		}
@@ -158,10 +141,10 @@ func newValue(d RepositoryDTO) (dataHandler.Value, error) {
 
 	return dataHandler.Value{
 		E: d.E(),
-		H: dataHandler.HeaderData1{
+		H: dataHandler.HeaderData{
 			FormName: fo,
 			FileName: fi,
-			Header:   string(exactHeaderBytes),
+			Header:   exactHeaderBytes,
 		},
 	}, nil
 }
@@ -605,4 +588,33 @@ func isLastBoundaryPart(b []byte, bou Boundary) bool {
 	}
 
 	return false
+}
+
+func (t *ProducerUnitStruct) updateProducerUnit(d RepositoryDTO, v dataHandler.Value, headerEndingIndex int) {
+
+	t.Dh_FormName = v.H.FormName
+
+	t.Dh_FileName = v.H.FileName
+
+	if d.B() == 1 && headerEndingIndex > 0 {
+
+		t.Dh_Body = d.Body()[headerEndingIndex:]
+
+		t.Dh_Start = true
+
+	} else if d.B() == 1 {
+
+		t.Dh_Body = d.Body()
+
+	} else if d.B() == 0 && len(v.H.FormName) == 0 {
+
+		t.Dh_Body = make([]byte, 0)
+
+	} else if d.B() == 0 && len(v.H.FormName) > 0 {
+
+		t.Dh_Body = d.Body()[headerEndingIndex:]
+
+		t.Dh_Start = true
+
+	}
 }

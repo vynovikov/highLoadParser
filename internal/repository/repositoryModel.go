@@ -96,3 +96,15 @@ func (r *RepositoryUnit) IsSub() bool {
 func (r *RepositoryUnit) Bou() Boundary {
 	return r.R_bou
 }
+
+type ProducerUnitStruct struct {
+	Dh_TS       string
+	Dh_Part     int
+	Dh_FormName string
+	Dh_FileName string
+	Dh_Body     []byte
+	Dh_Start    bool
+	Dh_End      bool
+	Dh_Final    bool
+	Dh_IsSub    bool
+}

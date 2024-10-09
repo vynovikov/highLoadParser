@@ -26,7 +26,12 @@ type HeaderData1 struct {
 	Header   string
 }
 
-type Value struct {
+type Value1 struct {
 	H HeaderData1 `json:"headerData"`
 	E int         `json:"isEndingNeeded"`
+}
+
+type Value struct {
+	H HeaderData `json:"headerData"`
+	E int        `json:"isEndingNeeded"`
 }
