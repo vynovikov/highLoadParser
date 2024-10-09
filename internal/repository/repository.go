@@ -29,9 +29,11 @@ func NewParserRepository(dh dataHandler.DataHandler) *repositoryStruct {
 func (r *repositoryStruct) Register(d RepositoryDTO) (dataHandler.ProducerUnit, error) {
 
 	var (
-		//err   error
-		resTT dataHandler.ProducerUnit
+	//err   error
+	//resTT *dataHandler.ProducerUnitStruct
 	)
+
+	resTT := &dataHandler.ProducerUnitStruct{}
 
 	switch {
 
@@ -108,8 +110,8 @@ func newValue(d RepositoryDTO) (dataHandler.Value, error) {
 
 			return dataHandler.Value{
 				E: d.E(),
-				H: dataHandler.HeaderData{
-					HeaderBytes: exactHeaderBytes,
+				H: dataHandler.HeaderData1{
+					Header: string(exactHeaderBytes),
 				},
 			}, err
 		}
@@ -121,10 +123,10 @@ func newValue(d RepositoryDTO) (dataHandler.Value, error) {
 
 	return dataHandler.Value{
 		E: d.E(),
-		H: dataHandler.HeaderData{
-			FormName:    fo,
-			FileName:    fi,
-			HeaderBytes: exactHeaderBytes,
+		H: dataHandler.HeaderData1{
+			FormName: fo,
+			FileName: fi,
+			Header:   string(exactHeaderBytes),
 		},
 	}, nil
 }

@@ -6,12 +6,18 @@ type KeyDetailed struct {
 }
 
 type HeaderData struct {
-	FormName    string
-	FileName    string
-	HeaderBytes []byte
+	FormName string
+	FileName string
+	Header   []byte
+}
+
+type HeaderData1 struct {
+	FormName string
+	FileName string
+	Header   string
 }
 
 type Value struct {
-	H HeaderData `json:"h"`
-	E int        `json:"e"`
+	H HeaderData1 `json:"headerData"`
+	E int         `json:"isEndingNeeded"`
 }
