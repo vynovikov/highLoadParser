@@ -103,8 +103,8 @@ func (r *redisHandler) Get(k KeyDetailed) (Value, error) {
 	return res, nil
 }
 
-func (r *redisHandler) Read(DataHandlerDTO) (value, error) {
-	return value{}, nil
+func (r *redisHandler) Read(DataHandlerDTO) (Value, error) {
+	return Value{}, nil
 }
 
 func (r *redisHandler) Updade(DataHandlerDTO, Boundary) (ProducerUnit, error) {

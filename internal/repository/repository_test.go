@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"github.com/vynovikov/highLoadParser/internal/dataHandler"
 )
@@ -17,12 +18,61 @@ func TestRepositorySuite(t *testing.T) {
 	suite.Run(t, new(repositorySuite))
 }
 
+type mockRedisDataHandler struct {
+	mock.Mock
+}
+
+func (m *mockRedisDataHandler) Create(dataHandler.DataHandlerDTO, dataHandler.Boundary) (dataHandler.ProducerUnit, error) {
+	return &dataHandler.ProducerUnitStruct{}, nil
+}
+
+func (m *mockRedisDataHandler) Read(dataHandler.DataHandlerDTO) (dataHandler.Value, error) {
+	return dataHandler.Value{}, nil
+}
+
+func (m *mockRedisDataHandler) Updade(dataHandler.DataHandlerDTO, dataHandler.Boundary) (dataHandler.ProducerUnit, error) {
+	return &dataHandler.ProducerUnitStruct{}, nil
+}
+
+func (m *mockRedisDataHandler) Delete(dataHandler.KeyDetailed) error {
+	return nil
+}
+
+func (m *mockRedisDataHandler) Set(dataHandler.KeyDetailed, dataHandler.Value) error {
+	return nil
+}
+
+func (m *mockRedisDataHandler) Get(dataHandler.KeyDetailed) (dataHandler.Value, error) {
+	return dataHandler.Value{}, nil
+}
+
 func (s *repositorySuite) TestRegister() {
 	tt := []struct {
-		name string
-	}{}
+		repo         ParserRepository
+		name         string
+		dto          RepositoryDTO
+		wantedKey    dataHandler.KeyDetailed
+		wantedValue  dataHandler.Value
+		wantedResult dataHandler.ProducerUnit
+		wantedError  error
+	}{
+		{
+			repo: &repositoryStruct{
+				dataHandler: &mockRedisDataHandler{},
+			},
+		},
+	}
 	for _, v := range tt {
-		s.Run(v.name, func() {})
+		s.Run(v.name, func() {
+
+			v.repo.(*repositoryStruct).dataHandler.(*mockRedisDataHandler).On("Set", v.wantedKey, v.wantedValue).Return(nil).Once()
+
+			gotRes, gotErr := v.repo.Register(v.dto)
+			if gotErr != nil {
+				s.Equal(v.wantedError, gotErr)
+			}
+			s.Equal(v.wantedResult, gotRes)
+		})
 	}
 }
 
