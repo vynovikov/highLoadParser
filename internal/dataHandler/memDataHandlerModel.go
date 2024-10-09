@@ -1,16 +1,8 @@
 package dataHandler
 
-import "errors"
-
 type (
 	Disposition int
 	sufficiency int
-)
-
-var (
-	errHeaderEnding   error = errors.New("ending of header")
-	errHeaderNotFull  error = errors.New("header is not full")
-	errHeaderNotFound error = errors.New("header is not found")
 )
 
 const (

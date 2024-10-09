@@ -341,8 +341,12 @@ func (m *memoryDataHandlerStruct) Delete(ts string) error {
 	return nil
 }
 
-func (m *memoryDataHandlerStruct) Set(keyDetailed, value) error {
+func (m *memoryDataHandlerStruct) Set(KeyDetailed, Value) error {
 	return nil
+}
+
+func (m *memoryDataHandlerStruct) Get(KeyDetailed) (Value, error) {
+	return Value{}, nil
 }
 
 // updates value returns index of first body symbol

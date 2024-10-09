@@ -6,4 +6,5 @@ type DataHandler interface {
 	Updade(DataHandlerDTO, Boundary) (ProducerUnit, error)
 	Delete(string) error
 	Set(KeyDetailed, Value) error
+	Get(KeyDetailed) (Value, error)
 }

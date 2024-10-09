@@ -72,6 +72,37 @@ func (r *redisHandler) Set(k KeyDetailed, v Value) error {
 	return nil
 }
 
+func (r *redisHandler) Get(k KeyDetailed) (Value, error) {
+
+	res := Value{}
+
+	keyBytes, err := json.Marshal(k)
+	if err != nil {
+		logger.L.Errorf("in redisHandler.Get unable to marshal :%v\n", err)
+		return Value{}, err
+	}
+
+	val, err := r.client.Get(r.ctx, string(keyBytes)).Bytes()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+
+			return Value{}, errors.Join(ErrKeyNotFound, err)
+		} else {
+
+			logger.L.Errorf("in redisHandler.Get error while get from redis: %v\n", err)
+			return Value{}, err
+		}
+
+	}
+	err = json.Unmarshal(val, &res)
+	if err != nil {
+		logger.L.Errorf("in redisHandler.Get unable to unmarshal :%v\n", err)
+		return Value{}, err
+	}
+
+	return res, nil
+}
+
 func (r *redisHandler) Read(DataHandlerDTO) (value, error) {
 	return value{}, nil
 }

@@ -28,11 +28,6 @@ func NewParserRepository(dh dataHandler.DataHandler) *repositoryStruct {
 
 func (r *repositoryStruct) Register(d RepositoryDTO) (dataHandler.ProducerUnit, error) {
 
-	var (
-	//err   error
-	//resTT *dataHandler.ProducerUnitStruct
-	)
-
 	resTT := &dataHandler.ProducerUnitStruct{}
 
 	switch {
@@ -49,11 +44,51 @@ func (r *repositoryStruct) Register(d RepositoryDTO) (dataHandler.ProducerUnit, 
 			return resTT, err
 		}
 
-		err = r.dataHandler.Set(key, val)
+		_, err = r.dataHandler.Get(key)
 		if err != nil {
 
-			logger.L.Infof("in repository.Register unable to set %s %d: %v\n", d.TS(), d.Part(), err)
+			if errors.Is(err, dataHandler.ErrKeyNotFound) { // no data for this key
+
+				err = r.dataHandler.Set(key, val)
+				if err != nil {
+
+					logger.L.Infof("in repository.Register unable to set key = %v: %v\n", key, err)
+				}
+
+			} else { // any other error
+
+				logger.L.Infof("in repository.Register unable to get value of key = %v: %v\n", key, err)
+			}
 		}
+
+		/*
+				if len(m.Map[kgen]) == 0 {
+
+					l1, l2 := make(map[keyDetailed]map[bool]value), make(map[bool]value)
+
+				if !d.IsSub() {
+
+					kdet.part++
+
+				} else {
+
+					l2Key = true
+				}
+
+				l2[l2Key] = val
+
+				l1[kdet] = l2
+
+				if !d.Last() {
+
+					m.Map[kgen] = l1
+				}
+
+				resTT.updateProducerUnit(d, val, len(val.H.headerBytes))
+
+				return resTT, nil
+			}
+		*/
 
 		/*	resTT, err = r.dataHandler.Create(d, bou)
 				if err != nil {
