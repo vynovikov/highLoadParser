@@ -3,9 +3,10 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/mock"
+	"github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/suite"
 	"github.com/vynovikov/highLoadParser/internal/dataHandler"
 )
@@ -19,7 +20,8 @@ func TestRepositorySuite(t *testing.T) {
 }
 
 type mockRedisDataHandler struct {
-	mock.Mock
+	calledNum  int
+	parameters []interface{}
 }
 
 func (m *mockRedisDataHandler) Create(dataHandler.DataHandlerDTO, dataHandler.Boundary) (dataHandler.ProducerUnit, error) {
@@ -38,63 +40,87 @@ func (m *mockRedisDataHandler) Delete(dataHandler.KeyDetailed) error {
 	return nil
 }
 
-func (m *mockRedisDataHandler) Set(dataHandler.KeyDetailed, dataHandler.Value) error {
+func (m *mockRedisDataHandler) Set(key dataHandler.KeyDetailed, val dataHandler.Value) error {
+	m.calledNum++
+	m.parameters = append(m.parameters, key, val)
+
+	if strings.Contains(key.Ts, "error") {
+		return fmt.Errorf("lalala")
+	}
+
 	return nil
 }
 
-func (m *mockRedisDataHandler) Get(dataHandler.KeyDetailed) (dataHandler.Value, error) {
-	args := m.Called()
-	return args.Get(0).(dataHandler.Value), args.Error(1)
+func (m *mockRedisDataHandler) Get(key dataHandler.KeyDetailed) (dataHandler.Value, error) {
+	m.calledNum++
+	m.parameters = append(m.parameters, key)
+
+	if strings.Contains(key.Ts, "error") {
+		switch key.Ts[strings.Index(key.Ts, "_error_")+len("_error_"):] {
+		case "redis_nil":
+			return dataHandler.Value{}, errors.Join(dataHandler.ErrKeyNotFound, redis.Nil)
+		}
+		return dataHandler.Value{}, fmt.Errorf("other error")
+	}
+
+	return dataHandler.Value{}, nil
 }
 
 func (s *repositorySuite) TestRegister() {
 	tt := []struct {
 		name         string
 		dto          RepositoryDTO
-		wantedKey    dataHandler.KeyDetailed
-		wantedValue  dataHandler.Value
+		initRepo     ParserRepository
+		wantedRepo   ParserRepository
 		wantedResult dataHandler.ProducerUnit
 		wantedError  error
 	}{
 		{
 			name: "1",
 			dto: &RepositoryUnit{
-				R_ts:   "qqq",
+				R_ts:   "qqq_error_redis_nil",
 				R_part: 0,
 				R_b:    0,
 				R_e:    0,
 				R_body: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\nazazaza"),
 				R_bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
 			},
-			wantedKey: dataHandler.KeyDetailed{
-				Ts:   "qqq",
-				Part: 0,
+			initRepo: &repositoryStruct{
+				dataHandler: &mockRedisDataHandler{},
 			},
-			wantedValue: dataHandler.Value{
-				E: 0,
-				H: dataHandler.HeaderData{
-					FormName: "alice",
-					FileName: "",
-					Header:   []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+
+			wantedRepo: &repositoryStruct{
+				dataHandler: &mockRedisDataHandler{
+					calledNum: 2,
+
+					parameters: []interface{}{
+						dataHandler.KeyDetailed{
+							Ts: "qqq_error_redis_nil",
+						},
+						dataHandler.KeyDetailed{
+							Ts: "qqq_error_redis_nil",
+						},
+						dataHandler.Value{
+							H: dataHandler.HeaderData{
+								FormName: "alice",
+								FileName: "",
+								Header:   []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+							},
+							E: 0,
+						},
+					},
 				},
 			},
-			wantedResult: &dataHandler.ProducerUnitStruct{},
-			wantedError:  nil,
 		},
 	}
 	for _, v := range tt {
 		s.Run(v.name, func() {
-			dh := &mockRedisDataHandler{}
-			dh.On("Get", v.wantedKey).Return(dataHandler.Value{H: dataHandler.HeaderData{FormName: "fuck you"}}, nil)
-			dh.On("Set", v.wantedKey, v.wantedValue).Return(nil)
 
-			repo := NewParserRepository(dh)
-
-			gotRes, gotErr := repo.Register(v.dto)
+			_, gotErr := v.initRepo.Register(v.dto)
 			if gotErr != nil {
 				s.Equal(v.wantedError, gotErr)
 			}
-			s.Equal(v.wantedResult, gotRes)
+			s.Equal(v.wantedRepo, v.initRepo)
 		})
 	}
 }
