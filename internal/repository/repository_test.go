@@ -47,7 +47,7 @@ func (m *mockRedisDataHandler) Set(key dataHandler.KeyDetailed, val dataHandler.
 	if strings.Contains(key.Ts, "error") &&
 		!strings.Contains(key.Ts, "set_none") {
 
-		return fmt.Errorf("lalala")
+		return fmt.Errorf("set error")
 	}
 
 	return nil
@@ -79,7 +79,7 @@ func (s *repositorySuite) TestRegister() {
 		wantedError  error
 	}{
 		{
-			name: "1",
+			name: "1. dto.B() == 0, dto.E() == 0",
 			dto: &RepositoryUnit{
 				R_ts:   "qqq_error_get_redis_nil_set_none",
 				R_part: 0,
@@ -110,6 +110,120 @@ func (s *repositorySuite) TestRegister() {
 								Header:   []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
 							},
 							E: 0,
+						},
+					},
+				},
+			},
+		},
+
+		{
+			name: "2. dto.B() == 0, dto.E() == 1, Full header, name only",
+			dto: &RepositoryUnit{
+				R_ts:   "qqq_error_get_redis_nil_set_none",
+				R_part: 0,
+				R_b:    0,
+				R_e:    1,
+				R_body: []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\nazazazazazazazazazazazazazazazazazazazazazazazazazazaza"),
+				R_bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			},
+			initRepo: &repositoryStruct{
+				dataHandler: &mockRedisDataHandler{},
+			},
+
+			wantedRepo: &repositoryStruct{
+				dataHandler: &mockRedisDataHandler{
+					calledNum: 2,
+
+					parameters: []interface{}{
+						dataHandler.KeyDetailed{
+							Ts: "qqq_error_get_redis_nil_set_none",
+						},
+						dataHandler.KeyDetailed{
+							Ts: "qqq_error_get_redis_nil_set_none",
+						},
+						dataHandler.Value{
+							H: dataHandler.HeaderData{
+								FormName: "alice",
+								FileName: "",
+								Header:   []byte("Content-Disposition: form-data; name=\"alice\"\r\n\r\n"),
+							},
+							E: 1,
+						},
+					},
+				},
+			},
+		},
+
+		{
+			name: "3. dto.B() == 0, dto.E() == 1, Full header, name and filename",
+			dto: &RepositoryUnit{
+				R_ts:   "qqq_error_get_redis_nil_set_none",
+				R_part: 0,
+				R_b:    0,
+				R_e:    1,
+				R_body: []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\nazazazazazazazazazazazazazazazazazazazazazazazazazazaza"),
+				R_bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			},
+			initRepo: &repositoryStruct{
+				dataHandler: &mockRedisDataHandler{},
+			},
+
+			wantedRepo: &repositoryStruct{
+				dataHandler: &mockRedisDataHandler{
+					calledNum: 2,
+
+					parameters: []interface{}{
+						dataHandler.KeyDetailed{
+							Ts: "qqq_error_get_redis_nil_set_none",
+						},
+						dataHandler.KeyDetailed{
+							Ts: "qqq_error_get_redis_nil_set_none",
+						},
+						dataHandler.Value{
+							H: dataHandler.HeaderData{
+								FormName: "alice",
+								FileName: "short.txt",
+								Header:   []byte("Content-Disposition: form-data; name=\"alice\"; filename=\"short.txt\"\r\nContent-Type: text/plain\r\n\r\n"),
+							},
+							E: 1,
+						},
+					},
+				},
+			},
+		},
+
+		{
+			name: "4. dto.B() == 0, dto.E() == 1, header not full",
+			dto: &RepositoryUnit{
+				R_ts:   "qqq_error_get_redis_nil_set_none",
+				R_part: 0,
+				R_b:    0,
+				R_e:    1,
+				R_body: []byte("Content-Disposition: form-data; name=\"alice\"; filena"),
+				R_bou:  Boundary{Prefix: []byte("bPrefix"), Root: []byte("bRoot")},
+			},
+			initRepo: &repositoryStruct{
+				dataHandler: &mockRedisDataHandler{},
+			},
+
+			wantedRepo: &repositoryStruct{
+				dataHandler: &mockRedisDataHandler{
+					calledNum: 2,
+
+					parameters: []interface{}{
+						dataHandler.KeyDetailed{
+							Ts: "qqq_error_get_redis_nil_set_none",
+						},
+						dataHandler.KeyDetailed{
+							Ts: "qqq_error_get_redis_nil_set_none",
+						},
+						dataHandler.Value{
+							H: dataHandler.HeaderData{
+								FormName: "",
+								FileName: "",
+								Header:   []byte("Content-Disposition: form-data; name=\"alice\"; filena"),
+							},
+							E: 1,
 						},
 					},
 				},
