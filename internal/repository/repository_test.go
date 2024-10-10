@@ -44,7 +44,9 @@ func (m *mockRedisDataHandler) Set(key dataHandler.KeyDetailed, val dataHandler.
 	m.calledNum++
 	m.parameters = append(m.parameters, key, val)
 
-	if strings.Contains(key.Ts, "error") {
+	if strings.Contains(key.Ts, "error") &&
+		!strings.Contains(key.Ts, "set_none") {
+
 		return fmt.Errorf("lalala")
 	}
 
@@ -56,8 +58,9 @@ func (m *mockRedisDataHandler) Get(key dataHandler.KeyDetailed) (dataHandler.Val
 	m.parameters = append(m.parameters, key)
 
 	if strings.Contains(key.Ts, "error") {
-		switch key.Ts[strings.Index(key.Ts, "_error_")+len("_error_"):] {
-		case "redis_nil":
+		switch {
+		case strings.Contains(key.Ts[strings.Index(key.Ts, "_error_")+len("_error_"):], "redis_nil"):
+
 			return dataHandler.Value{}, errors.Join(dataHandler.ErrKeyNotFound, redis.Nil)
 		}
 		return dataHandler.Value{}, fmt.Errorf("other error")
@@ -78,7 +81,7 @@ func (s *repositorySuite) TestRegister() {
 		{
 			name: "1",
 			dto: &RepositoryUnit{
-				R_ts:   "qqq_error_redis_nil",
+				R_ts:   "qqq_error_get_redis_nil_set_none",
 				R_part: 0,
 				R_b:    0,
 				R_e:    0,
@@ -95,10 +98,10 @@ func (s *repositorySuite) TestRegister() {
 
 					parameters: []interface{}{
 						dataHandler.KeyDetailed{
-							Ts: "qqq_error_redis_nil",
+							Ts: "qqq_error_get_redis_nil_set_none",
 						},
 						dataHandler.KeyDetailed{
-							Ts: "qqq_error_redis_nil",
+							Ts: "qqq_error_get_redis_nil_set_none",
 						},
 						dataHandler.Value{
 							H: dataHandler.HeaderData{
